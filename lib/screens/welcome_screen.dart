@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:receipt_manager/screens/login_screen.dart';
-import 'package:receipt_manager/screens/registration_screen.dart';
+
+import 'login_screen.dart';
+import 'registration_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   static const String id = 'welcome_screen';
