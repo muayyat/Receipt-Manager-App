@@ -15,6 +15,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _auth = FirebaseAuth.instance;
   late String email;
   late String password;
+  bool showPassword = false; // State to toggle password visibility
+  String errorMessage = ''; // Variable to store error messages
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +66,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 onChanged: (value) {
                   password = value;
                 },
+                obscureText: !showPassword, // Toggle password visibility
                 decoration: InputDecoration(
                   hintText: 'Enter your password',
                   contentPadding:
@@ -81,11 +84,31 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         BorderSide(color: Colors.blueAccent, width: 2.0),
                     borderRadius: BorderRadius.all(Radius.circular(32.0)),
                   ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      showPassword ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        showPassword = !showPassword;
+                      });
+                    },
+                  ),
                 ),
               ),
               SizedBox(
                 height: 24.0,
               ),
+              // Error message display
+              if (errorMessage.isNotEmpty)
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                  child: Text(
+                    errorMessage,
+                    style: TextStyle(color: Colors.red, fontSize: 14),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.0),
                 child: Material(
@@ -94,7 +117,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   elevation: 5.0,
                   child: MaterialButton(
                     onPressed: () async {
-                      //Implement registration functionality.
+                      setState(() {
+                        errorMessage = ''; // Clear the error message
+                      });
                       try {
                         final newUser =
                             await _auth.createUserWithEmailAndPassword(
@@ -102,8 +127,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         if (newUser != null) {
                           Navigator.pushNamed(context, ScanScreen.id);
                         }
+                      } on FirebaseAuthException catch (e) {
+                        setState(() {
+                          errorMessage = extractErrorMessage(e);
+                        });
                       } catch (e) {
-                        print(e);
+                        setState(() {
+                          errorMessage =
+                              'An error occurred. Please try again later.';
+                        });
                       }
                     },
                     minWidth: 200.0,
@@ -120,5 +152,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         ),
       ),
     );
+  }
+
+  // Function to extract error message from FirebaseAuthException
+  String extractErrorMessage(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'invalid-email':
+        return 'The email address is not valid.';
+      case 'weak-password':
+        return 'The password is too weak. Please choose a stronger password.';
+      case 'email-already-in-use':
+        return 'An account already exists with this email.';
+      default:
+        return 'An unexpected error occurred. Please try again.';
+    }
   }
 }
