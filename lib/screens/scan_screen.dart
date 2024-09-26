@@ -82,7 +82,8 @@ class _ScanScreenState extends State<ScanScreen> {
 
     try {
       // Use Tesseract OCR to extract text from the image
-      String text = await FlutterTesseractOcr.extractText(image.path);
+      String text =
+          await FlutterTesseractOcr.extractText(image.path, language: "eng");
       setState(() {
         _extractedText = text;
       });
