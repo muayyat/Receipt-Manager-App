@@ -59,9 +59,17 @@ class _ScanScreenState extends State<ScanScreen> {
 
   // Function to request gallery permission and pick a photo from the gallery
   Future<void> _pickFromGallery() async {
-    PermissionStatus galleryStatus = await Permission.photos.request();
+    PermissionStatus permissionStatus;
 
-    if (galleryStatus.isGranted) {
+    if (Platform.isIOS) {
+      // Request permission for iOS
+      permissionStatus = await Permission.photos.request();
+    } else {
+      // Request permission for Android
+      permissionStatus = await Permission.storage.request();
+    }
+
+    if (permissionStatus.isGranted) {
       final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
       if (pickedFile != null) {
         setState(() {
@@ -82,8 +90,8 @@ class _ScanScreenState extends State<ScanScreen> {
 
     try {
       // Use Tesseract OCR to extract text from the image
-      String text =
-          await FlutterTesseractOcr.extractText(image.path, language: "eng");
+      String text = await FlutterTesseractOcr.extractText(image.path,
+          language: 'fin+eng');
       setState(() {
         _extractedText = text;
       });
