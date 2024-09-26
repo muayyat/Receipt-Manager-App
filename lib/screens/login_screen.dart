@@ -13,6 +13,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _auth = FirebaseAuth.instance;
   late String email;
   late String password;
+  bool showPassword = false;
+  String errorMessage = ''; // Variable to store error messages
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 onChanged: (value) {
                   password = value;
                 },
+                obscureText: !showPassword, // Toggle password visibility
                 decoration: InputDecoration(
                   hintText: 'Enter your password',
                   contentPadding:
@@ -79,11 +82,31 @@ class _LoginScreenState extends State<LoginScreen> {
                         BorderSide(color: Colors.lightBlueAccent, width: 2.0),
                     borderRadius: BorderRadius.all(Radius.circular(32.0)),
                   ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      showPassword ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        showPassword = !showPassword;
+                      });
+                    },
+                  ),
                 ),
               ),
               SizedBox(
                 height: 24.0,
               ),
+              // Error message display
+              if (errorMessage.isNotEmpty)
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                  child: Text(
+                    errorMessage,
+                    style: TextStyle(color: Colors.red, fontSize: 14),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 16.0),
                 child: Material(
@@ -92,15 +115,25 @@ class _LoginScreenState extends State<LoginScreen> {
                   elevation: 5.0,
                   child: MaterialButton(
                     onPressed: () async {
-                      //Implement login functionality.
+                      // Implement login functionality.
+                      setState(() {
+                        errorMessage = ''; // Clear the error message
+                      });
                       try {
                         final user = await _auth.signInWithEmailAndPassword(
                             email: email, password: password);
                         if (user != null) {
                           Navigator.pushNamed(context, ScanScreen.id);
                         }
+                      } on FirebaseAuthException catch (e) {
+                        setState(() {
+                          errorMessage = extractErrorMessage(e);
+                        });
                       } catch (e) {
-                        print(e);
+                        setState(() {
+                          errorMessage =
+                              'An error occurred. Please try again later.';
+                        });
                       }
                     },
                     minWidth: 200.0,
@@ -116,5 +149,23 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  // Function to extract error message from FirebaseAuthException
+  String extractErrorMessage(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'invalid-email':
+        return 'The email address is not valid.';
+      case 'user-disabled':
+        return 'This user account has been disabled.';
+      case 'user-not-found':
+        return 'No user found with this email. Please sign up first.';
+      case 'wrong-password':
+        return 'Incorrect password. Please try again.';
+      case 'invalid-credential':
+        return 'Invalid credentials. Please check your details.';
+      default:
+        return 'An unexpected error occurred. Please try again.';
+    }
   }
 }
