@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tesseract_ocr/flutter_tesseract_ocr.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -49,7 +50,7 @@ class _ScanScreenState extends State<ScanScreen> {
         setState(() {
           _imageFile = File(pickedFile.path);
         });
-        // _performTextRecognition(_imageFile!);
+        _performTextRecognition(_imageFile!);
       }
     } else {
       print("Camera permission denied");
@@ -66,31 +67,32 @@ class _ScanScreenState extends State<ScanScreen> {
         setState(() {
           _imageFile = File(pickedFile.path);
         });
-        // _performTextRecognition(_imageFile!);
+        _performTextRecognition(_imageFile!);
       }
     } else {
       print("Gallery permission denied");
     }
   }
 
-  // Function to perform text recognition on an image
-  // Future<void> _performTextRecognition(File image) async {
-  //   final InputImage inputImage = InputImage.fromFile(image);
-  //   final textRecognizer = TextRecognizer();
-  //
-  //   try {
-  //     final RecognizedText recognizedText =
-  //         await textRecognizer.processImage(inputImage);
-  //     setState(() {
-  //       _extractedText = recognizedText.text;
-  //     });
-  //   } catch (e) {
-  //     print('Error during text recognition: $e');
-  //   } finally {
-  //     // Dispose of the text recognizer to free up resources
-  //     textRecognizer.close();
-  //   }
-  // }
+  // Function to perform text recognition on an image using Flutter Tesseract OCR
+  Future<void> _performTextRecognition(File image) async {
+    setState(() {
+      _extractedText = "Processing...";
+    });
+
+    try {
+      // Use Tesseract OCR to extract text from the image
+      String text = await FlutterTesseractOcr.extractText(image.path);
+      setState(() {
+        _extractedText = text;
+      });
+    } catch (e) {
+      print('Error during text recognition: $e');
+      setState(() {
+        _extractedText = "Error extracting text.";
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
