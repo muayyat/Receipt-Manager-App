@@ -27,7 +27,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   height: 60.0,
                 ),
                 Text(
-                  'Receipt Manager',
+                  'Receiptyze',
                   style: TextStyle(
                     fontSize: 35.0,
                     fontWeight: FontWeight.w900,
