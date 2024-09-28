@@ -1,0 +1,50 @@
+name: Flutter Build & Test
+
+on:
+  # Trigger the workflow on push and pull requests targeting the main branch
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build and Test Flutter App
+    runs-on: macos-latest # Use macOS since Flutter needs it to build iOS apps
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+
+      # Step 2: Install Flutter SDK
+      - name: Install Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable' # You can specify a version, like '3.0.5'
+
+      # Step 3: Install dependencies (Run flutter pub get)
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Step 4: Run Flutter analyze (to check code quality)
+      - name: Analyze the code
+        run: flutter analyze
+
+      # Step 5: Run tests (if you have any in the test directory)
+      - name: Run tests
+        run: flutter test
+
+      # Step 6: Build APK for Android
+      - name: Build Android APK
+        run: flutter build apk --release
+        if: github.event_name == 'push'
+
+      # Step 7: Build iOS App
+      - name: Build iOS App
+        run: flutter build ios --no-codesign
+        if: github.event_name == 'push'
+        env:
+          CI: true
