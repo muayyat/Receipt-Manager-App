@@ -1,7 +1,6 @@
 name: Flutter Build & Test
 
 on:
-  # Trigger the workflow on push and pull requests targeting the main branch
   push:
     branches:
       - main
@@ -12,39 +11,58 @@ on:
 jobs:
   build:
     name: Build and Test Flutter App
-    runs-on: macos-latest # Use macOS since Flutter needs it to build iOS apps
+    runs-on: macos-latest
 
     steps:
       # Step 1: Checkout the repository
       - name: Checkout the repository
         uses: actions/checkout@v3
 
-      # Step 2: Install Flutter SDK
+      # Step 2: Cache Flutter dependencies
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pub-cache
+            build
+          key: ${{ runner.os }}-flutter-${{ hashFiles('pubspec.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter
+
+      # Step 3: Install Flutter SDK (specify version explicitly)
       - name: Install Flutter SDK
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable' # You can specify a version, like '3.0.5'
+          flutter-version: '3.13.6' # Explicit Flutter version to avoid "stable" issues
 
-      # Step 3: Install dependencies (Run flutter pub get)
+      # Step 4: Install dependencies (Run flutter pub get)
       - name: Install dependencies
         run: flutter pub get
 
-      # Step 4: Run Flutter analyze (to check code quality)
+      # Step 5: Run Flutter analyze (to check code quality)
       - name: Analyze the code
         run: flutter analyze
 
-      # Step 5: Run tests (if you have any in the test directory)
+      # Step 6: Run tests (if you have any in the test directory)
       - name: Run tests
         run: flutter test
 
-      # Step 6: Build APK for Android
+      # Step 7: Build Android APK
       - name: Build Android APK
         run: flutter build apk --release
         if: github.event_name == 'push'
 
-      # Step 7: Build iOS App
+      # Step 8: Install CocoaPods dependencies for iOS
+      - name: Install CocoaPods dependencies
+        run: |
+          cd ios
+          pod install
+        if: github.event_name == 'push'
+
+      # Step 9: Build iOS App
       - name: Build iOS App
         run: flutter build ios --no-codesign
         if: github.event_name == 'push'
         env:
           CI: true
+
