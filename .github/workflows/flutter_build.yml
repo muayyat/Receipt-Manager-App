@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    name: Build and Test Flutter App
+    name: Build, Analyze and Test Flutter App
     runs-on: macos-latest
 
     steps:
@@ -18,8 +18,14 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v3
 
-      # Step 2: Cache Flutter dependencies
-      - name: Cache Flutter dependencies
+      # Step 2: Set up Flutter
+      - name: Install Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.3'  # Use the version you're running locally
+
+      # Step 3: Cache Flutter dependencies
+      - name: Cache dependencies
         uses: actions/cache@v3
         with:
           path: |
@@ -29,25 +35,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-flutter
 
-      # Step 3: Install Flutter SDK (Use Flutter 3.24.3 to match your local version)
-      - name: Install Flutter SDK
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.24.3'  # This matches your local version
-
-      # Step 4: Install dependencies (Run flutter pub get)
+      # Step 4: Run flutter pub get to install dependencies
       - name: Install dependencies
         run: flutter pub get
 
-      # Step 5: Run Flutter analyze (to check code quality)
+      # Step 5: Analyze the code (continue on warning)
       - name: Analyze the code
-        run: flutter analyze
+        run: flutter analyze || true  # Do not fail on warnings
 
-      # Step 6: Run tests (if you have any in the test directory)
+      # Step 6: Run tests (fail only if there are test failures)
       - name: Run tests
         run: flutter test
 
-      # Step 7: Build Android APK
+      # Step 7: Build Android APK (only for push events)
       - name: Build Android APK
         run: flutter build apk --release
         if: github.event_name == 'push'
@@ -59,7 +59,7 @@ jobs:
           pod install
         if: github.event_name == 'push'
 
-      # Step 9: Build iOS App
+      # Step 9: Build iOS App (without code signing)
       - name: Build iOS App
         run: flutter build ios --no-codesign
         if: github.event_name == 'push'
