@@ -29,11 +29,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-flutter
 
-      # Step 3: Install Flutter SDK (specify version explicitly)
+      # Step 3: Install Flutter SDK (Use Flutter 3.24.3 to match your local version)
       - name: Install Flutter SDK
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.13.6' # Explicit Flutter version to avoid "stable" issues
+          flutter-version: '3.24.3'  # This matches your local version
 
       # Step 4: Install dependencies (Run flutter pub get)
       - name: Install dependencies
@@ -65,4 +65,3 @@ jobs:
         if: github.event_name == 'push'
         env:
           CI: true
-
