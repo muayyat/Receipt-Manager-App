@@ -23,25 +23,6 @@
           "other_platform_oauth_client": []
         }
       }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:770302644204:android:4e8a4cfa0c7cd7dc747ac9",
-        "android_client_info": {
-          "package_name": "com.tamk2024sp.receipt_manager"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAi5hsdFqREf12wZTwadnVN3lK47we7tYU"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
     }
   ],
   "configuration_version": "1"
