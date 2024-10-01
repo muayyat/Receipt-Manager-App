@@ -69,7 +69,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Expenses by Category'),
+        title: Text('Expenses Analysis'),
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
@@ -82,19 +82,42 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                       Text(
                         'Expenses by Category',
                         style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                            fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 20),
                       Expanded(
                         child: PieChart(
                           PieChartData(
                             sections: getSections(),
-                            centerSpaceRadius: 40,
+                            centerSpaceRadius:
+                                60, // Larger center space for better look
                             borderData: FlBorderData(show: false),
-                            sectionsSpace: 2,
+                            sectionsSpace:
+                                4, // Spacing between sections for clarity
+                            startDegreeOffset:
+                                -90, // Start from the top for pie sections
                           ),
                         ),
                       ),
+                      SizedBox(height: 20),
+                      // Adding a legend for better understanding
+                      Wrap(
+                        spacing: 10,
+                        children: categoryTotals.entries.map((entry) {
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 16,
+                                height: 16,
+                                color: getColorForCategory(entry.key),
+                              ),
+                              SizedBox(width: 8),
+                              Text(entry.key),
+                            ],
+                          );
+                        }).toList(),
+                      )
                     ],
                   ),
                 ),
@@ -110,9 +133,9 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
         color: getColorForCategory(category),
         value: total,
         title: '${category} (${total.toStringAsFixed(2)})',
-        radius: 60,
+        radius: 70, // Increase the radius of pie sections for a better view
         titleStyle: TextStyle(
-            fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+            fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
       );
     }).toList();
   }
@@ -121,11 +144,13 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   Color getColorForCategory(String category) {
     switch (category) {
       case 'Food':
-        return Colors.blue;
+        return Colors.blueAccent;
       case 'Transport':
-        return Colors.green;
+        return Colors.greenAccent;
       case 'Entertainment':
-        return Colors.red;
+        return Colors.orangeAccent;
+      case 'Shopping':
+        return Colors.purpleAccent;
       default:
         return Colors.grey;
     }
