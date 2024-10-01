@@ -1,5 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:receipt_manager/screens/scan_screen.dart';
+
+final _firestore = FirebaseFirestore.instance;
+User? loggedInUser;
 
 class AddReceiptScreen extends StatefulWidget {
   static const String id = 'add_receipt_screen';
@@ -9,6 +14,8 @@ class AddReceiptScreen extends StatefulWidget {
 }
 
 class _AddReceiptScreenState extends State<AddReceiptScreen> {
+  final _auth = FirebaseAuth.instance;
+
   final TextEditingController merchantController = TextEditingController();
   final TextEditingController dateController = TextEditingController();
   final TextEditingController totalController = TextEditingController();
@@ -29,6 +36,18 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
         .toLocal()
         .toString()
         .split(' ')[0]; // Format to YYYY-MM-DD
+    getCurrentUser();
+  }
+
+  void getCurrentUser() async {
+    try {
+      final user = await _auth.currentUser!;
+      if (user != null) {
+        loggedInUser = user;
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -112,6 +131,37 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
         );
       },
     );
+  }
+
+  Future<void> _saveReceipt() async {
+    if (merchantController.text.isEmpty ||
+        totalController.text.isEmpty ||
+        selectedCategory == null ||
+        selectedCurrency == null) {
+      // Handle error: show a message that fields are required
+      return;
+    }
+
+    // Create a map with receipt data
+    Map<String, dynamic> receiptData = {
+      'merchant': merchantController.text,
+      'date': dateController.text,
+      'amount': double.tryParse(totalController.text) ?? 0.0,
+      'category': selectedCategory,
+      'currency': selectedCurrency,
+      'itemName': itemNameController.text,
+      'description': descriptionController.text,
+      'userId': loggedInUser?.email,
+      'imageUrl': '',
+    };
+
+    try {
+      // Add the document to Firestore
+      await _firestore.collection('receipts').add(receiptData);
+      // Optionally, show a success message or navigate back
+    } catch (e) {
+      // Handle error: show an error message
+    }
   }
 
   @override
@@ -255,6 +305,7 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
               ElevatedButton(
                 onPressed: () {
                   // Handle saving the receipt
+                  _saveReceipt();
                 },
                 child: Text('Save'),
               ),
