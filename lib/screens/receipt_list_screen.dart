@@ -33,6 +33,8 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
         receiptsStream = _firestore
             .collection('receipts')
             .where('userId', isEqualTo: loggedInUser?.email)
+            .orderBy('date',
+                descending: false) // Order by date in descending order
             .snapshots();
       });
     }
