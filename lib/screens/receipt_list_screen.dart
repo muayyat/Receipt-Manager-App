@@ -48,6 +48,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Receipt List'),
+        backgroundColor: Colors.lightBlueAccent,
       ),
       body: loggedInUser == null
           ? Center(
@@ -111,7 +112,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
           Navigator.pushNamed(context, AddReceiptScreen.id);
         },
         child: Icon(Icons.add), // Icon for the FAB
-        backgroundColor: Colors.blue, // Optional: set the color of the FAB
+        backgroundColor: Colors.lightBlueAccent,
       ),
     );
   }
