@@ -23,12 +23,14 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController itemNameController = TextEditingController();
 
-  // Predefined categories and currencies
-  List<String> categories = ['Food', 'Transport', 'Entertainment'];
+  // Categories and currencies will be loaded from Firestore
+  List<String> categories = [];
   String? selectedCategory;
 
-  List<String> currencies = ['EUR', 'USD', 'GBP'];
+  List<String> currencies = [];
   String? selectedCurrency;
+
+  bool isLoading = true; // To manage loading state
 
   void initState() {
     super.initState();
@@ -38,10 +40,49 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
         .toString()
         .split(' ')[0]; // Format to YYYY-MM-DD
     getCurrentUser();
+    fetchCategoriesAndCurrencies();
   }
 
   void getCurrentUser() async {
     loggedInUser = await AuthService.getCurrentUser();
+  }
+
+// Fetch unique categories and currencies from the receipts collection for the current user only
+  Future<void> fetchCategoriesAndCurrencies() async {
+    if (loggedInUser == null) return; // Ensure the user is logged in
+
+    try {
+      // Query Firestore for receipts for the current user
+      QuerySnapshot snapshot = await _firestore
+          .collection('receipts')
+          .where('userId',
+              isEqualTo: loggedInUser?.email) // Filter by current user
+          .get();
+
+      Set<String> categorySet = {};
+      Set<String> currencySet = {};
+
+      for (var doc in snapshot.docs) {
+        var data = doc.data() as Map<String, dynamic>;
+        String category = data['category'];
+        String currency = data['currency'];
+
+        // Add to sets to ensure uniqueness
+        categorySet.add(category);
+        currencySet.add(currency);
+      }
+
+      setState(() {
+        categories = categorySet.toList(); // Convert to list for dropdown
+        currencies = currencySet.toList(); // Convert to list for dropdown
+        isLoading = false; // Set loading to false once data is fetched
+      });
+    } catch (e) {
+      print("Error fetching data: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   Future<void> _selectDate(BuildContext context) async {
