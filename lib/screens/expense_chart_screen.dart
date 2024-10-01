@@ -33,6 +33,8 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     Color(0xFF8D6E63), // Soft Brown
   ];
 
+  DateTimeRange? selectedDateRange; // Store the selected date range
+
   @override
   void initState() {
     super.initState();
@@ -49,10 +51,38 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     if (loggedInUser == null) return;
 
     try {
-      // Query Firestore to get receipts for the current user only
+      // If no date range is selected, first get the full range of dates
+      if (selectedDateRange == null) {
+        QuerySnapshot snapshot = await _firestore
+            .collection('receipts')
+            .where('userId', isEqualTo: loggedInUser?.email)
+            .orderBy('date', descending: false)
+            .get();
+
+        if (snapshot.docs.isNotEmpty) {
+          // Get the earliest and latest dates from the receipts
+          Timestamp earliestDate =
+              snapshot.docs.first['date'] ?? Timestamp.now();
+          Timestamp latestDate = snapshot.docs.last['date'] ?? Timestamp.now();
+
+          setState(() {
+            selectedDateRange = DateTimeRange(
+              start: earliestDate.toDate(),
+              end: latestDate.toDate(),
+            );
+          });
+        }
+      }
+
+      // Query Firestore to get receipts for the current user within the selected date range
       QuerySnapshot snapshot = await _firestore
           .collection('receipts')
           .where('userId', isEqualTo: loggedInUser?.email)
+          .where('date',
+              isGreaterThanOrEqualTo:
+                  Timestamp.fromDate(selectedDateRange!.start))
+          .where('date',
+              isLessThanOrEqualTo: Timestamp.fromDate(selectedDateRange!.end))
           .get();
 
       // Process the data to calculate total for each category
@@ -99,11 +129,35 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     }
   }
 
+  // Method to open the date range picker
+  Future<void> _selectDateRange(BuildContext context) async {
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+      initialDateRange: selectedDateRange,
+    );
+    if (picked != null && picked != selectedDateRange) {
+      setState(() {
+        selectedDateRange = picked;
+        isLoading = true; // Set loading to true while fetching new data
+        fetchExpenseData(); // Fetch data for the selected date range
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Expenses Analysis'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.calendar_today),
+            onPressed: () =>
+                _selectDateRange(context), // Open the date range picker
+          ),
+        ],
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
