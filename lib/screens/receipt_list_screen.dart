@@ -28,11 +28,14 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
 
   void getCurrentUser() async {
     loggedInUser = await AuthService.getCurrentUser();
-    // Now that we have the user, fetch receipts for this user only
-    receiptsStream = _firestore
-        .collection('receipts')
-        .where('userId', isEqualTo: loggedInUser?.email)
-        .snapshots();
+    if (loggedInUser != null) {
+      setState(() {
+        receiptsStream = _firestore
+            .collection('receipts')
+            .where('userId', isEqualTo: loggedInUser?.email)
+            .snapshots();
+      });
+    }
   }
 
   @override
