@@ -110,6 +110,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
               },
               child: Icon(Icons.add),
               backgroundColor: Colors.lightBlueAccent,
+              heroTag: 'addReceiptFAB', // Unique heroTag for this FAB
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(
                     100), // Make sure it's perfectly round
@@ -128,6 +129,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
               },
               child: Icon(Icons.pie_chart),
               backgroundColor: Colors.lightBlueAccent,
+              heroTag: 'expenseChartFAB', // Unique heroTag for this FAB
               shape: RoundedRectangleBorder(
                 borderRadius:
                     BorderRadius.circular(100), // Ensure the circular shape
