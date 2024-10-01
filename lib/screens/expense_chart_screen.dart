@@ -3,6 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import '../services/auth_service.dart';
+
+final _auth = FirebaseAuth.instance;
+final _firestore = FirebaseFirestore.instance;
+User? loggedInUser;
+
 class ExpenseChartScreen extends StatefulWidget {
   static const String id = 'expense_chart_screen';
 
@@ -11,10 +17,6 @@ class ExpenseChartScreen extends StatefulWidget {
 }
 
 class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  User? loggedInUser;
-
   Map<String, double> categoryTotals =
       {}; // To store total expenses by category
   bool isLoading = true;
@@ -26,18 +28,9 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   }
 
   void getCurrentUser() async {
-    try {
-      final user = _auth.currentUser;
-      if (user != null) {
-        setState(() {
-          loggedInUser = user;
-        });
-        // Fetch the expense data after getting the user
-        fetchExpenseData();
-      }
-    } catch (e) {
-      print("Error fetching user: $e");
-    }
+    loggedInUser = await AuthService.getCurrentUser();
+    // Fetch the expense data after getting the user
+    fetchExpenseData();
   }
 
   Future<void> fetchExpenseData() async {

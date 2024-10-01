@@ -8,6 +8,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../services/auth_service.dart';
+
+final _auth = FirebaseAuth.instance;
 User? loggedInUser;
 
 class ScanScreen extends StatefulWidget {
@@ -17,8 +20,6 @@ class ScanScreen extends StatefulWidget {
 }
 
 class _ScanScreenState extends State<ScanScreen> {
-  final _auth = FirebaseAuth.instance;
-
   File? _imageFile;
   String _extractedText = '';
   final ImagePicker _picker = ImagePicker();
@@ -38,15 +39,7 @@ class _ScanScreenState extends State<ScanScreen> {
   }
 
   void getCurrentUser() async {
-    try {
-      final user = await _auth.currentUser!;
-      if (user != null) {
-        loggedInUser = user;
-        print(loggedInUser?.email);
-      }
-    } catch (e) {
-      print(e);
-    }
+    loggedInUser = await AuthService.getCurrentUser();
   }
 
   Future<void> copyTessdataToDocuments() async {

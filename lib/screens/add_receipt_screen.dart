@@ -3,8 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:receipt_manager/screens/scan_screen.dart';
 
+import '../services/auth_service.dart';
 import '../widges/rounded_button.dart';
 
+final _auth = FirebaseAuth.instance;
 final _firestore = FirebaseFirestore.instance;
 User? loggedInUser;
 
@@ -16,8 +18,6 @@ class AddReceiptScreen extends StatefulWidget {
 }
 
 class _AddReceiptScreenState extends State<AddReceiptScreen> {
-  final _auth = FirebaseAuth.instance;
-
   final TextEditingController merchantController = TextEditingController();
   final TextEditingController dateController = TextEditingController();
   final TextEditingController totalController = TextEditingController();
@@ -42,14 +42,7 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
   }
 
   void getCurrentUser() async {
-    try {
-      final user = await _auth.currentUser!;
-      if (user != null) {
-        loggedInUser = user;
-      }
-    } catch (e) {
-      print(e);
-    }
+    loggedInUser = await AuthService.getCurrentUser();
   }
 
   Future<void> _selectDate(BuildContext context) async {

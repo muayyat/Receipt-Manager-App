@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../services/auth_service.dart';
 import 'add_receipt_screen.dart';
 import 'expense_chart_screen.dart';
 
@@ -26,22 +27,12 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
   }
 
   void getCurrentUser() async {
-    try {
-      final user = _auth.currentUser;
-      if (user != null) {
-        setState(() {
-          loggedInUser = user;
-
-          // Now that we have the user, fetch receipts for this user only
-          receiptsStream = _firestore
-              .collection('receipts')
-              .where('userId', isEqualTo: loggedInUser?.email)
-              .snapshots();
-        });
-      }
-    } catch (e) {
-      print("Error fetching user: $e"); // Handle error
-    }
+    loggedInUser = await AuthService.getCurrentUser();
+    // Now that we have the user, fetch receipts for this user only
+    receiptsStream = _firestore
+        .collection('receipts')
+        .where('userId', isEqualTo: loggedInUser?.email)
+        .snapshots();
   }
 
   @override
