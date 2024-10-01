@@ -20,6 +20,10 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
       {}; // To store total expenses by category
   Map<String, Color> categoryColors = {}; // To store category to color mapping
   bool isLoading = true;
+  String selectedBaseCurrency = 'EUR'; // Default base currency
+
+  // List of available currencies for filtering
+  final List<String> availableCurrencies = ['EUR', 'USD', 'GBP'];
 
   // Predefined list of colors
   final List<Color> availableColors = [
@@ -47,11 +51,26 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     fetchExpenseData();
   }
 
+  // Example static conversion rates
+  Map<String, double> conversionRates = {
+    'USD': 0.85, // Assuming 1 USD = 0.85 EUR
+    'EUR': 1.0, // Base currency
+    'GBP': 1.17, // 1 GBP = 1.17 EUR
+    // Add more currencies as needed
+  };
+
+  // Convert the amount to the selected base currency
+  double convertToBaseCurrency(double amount, String currency) {
+    if (selectedBaseCurrency == currency) return amount;
+    double baseRate = conversionRates[selectedBaseCurrency] ?? 1.0;
+    double currencyRate = conversionRates[currency] ?? 1.0;
+    return amount * (currencyRate / baseRate);
+  }
+
   Future<void> fetchExpenseData() async {
     if (loggedInUser == null) return;
 
     try {
-      // If no date range is selected, first get the full range of dates
       if (selectedDateRange == null) {
         QuerySnapshot snapshot = await _firestore
             .collection('receipts')
@@ -60,7 +79,6 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
             .get();
 
         if (snapshot.docs.isNotEmpty) {
-          // Get the earliest and latest dates from the receipts
           Timestamp earliestDate =
               snapshot.docs.first['date'] ?? Timestamp.now();
           Timestamp latestDate = snapshot.docs.last['date'] ?? Timestamp.now();
@@ -74,7 +92,6 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
         }
       }
 
-      // Query Firestore to get receipts for the current user within the selected date range
       QuerySnapshot snapshot = await _firestore
           .collection('receipts')
           .where('userId', isEqualTo: loggedInUser?.email)
@@ -85,26 +102,27 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
               isLessThanOrEqualTo: Timestamp.fromDate(selectedDateRange!.end))
           .get();
 
-      // Process the data to calculate total for each category
       Map<String, double> tempCategoryTotals = {};
-      Set<String> categories = {}; // To track unique categories
+      Set<String> categories = {};
 
       for (var doc in snapshot.docs) {
         var data = doc.data() as Map<String, dynamic>;
         String category = data['category'];
         double amount = (data['amount'] as num).toDouble();
+        String currency = data['currency'];
 
-        // Add category to the set
+        double convertedAmount = convertToBaseCurrency(amount, currency);
+
         categories.add(category);
 
         if (tempCategoryTotals.containsKey(category)) {
-          tempCategoryTotals[category] = tempCategoryTotals[category]! + amount;
+          tempCategoryTotals[category] =
+              tempCategoryTotals[category]! + convertedAmount;
         } else {
-          tempCategoryTotals[category] = amount;
+          tempCategoryTotals[category] = convertedAmount;
         }
       }
 
-      // Generate a color mapping for the categories
       generateColorMapping(categories);
 
       setState(() {
@@ -116,13 +134,11 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     }
   }
 
-  // Generate colors for each unique category
   void generateColorMapping(Set<String> categories) {
-    categoryColors.clear(); // Clear previous mappings if any
+    categoryColors.clear();
     int colorIndex = 0;
 
     for (var category in categories) {
-      // Assign colors from the available list in a round-robin manner
       categoryColors[category] =
           availableColors[colorIndex % availableColors.length];
       colorIndex++;
@@ -140,8 +156,8 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     if (picked != null && picked != selectedDateRange) {
       setState(() {
         selectedDateRange = picked;
-        isLoading = true; // Set loading to true while fetching new data
-        fetchExpenseData(); // Fetch data for the selected date range
+        isLoading = true;
+        fetchExpenseData();
       });
     }
   }
@@ -151,11 +167,30 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Expenses Analysis'),
+        backgroundColor: Colors.lightBlueAccent,
         actions: [
           IconButton(
             icon: Icon(Icons.calendar_today),
-            onPressed: () =>
-                _selectDateRange(context), // Open the date range picker
+            onPressed: () => _selectDateRange(context),
+          ),
+          SizedBox(width: 16), // Add some space between the buttons
+          DropdownButton<String>(
+            value: selectedBaseCurrency,
+            icon: Icon(Icons.money),
+            onChanged: (String? newValue) {
+              setState(() {
+                selectedBaseCurrency = newValue!;
+                isLoading = true;
+                fetchExpenseData();
+              });
+            },
+            items: availableCurrencies
+                .map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
           ),
         ],
       ),
@@ -168,7 +203,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                   child: Column(
                     children: [
                       Text(
-                        'Expenses by Category',
+                        'Expenses by Category in $selectedBaseCurrency',
                         style: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold),
                       ),
@@ -214,14 +249,12 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
       final total = entry.value;
 
       return PieChartSectionData(
-        color: categoryColors[category], // Get color from the map
+        color: categoryColors[category],
         value: total,
         title:
-            '${category}\n(${total.toStringAsFixed(2)})', // Add new line for better spacing
+            '${category}\n(${total.toStringAsFixed(2)} $selectedBaseCurrency)',
         radius: 70,
-        titleStyle: TextStyle(
-            fontSize: 14, // Slightly smaller for longer names
-            fontWeight: FontWeight.bold),
+        titleStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
       );
     }).toList();
   }
