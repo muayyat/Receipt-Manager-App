@@ -174,6 +174,9 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
         selectedCategory == null ||
         selectedCurrency == null) {
       // Handle error: show a message that fields are required
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please fill in all required fields')),
+      );
       return;
     }
 
@@ -193,9 +196,27 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
     try {
       // Add the document to Firestore
       await _firestore.collection('receipts').add(receiptData);
-      // Optionally, show a success message or navigate back
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Receipt saved successfully')),
+      );
+
+      // Clear form fields and reset dropdown selections
+      setState(() {
+        merchantController.clear();
+        dateController.text = DateTime.now().toLocal().toString().split(' ')[0];
+        totalController.clear();
+        descriptionController.clear();
+        itemNameController.clear();
+        selectedCategory = null;
+        selectedCurrency = null;
+      });
     } catch (e) {
       // Handle error: show an error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save receipt. Try again.')),
+      );
     }
   }
 
