@@ -69,6 +69,8 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
                 }
 
                 return ListView.builder(
+                  padding:
+                      EdgeInsets.only(bottom: 80), // Add padding to the bottom
                   itemCount: receipts.length,
                   itemBuilder: (context, index) {
                     var receiptData =
@@ -110,7 +112,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
         children: [
           // First FAB (for adding a receipt)
           Positioned(
-            bottom: 16,
+            bottom: 3,
             right: 16,
             child: FloatingActionButton(
               onPressed: () {
@@ -129,7 +131,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
           ),
           // Second FAB (for opening the chart screen)
           Positioned(
-            bottom: 16,
+            bottom: 3,
             left: 46, // Adjust the left position for better alignment
             child: FloatingActionButton(
               onPressed: () {
