@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:receipt_manager/screens/add_receipt_screen.dart';
 import 'package:receipt_manager/screens/login_screen.dart';
+import 'package:receipt_manager/screens/receipt_list_screen.dart';
 import 'package:receipt_manager/screens/registration_screen.dart';
 import 'package:receipt_manager/screens/scan_screen.dart';
 import 'package:receipt_manager/screens/welcome_screen.dart';
@@ -30,6 +31,7 @@ class MyApp extends StatelessWidget {
         RegistrationScreen.id: (context) => RegistrationScreen(),
         ScanScreen.id: (context) => ScanScreen(),
         AddReceiptScreen.id: (context) => AddReceiptScreen(),
+        ReceiptListScreen.id: (context) => ReceiptListScreen(),
       },
     );
   }
