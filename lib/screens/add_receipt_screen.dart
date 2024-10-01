@@ -3,8 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:receipt_manager/screens/scan_screen.dart';
 
+import '../components//rounded_button.dart';
 import '../services/auth_service.dart';
-import '../widges/rounded_button.dart';
 
 final _auth = FirebaseAuth.instance;
 final _firestore = FirebaseFirestore.instance;

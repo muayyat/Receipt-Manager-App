@@ -2,8 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:receipt_manager/screens/receipt_list_screen.dart';
 
+import '../components/rounded_button.dart';
 import '../constants.dart';
-import '../widges/rounded_button.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String id = 'login_screen';

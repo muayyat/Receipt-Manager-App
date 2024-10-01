@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../components/rounded_button.dart';
 import '../constants.dart';
-import '../widges/rounded_button.dart';
 import 'scan_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {

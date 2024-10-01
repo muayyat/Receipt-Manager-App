@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../widges/rounded_button.dart';
+import '../components/rounded_button.dart';
 import 'login_screen.dart';
 import 'registration_screen.dart';
 
