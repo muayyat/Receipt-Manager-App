@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
+import '../services/currency_service.dart';
 
 final _firestore = FirebaseFirestore.instance;
 User? loggedInUser;
@@ -43,6 +44,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   void initState() {
     super.initState();
     getCurrentUser();
+    fetchConversionRates();
   }
 
   void getCurrentUser() async {
@@ -53,18 +55,58 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
 
   // Example static conversion rates
   Map<String, double> conversionRates = {
-    'USD': 0.85, // Assuming 1 USD = 0.85 EUR
-    'EUR': 1.0, // Base currency
-    'GBP': 1.17, // 1 GBP = 1.17 EUR
-    // Add more currencies as needed
+    'USD': 0.85, // Fallback rate if fetch fails
+    'EUR': 1.0,
+    'GBP': 1.17,
   };
 
-  // Convert the amount to the selected base currency
+  // Fetch real-time conversion rates
+  Future<void> fetchConversionRates() async {
+    try {
+      final rates = await CurrencyService.fetchConversionRates();
+      setState(() {
+        conversionRates = rates; // Update the conversion rates in state
+      });
+    } catch (e) {
+      print('Failed to fetch conversion rates: $e');
+    }
+  }
+
+  // Convert the amount to the selected base currency with logging
   double convertToBaseCurrency(double amount, String currency) {
-    if (selectedBaseCurrency == currency) return amount;
-    double baseRate = conversionRates[selectedBaseCurrency] ?? 1.0;
-    double currencyRate = conversionRates[currency] ?? 1.0;
-    return amount * (currencyRate / baseRate);
+    print("Original Amount: $amount $currency");
+    print("Selected base currency: $selectedBaseCurrency");
+
+    // If the selected base currency is the same as the original currency, no conversion is needed
+    if (currency == selectedBaseCurrency) {
+      print(
+          "Selected base currency is the same as the original currency. Amount remains: $amount");
+      return amount;
+    }
+
+    // Convert to USD if needed
+    double amountInUSD;
+    if (currency != 'USD') {
+      double rateToUSD = conversionRates[currency] ?? 1.0;
+      amountInUSD = amount / rateToUSD; // Convert to USD
+      print("Converted $amount $currency to USD: $amountInUSD");
+    } else {
+      amountInUSD = amount;
+      print("Amount is already in USD: $amountInUSD");
+    }
+
+    // Convert from USD to the selected base currency (if it's not already USD)
+    if (selectedBaseCurrency != 'USD') {
+      double rateToBaseCurrency = conversionRates[selectedBaseCurrency] ?? 1.0;
+      double convertedAmount = amountInUSD *
+          rateToBaseCurrency; // Convert to the selected base currency
+      print(
+          "Converted $amountInUSD USD to $selectedBaseCurrency: $convertedAmount");
+      return convertedAmount;
+    } else {
+      print("Selected base currency is USD. Amount remains: $amountInUSD");
+      return amountInUSD; // No conversion needed if base currency is USD
+    }
   }
 
   Future<void> fetchExpenseData() async {
