@@ -118,21 +118,31 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
                 // Navigate to the AddReceiptScreen when the button is pressed
                 Navigator.pushNamed(context, AddReceiptScreen.id);
               },
-              child: Icon(Icons.add), // Icon for the FAB
+              child: Icon(Icons.add),
               backgroundColor: Colors.lightBlueAccent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                    100), // Make sure it's perfectly round
+              ),
+              elevation: 6, // Add some shadow for effect
             ),
           ),
           // Second FAB (for opening the chart screen)
           Positioned(
             bottom: 16,
-            left: 46, // Position at the left bottom corner
+            left: 46, // Adjust the left position for better alignment
             child: FloatingActionButton(
               onPressed: () {
                 // Navigate to the ExpenseChartScreen when the button is pressed
                 Navigator.pushNamed(context, ExpenseChartScreen.id);
               },
-              child: Icon(Icons.pie_chart), // Icon for the FAB
+              child: Icon(Icons.pie_chart),
               backgroundColor: Colors.lightBlueAccent,
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(100), // Ensure the circular shape
+              ),
+              elevation: 6,
             ),
           ),
         ],
