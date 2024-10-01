@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import 'add_receipt_screen.dart';
+
 final _firestore = FirebaseFirestore.instance;
 User? loggedInUser;
 
@@ -102,6 +104,15 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
                 );
               },
             ),
+      // Add the Floating Action Button
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Navigate to the AddReceiptScreen when the button is pressed
+          Navigator.pushNamed(context, AddReceiptScreen.id);
+        },
+        child: Icon(Icons.add), // Icon for the FAB
+        backgroundColor: Colors.blue, // Optional: set the color of the FAB
+      ),
     );
   }
 }

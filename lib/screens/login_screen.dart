@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
-import 'scan_screen.dart';
+import 'package:receipt_manager/screens/receipt_list_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String id = 'login_screen';
@@ -123,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         final user = await _auth.signInWithEmailAndPassword(
                             email: email, password: password);
                         if (user != null) {
-                          Navigator.pushNamed(context, ScanScreen.id);
+                          Navigator.pushNamed(context, ReceiptListScreen.id);
                         }
                       } on FirebaseAuthException catch (e) {
                         setState(() {
