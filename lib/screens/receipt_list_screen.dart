@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'add_receipt_screen.dart';
+import 'expense_chart_screen.dart';
 
 final _firestore = FirebaseFirestore.instance;
 User? loggedInUser;
@@ -105,14 +106,36 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
                 );
               },
             ),
-      // Add the Floating Action Button
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate to the AddReceiptScreen when the button is pressed
-          Navigator.pushNamed(context, AddReceiptScreen.id);
-        },
-        child: Icon(Icons.add), // Icon for the FAB
-        backgroundColor: Colors.lightBlueAccent,
+      // Use a Stack to position multiple FABs
+      floatingActionButton: Stack(
+        children: [
+          // First FAB (for adding a receipt)
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: FloatingActionButton(
+              onPressed: () {
+                // Navigate to the AddReceiptScreen when the button is pressed
+                Navigator.pushNamed(context, AddReceiptScreen.id);
+              },
+              child: Icon(Icons.add), // Icon for the FAB
+              backgroundColor: Colors.lightBlueAccent,
+            ),
+          ),
+          // Second FAB (for opening the chart screen)
+          Positioned(
+            bottom: 16,
+            left: 46, // Position at the left bottom corner
+            child: FloatingActionButton(
+              onPressed: () {
+                // Navigate to the ExpenseChartScreen when the button is pressed
+                Navigator.pushNamed(context, ExpenseChartScreen.id);
+              },
+              child: Icon(Icons.pie_chart), // Icon for the FAB
+              backgroundColor: Colors.lightBlueAccent,
+            ),
+          ),
+        ],
       ),
     );
   }
