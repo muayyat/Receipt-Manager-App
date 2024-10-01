@@ -162,10 +162,12 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
       return PieChartSectionData(
         color: categoryColors[category], // Get color from the map
         value: total,
-        title: '${category} (${total.toStringAsFixed(2)})',
+        title:
+            '${category}\n(${total.toStringAsFixed(2)})', // Add new line for better spacing
         radius: 70,
         titleStyle: TextStyle(
-            fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+            fontSize: 14, // Slightly smaller for longer names
+            fontWeight: FontWeight.bold),
       );
     }).toList();
   }
