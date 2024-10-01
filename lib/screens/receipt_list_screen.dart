@@ -18,7 +18,9 @@ class ReceiptListScreen extends StatefulWidget {
 }
 
 class _ReceiptListScreenState extends State<ReceiptListScreen> {
-  Stream<QuerySnapshot>? receiptsStream; // Nullable stream
+  Stream<QuerySnapshot>? receiptsStream;
+  String currentSortField = 'date';
+  bool isDescending = false; // For toggling between ascending/descending order
 
   @override
   void initState() {
@@ -30,14 +32,31 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
     loggedInUser = await AuthService.getCurrentUser();
     if (loggedInUser != null) {
       setState(() {
-        receiptsStream = _firestore
-            .collection('receipts')
-            .where('userId', isEqualTo: loggedInUser?.email)
-            .orderBy('date',
-                descending: false) // Order by date in descending order
-            .snapshots();
+        fetchReceipts();
       });
     }
+  }
+
+  void fetchReceipts() {
+    setState(() {
+      receiptsStream = _firestore
+          .collection('receipts')
+          .where('userId', isEqualTo: loggedInUser?.email)
+          .orderBy(currentSortField, descending: isDescending)
+          .snapshots();
+    });
+  }
+
+  void onSortChanged(String newSortField) {
+    setState(() {
+      if (currentSortField == newSortField) {
+        isDescending = !isDescending; // Toggle the order
+      } else {
+        currentSortField = newSortField;
+        isDescending = false; // Reset to ascending for the new field
+      }
+      fetchReceipts();
+    });
   }
 
   @override
@@ -46,11 +65,25 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
       appBar: AppBar(
         title: Text('Receipt List'),
         backgroundColor: Colors.lightBlueAccent,
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: onSortChanged,
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'date',
+                child: Text('Sort by Date'),
+              ),
+              PopupMenuItem(
+                value: 'amount',
+                child: Text('Sort by Amount'),
+              ),
+            ],
+            icon: Icon(Icons.sort),
+          ),
+        ],
       ),
       body: loggedInUser == null
-          ? Center(
-              child:
-                  CircularProgressIndicator()) // Show a loader until the user is loaded
+          ? Center(child: CircularProgressIndicator())
           : StreamBuilder<QuerySnapshot>(
               stream: receiptsStream,
               builder: (context, snapshot) {
@@ -69,14 +102,12 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
                 }
 
                 return ListView.builder(
-                  padding:
-                      EdgeInsets.only(bottom: 80), // Add padding to the bottom
+                  padding: EdgeInsets.only(bottom: 80),
                   itemCount: receipts.length,
                   itemBuilder: (context, index) {
                     var receiptData =
                         receipts[index].data() as Map<String, dynamic>;
 
-                    // Extract fields from Firestore data
                     Timestamp timestamp =
                         receiptData['date'] ?? Timestamp.now();
                     DateTime dateTime = timestamp.toDate();
@@ -107,43 +138,36 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
                 );
               },
             ),
-      // Use a Stack to position multiple FABs
       floatingActionButton: Stack(
         children: [
-          // First FAB (for adding a receipt)
           Positioned(
             bottom: 3,
             right: 16,
             child: FloatingActionButton(
               onPressed: () {
-                // Navigate to the AddReceiptScreen when the button is pressed
                 Navigator.pushNamed(context, AddReceiptScreen.id);
               },
               child: Icon(Icons.add),
               backgroundColor: Colors.lightBlueAccent,
-              heroTag: 'addReceiptFAB', // Unique heroTag for this FAB
+              heroTag: 'addReceiptFAB',
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(
-                    100), // Make sure it's perfectly round
+                borderRadius: BorderRadius.circular(100),
               ),
-              elevation: 6, // Add some shadow for effect
+              elevation: 6,
             ),
           ),
-          // Second FAB (for opening the chart screen)
           Positioned(
             bottom: 3,
-            left: 46, // Adjust the left position for better alignment
+            left: 46,
             child: FloatingActionButton(
               onPressed: () {
-                // Navigate to the ExpenseChartScreen when the button is pressed
                 Navigator.pushNamed(context, ExpenseChartScreen.id);
               },
               child: Icon(Icons.pie_chart),
               backgroundColor: Colors.lightBlueAccent,
-              heroTag: 'expenseChartFAB', // Unique heroTag for this FAB
+              heroTag: 'expenseChartFAB',
               shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(100), // Ensure the circular shape
+                borderRadius: BorderRadius.circular(100),
               ),
               elevation: 6,
             ),
