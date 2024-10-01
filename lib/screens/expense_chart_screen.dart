@@ -18,7 +18,20 @@ class ExpenseChartScreen extends StatefulWidget {
 class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   Map<String, double> categoryTotals =
       {}; // To store total expenses by category
+  Map<String, Color> categoryColors = {}; // To store category to color mapping
   bool isLoading = true;
+
+  // Predefined list of colors
+  final List<Color> availableColors = [
+    Color(0xFF42A5F5), // Soft Blue
+    Color(0xFF66BB6A), // Soft Green
+    Color(0xFFEF5350), // Soft Red
+    Color(0xFFFFCA28), // Soft Yellow
+    Color(0xFFAB47BC), // Soft Purple
+    Color(0xFFFF7043), // Soft Orange
+    Color(0xFF26C6DA), // Soft Cyan
+    Color(0xFF8D6E63), // Soft Brown
+  ];
 
   @override
   void initState() {
@@ -44,10 +57,15 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
 
       // Process the data to calculate total for each category
       Map<String, double> tempCategoryTotals = {};
+      Set<String> categories = {}; // To track unique categories
+
       for (var doc in snapshot.docs) {
         var data = doc.data() as Map<String, dynamic>;
         String category = data['category'];
         double amount = (data['amount'] as num).toDouble();
+
+        // Add category to the set
+        categories.add(category);
 
         if (tempCategoryTotals.containsKey(category)) {
           tempCategoryTotals[category] = tempCategoryTotals[category]! + amount;
@@ -56,12 +74,28 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
         }
       }
 
+      // Generate a color mapping for the categories
+      generateColorMapping(categories);
+
       setState(() {
         categoryTotals = tempCategoryTotals;
         isLoading = false;
       });
     } catch (e) {
       print("Error fetching data: $e");
+    }
+  }
+
+  // Generate colors for each unique category
+  void generateColorMapping(Set<String> categories) {
+    categoryColors.clear(); // Clear previous mappings if any
+    int colorIndex = 0;
+
+    for (var category in categories) {
+      // Assign colors from the available list in a round-robin manner
+      categoryColors[category] =
+          availableColors[colorIndex % availableColors.length];
+      colorIndex++;
     }
   }
 
@@ -89,18 +123,14 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                         child: PieChart(
                           PieChartData(
                             sections: getSections(),
-                            centerSpaceRadius:
-                                60, // Larger center space for better look
+                            centerSpaceRadius: 60,
                             borderData: FlBorderData(show: false),
-                            sectionsSpace:
-                                4, // Spacing between sections for clarity
-                            startDegreeOffset:
-                                -90, // Start from the top for pie sections
+                            sectionsSpace: 4,
+                            startDegreeOffset: -90,
                           ),
                         ),
                       ),
                       SizedBox(height: 20),
-                      // Adding a legend for better understanding
                       Wrap(
                         spacing: 10,
                         children: categoryTotals.entries.map((entry) {
@@ -110,14 +140,14 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                               Container(
                                 width: 16,
                                 height: 16,
-                                color: getColorForCategory(entry.key),
+                                color: categoryColors[entry.key],
                               ),
                               SizedBox(width: 8),
                               Text(entry.key),
                             ],
                           );
                         }).toList(),
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -130,29 +160,13 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
       final total = entry.value;
 
       return PieChartSectionData(
-        color: getColorForCategory(category),
+        color: categoryColors[category], // Get color from the map
         value: total,
         title: '${category} (${total.toStringAsFixed(2)})',
-        radius: 70, // Increase the radius of pie sections for a better view
+        radius: 70,
         titleStyle: TextStyle(
             fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
       );
     }).toList();
-  }
-
-  // This function assigns a color to each category
-  Color getColorForCategory(String category) {
-    switch (category) {
-      case 'Food':
-        return Colors.blueAccent;
-      case 'Transport':
-        return Colors.greenAccent;
-      case 'Entertainment':
-        return Colors.orangeAccent;
-      case 'Shopping':
-        return Colors.purpleAccent;
-      default:
-        return Colors.grey;
-    }
   }
 }
