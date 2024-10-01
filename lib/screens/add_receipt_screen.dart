@@ -6,7 +6,6 @@ import 'package:receipt_manager/screens/scan_screen.dart';
 import '../components//rounded_button.dart';
 import '../services/auth_service.dart';
 
-final _auth = FirebaseAuth.instance;
 final _firestore = FirebaseFirestore.instance;
 User? loggedInUser;
 

@@ -18,7 +18,6 @@ class ReceiptListScreen extends StatefulWidget {
 
 class _ReceiptListScreenState extends State<ReceiptListScreen> {
   late Stream<QuerySnapshot> receiptsStream;
-  final _auth = FirebaseAuth.instance;
 
   @override
   void initState() {

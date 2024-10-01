@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
 
-final _auth = FirebaseAuth.instance;
 final _firestore = FirebaseFirestore.instance;
 User? loggedInUser;
 
