@@ -1,35 +1,71 @@
 import 'dart:convert';
 
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:http/http.dart' as http;
 
 class CurrencyService {
-  static const String apiUrl = 'https://openexchangerates.org/api/latest.json';
-  static const String apiKey =
-      '993d0a7a5f4a49a5afd265505f2ee93c'; // Replace with your API key
+  // Method to get the API key from Firebase Remote Config
+  static Future<String> getApiKey() async {
+    final remoteConfig = FirebaseRemoteConfig.instance;
 
-  // Fetch the conversion rates from Open Exchange Rates API
+    // Set default values for Remote Config
+    await remoteConfig.setDefaults(<String, dynamic>{
+      'API_KEY': 'default_api_key', // Provide a fallback API key or message
+    });
+
+    // Fetch the latest values from Firebase Remote Config
+    try {
+      await remoteConfig.setConfigSettings(RemoteConfigSettings(
+        fetchTimeout: const Duration(minutes: 1),
+        minimumFetchInterval: const Duration(minutes: 5),
+      ));
+      await remoteConfig.fetchAndActivate();
+    } catch (e) {
+      print('Failed to fetch remote config: $e');
+      // Optionally return a default or error message if needed
+    }
+
+    // Retrieve the API key from the Remote Config
+    String apiKey = remoteConfig.getString('API_KEY');
+    print("apiKey: " + apiKey);
+    // Ensure we have a valid API key (fallback to default if not set)
+    if (apiKey == 'default_api_key' || apiKey.isEmpty) {
+      throw Exception('API key is not set in Remote Config');
+    }
+
+    return apiKey;
+  }
+
+  // Fetch conversion rates using the API key from Remote Config
   static Future<Map<String, double>> fetchConversionRates() async {
-    final response = await http.get(Uri.parse('$apiUrl?app_id=$apiKey'));
+    final String apiKey =
+        await getApiKey(); // Get the API key from Remote Config
+    const String apiUrl = 'https://openexchangerates.org/api/latest.json';
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = json.decode(response.body);
-      final Map<String, dynamic> rates = data['rates'];
+    try {
+      final response = await http.get(Uri.parse('$apiUrl?app_id=$apiKey'));
 
-      // Convert the rates to double safely
-      Map<String, double> conversionRates = rates.map((key, value) {
-        // Check if the value is an int and convert it to a double
-        if (value is int) {
-          return MapEntry(key, value.toDouble());
-        } else if (value is double) {
-          return MapEntry(key, value);
-        } else {
-          throw Exception("Unexpected type for rate value");
-        }
-      });
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        final Map<String, dynamic> rates = data['rates'];
 
-      return conversionRates; // Return the fetched conversion rates
-    } else {
-      throw Exception('Failed to load conversion rates');
+        // Convert the rates to a Map<String, double>
+        Map<String, double> conversionRates = rates.map((key, value) {
+          if (value is int) {
+            return MapEntry(key, value.toDouble());
+          } else if (value is double) {
+            return MapEntry(key, value);
+          } else {
+            throw Exception("Unexpected type for rate value");
+          }
+        });
+
+        return conversionRates; // Return the fetched conversion rates
+      } else {
+        throw Exception('Failed to load conversion rates');
+      }
+    } catch (e) {
+      throw Exception('Error fetching conversion rates: $e');
     }
   }
 }
