@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:receipt_manager/screens/scan_screen.dart';
 
+import '../widges/rounded_button.dart';
+
 final _firestore = FirebaseFirestore.instance;
 User? loggedInUser;
 
@@ -185,12 +187,13 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ElevatedButton(
+              RoundedButton(
+                color: Colors.lightBlueAccent,
+                title: 'Scan Receipt',
                 onPressed: () {
                   // Add functionality to capture a receipt image
                   Navigator.pushNamed(context, ScanScreen.id);
                 },
-                child: Text('Scan Receipt'),
               ),
               TextField(
                 controller: merchantController,
@@ -310,25 +313,14 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
                 child: Text('Add Receipt Image'),
               ),
               SizedBox(height: 20),
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: Material(
-                  color:
-                      Colors.lightBlueAccent, // Use the same background color
-                  borderRadius: BorderRadius.all(
-                      Radius.circular(30.0)), // Rounded corners
-                  elevation: 5.0, // Elevation for shadow
-                  child: MaterialButton(
-                    onPressed: () {
-                      // Handle saving the receipt
-                      _saveReceipt();
-                    },
-                    minWidth: 200.0,
-                    height: 42.0,
-                    child: Text('Save'),
-                  ),
-                ),
-              )
+              RoundedButton(
+                color: Colors.lightBlueAccent,
+                title: 'Save',
+                onPressed: () {
+                  // Handle saving the receipt
+                  _saveReceipt();
+                },
+              ),
             ],
           ),
         ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:receipt_manager/screens/receipt_list_screen.dart';
 
 import '../constants.dart';
+import '../widges/rounded_button.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String id = 'login_screen';
@@ -66,42 +67,31 @@ class _LoginScreenState extends State<LoginScreen> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: Material(
-                  color: Colors.lightBlueAccent,
-                  borderRadius: BorderRadius.all(Radius.circular(30.0)),
-                  elevation: 5.0,
-                  child: MaterialButton(
-                    onPressed: () async {
-                      // Implement login functionality.
-                      setState(() {
-                        errorMessage = ''; // Clear the error message
-                      });
-                      try {
-                        final user = await _auth.signInWithEmailAndPassword(
-                            email: email, password: password);
-                        if (user != null) {
-                          Navigator.pushNamed(context, ReceiptListScreen.id);
-                        }
-                      } on FirebaseAuthException catch (e) {
-                        setState(() {
-                          errorMessage = extractErrorMessage(e);
-                        });
-                      } catch (e) {
-                        setState(() {
-                          errorMessage =
-                              'An error occurred. Please try again later.';
-                        });
-                      }
-                    },
-                    minWidth: 200.0,
-                    height: 42.0,
-                    child: Text(
-                      'Log In',
-                    ),
-                  ),
-                ),
+              RoundedButton(
+                color: Colors.lightBlueAccent,
+                title: 'Log In',
+                onPressed: () async {
+                  // Implement login functionality.
+                  setState(() {
+                    errorMessage = ''; // Clear the error message
+                  });
+                  try {
+                    final user = await _auth.signInWithEmailAndPassword(
+                        email: email, password: password);
+                    if (user != null) {
+                      Navigator.pushNamed(context, ReceiptListScreen.id);
+                    }
+                  } on FirebaseAuthException catch (e) {
+                    setState(() {
+                      errorMessage = extractErrorMessage(e);
+                    });
+                  } catch (e) {
+                    setState(() {
+                      errorMessage =
+                          'An error occurred. Please try again later.';
+                    });
+                  }
+                },
               ),
             ],
           ),

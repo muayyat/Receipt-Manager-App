@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../constants.dart';
+import '../widges/rounded_button.dart';
 import 'scan_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {
@@ -68,43 +69,30 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 16.0),
-                child: Material(
-                  color: Colors.blueAccent,
-                  borderRadius: BorderRadius.all(Radius.circular(30.0)),
-                  elevation: 5.0,
-                  child: MaterialButton(
-                    onPressed: () async {
-                      setState(() {
-                        errorMessage = ''; // Clear the error message
-                      });
-                      try {
-                        final newUser =
-                            await _auth.createUserWithEmailAndPassword(
-                                email: email, password: password);
-                        if (newUser != null) {
-                          Navigator.pushNamed(context, ScanScreen.id);
-                        }
-                      } on FirebaseAuthException catch (e) {
-                        setState(() {
-                          errorMessage = extractErrorMessage(e);
-                        });
-                      } catch (e) {
-                        setState(() {
-                          errorMessage =
-                              'An error occurred. Please try again later.';
-                        });
-                      }
-                    },
-                    minWidth: 200.0,
-                    height: 42.0,
-                    child: Text(
-                      'Register',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
+              RoundedButton(
+                color: Colors.blueAccent,
+                title: 'Register',
+                onPressed: () async {
+                  setState(() {
+                    errorMessage = ''; // Clear the error message
+                  });
+                  try {
+                    final newUser = await _auth.createUserWithEmailAndPassword(
+                        email: email, password: password);
+                    if (newUser != null) {
+                      Navigator.pushNamed(context, ScanScreen.id);
+                    }
+                  } on FirebaseAuthException catch (e) {
+                    setState(() {
+                      errorMessage = extractErrorMessage(e);
+                    });
+                  } catch (e) {
+                    setState(() {
+                      errorMessage =
+                          'An error occurred. Please try again later.';
+                    });
+                  }
+                },
               ),
             ],
           ),
