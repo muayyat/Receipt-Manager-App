@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../services/auth_service.dart';
 import 'add_receipt_screen.dart';
@@ -17,7 +18,7 @@ class ReceiptListScreen extends StatefulWidget {
 }
 
 class _ReceiptListScreenState extends State<ReceiptListScreen> {
-  late Stream<QuerySnapshot> receiptsStream;
+  Stream<QuerySnapshot>? receiptsStream; // Nullable stream
 
   @override
   void initState() {
@@ -69,7 +70,10 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
                         receipts[index].data() as Map<String, dynamic>;
 
                     // Extract fields from Firestore data
-                    String date = receiptData['date'] ?? '';
+                    Timestamp timestamp =
+                        receiptData['date'] ?? Timestamp.now();
+                    DateTime dateTime = timestamp.toDate();
+                    String date = DateFormat('yyyy-MM-dd').format(dateTime);
                     String itemName = receiptData['itemName'] ?? '';
                     String merchant = receiptData['merchant'] ?? '';
                     String category = receiptData['category'] ?? '';

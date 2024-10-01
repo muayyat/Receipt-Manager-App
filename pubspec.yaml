@@ -46,6 +46,7 @@ dependencies:
   flutter_tesseract_ocr: ^0.4.26
 
   fl_chart: ^0.69.0
+  intl: ^0.17.0
 
 dev_dependencies:
   flutter_test:

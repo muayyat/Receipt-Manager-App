@@ -183,7 +183,7 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
     // Create a map with receipt data
     Map<String, dynamic> receiptData = {
       'merchant': merchantController.text,
-      'date': dateController.text,
+      'date': Timestamp.fromDate(DateTime.parse(dateController.text)),
       'amount': double.tryParse(totalController.text) ?? 0.0,
       'category': selectedCategory,
       'currency': selectedCurrency,
