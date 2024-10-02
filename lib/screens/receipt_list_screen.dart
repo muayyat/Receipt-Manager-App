@@ -77,15 +77,17 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
             },
             itemBuilder: (context) => [
               PopupMenuItem(
-                  value: 'sort_date_asc', child: Text('Date: Oldest First')),
+                  value: 'date_asc',
+                  child: Text('Date: Oldest First')), // Correct value
               PopupMenuItem(
-                  value: 'sort_date_desc', child: Text('Date: Newest First')),
+                  value: 'date_desc',
+                  child: Text('Date: Newest First')), // Correct value
               PopupMenuItem(
-                  value: 'sort_amount_asc',
-                  child: Text('Amount: Lowest First')),
+                  value: 'amount_asc',
+                  child: Text('Amount: Lowest First')), // Correct value
               PopupMenuItem(
-                  value: 'sort_amount_desc',
-                  child: Text('Amount: Highest First')),
+                  value: 'amount_desc',
+                  child: Text('Amount: Highest First')), // Correct value
             ],
             icon: Icon(Icons.sort),
           ),
@@ -126,6 +128,8 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
                     String category = receiptData['category'] ?? '';
                     double amount = receiptData['amount'] ?? 0.0;
                     String currency = receiptData['currency'] ?? '';
+                    String imageUrl =
+                        receiptData['imageUrl'] ?? ''; // Get the image URL
 
                     return Card(
                       margin:
@@ -140,7 +144,43 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
                             Text('Category: $category'),
                           ],
                         ),
-                        trailing: Text('$currency $amount'),
+                        trailing: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text('$currency $amount'),
+                            if (imageUrl
+                                .isNotEmpty) // Check if image URL is not empty
+                              Container(
+                                height: 40, // Set a fixed height for the image
+                                width: 40, // Set a fixed width for the image
+                                child: Image.network(
+                                  imageUrl,
+                                  fit: BoxFit.cover, // Adjust image fit
+                                  loadingBuilder: (BuildContext context,
+                                      Widget child,
+                                      ImageChunkEvent? loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                          value: loadingProgress
+                                                      .expectedTotalBytes !=
+                                                  null
+                                              ? loadingProgress
+                                                      .cumulativeBytesLoaded /
+                                                  (loadingProgress
+                                                          .expectedTotalBytes ??
+                                                      1)
+                                              : null),
+                                    );
+                                  },
+                                  errorBuilder: (BuildContext context,
+                                      Object error, StackTrace? stackTrace) {
+                                    return Text('Image failed to load');
+                                  },
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     );
                   },

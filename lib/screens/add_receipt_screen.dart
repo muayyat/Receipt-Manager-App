@@ -175,13 +175,13 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
     );
   }
 
-  Future<String?> uploadReceiptImage() async {
+  Future<void> uploadReceiptImage() async {
     final ImagePicker _picker = ImagePicker();
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
 
     if (image == null) {
       print('No image selected.');
-      return null;
+      return; // Exit the function if no image is selected
     }
 
     print('Image selected: ${image.path}');
@@ -195,13 +195,10 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
       print('Image URL: $downloadUrl');
 
       setState(() {
-        uploadedImageUrl = downloadUrl; // Store the uploaded image URL
+        uploadedImageUrl = downloadUrl.trim(); // Store the uploaded image URL
       });
-
-      return downloadUrl;
     } catch (e) {
       print("Error uploading image: $e");
-      return null;
     }
   }
 
@@ -217,8 +214,6 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
       return;
     }
 
-    uploadedImageUrl = await uploadReceiptImage();
-
     // Create a map with receipt data
     Map<String, dynamic> receiptData = {
       'merchant': merchantController.text,
@@ -229,7 +224,7 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
       'itemName': itemNameController.text,
       'description': descriptionController.text,
       'userId': loggedInUser?.email,
-      'imageUrl': uploadedImageUrl ?? '',
+      'imageUrl': uploadedImageUrl ?? '', // Use the uploaded image URL
     };
 
     try {
@@ -250,6 +245,7 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
         itemNameController.clear();
         selectedCategory = null;
         selectedCurrency = null;
+        uploadedImageUrl = null; // Clear the image URL
       });
     } catch (e) {
       // Handle error: show an error message
@@ -407,7 +403,7 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
               // Display the uploaded image
               if (uploadedImageUrl != null) ...[
                 SizedBox(height: 20),
-                Image.network(uploadedImageUrl!), // Display the image
+                Image.network(uploadedImageUrl!.trim()), // Display the image
               ],
               SizedBox(height: 20),
               RoundedButton(
