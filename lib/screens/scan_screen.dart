@@ -135,10 +135,10 @@ class _ScanScreenState extends State<ScanScreen> {
       if (Platform.isIOS) {
         final directory = await getApplicationDocumentsDirectory();
         tessdataPath =
-            '${directory.path}/tessdata'; // This is the correct path for iOS.
+        '${directory.path}/tessdata'; // This is the correct path for iOS.
       } else if (Platform.isAndroid) {
         tessdataPath =
-            'assets/tessdata'; // This is the correct path for Android.
+        'assets/tessdata'; // This is the correct path for Android.
       }
       print('Using tessdata path: $tessdataPath');
 
@@ -197,10 +197,10 @@ class _ScanScreenState extends State<ScanScreen> {
           children: <Widget>[
             _imageFile != null
                 ? Image.file(
-                    _imageFile!,
-                    width: 300,
-                    height: 400,
-                  )
+              _imageFile!,
+              width: 300,
+              height: 400,
+            )
                 : Text("No image selected or captured"),
             SizedBox(height: 20),
             ElevatedButton(
@@ -215,9 +215,9 @@ class _ScanScreenState extends State<ScanScreen> {
             SizedBox(height: 20),
             _extractedText.isNotEmpty
                 ? Text(
-                    'Extracted Text:\n$_extractedText',
-                    textAlign: TextAlign.center,
-                  )
+              'Extracted Text:\n$_extractedText',
+              textAlign: TextAlign.center,
+            )
                 : Text("No text extracted yet"),
           ],
         ),

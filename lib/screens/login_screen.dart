@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:receipt_manager/screens/receipt_list_screen.dart';
+// import 'package:receipt_manager/screens/receipt_list_screen.dart';
+import 'package:receipt_manager/screens/dashboard_screen.dart';
 
 import '../components/rounded_button.dart';
 import '../constants.dart';
@@ -79,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     final user = await _auth.signInWithEmailAndPassword(
                         email: email, password: password);
                     if (user != null) {
-                      Navigator.pushNamed(context, ReceiptListScreen.id);
+                      Navigator.pushNamed(context, DashboardScreen.id);
                     }
                   } on FirebaseAuthException catch (e) {
                     setState(() {
