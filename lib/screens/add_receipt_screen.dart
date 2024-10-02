@@ -259,14 +259,6 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        actions: [
-          IconButton(
-            icon: Icon(Icons.cancel),
-            onPressed: () {
-              Navigator.pop(context); // Navigate back when canceled
-            },
-          ),
-        ],
         title: Text('Create New Receipt'),
         backgroundColor: Colors.lightBlueAccent,
       ),
@@ -394,25 +386,51 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
                 decoration: InputDecoration(labelText: 'Description'),
               ),
               SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  uploadReceiptImage(); // Upload the image
-                },
-                child: Text('Upload Receipt Image'),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    uploadReceiptImage(); // Upload the image
+                  },
+                  child: Text('Upload Receipt Image'),
+                ),
               ),
               // Display the uploaded image
               if (uploadedImageUrl != null) ...[
                 SizedBox(height: 20),
-                Image.network(uploadedImageUrl!.trim()), // Display the image
+                ClipRRect(
+                  borderRadius:
+                      BorderRadius.circular(8.0), // Set the desired radius
+                  child: Image.network(
+                    uploadedImageUrl!.trim(),
+                    fit: BoxFit.cover, // Adjust the image fit as needed
+                  ),
+                ),
               ],
               SizedBox(height: 20),
-              RoundedButton(
-                color: Colors.lightBlueAccent,
-                title: 'Save',
-                onPressed: () {
-                  // Handle saving the receipt
-                  _saveReceipt();
-                },
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: RoundedButton(
+                      color: Colors.lightBlueAccent,
+                      title: 'Cancel',
+                      onPressed: () {
+                        Navigator.pop(context); // Navigate back when canceled
+                      },
+                    ),
+                  ),
+                  SizedBox(width: 10), // Space between buttons
+                  Expanded(
+                    child: RoundedButton(
+                      color: Colors.blueAccent,
+                      title: 'Save',
+                      onPressed: () {
+                        // Handle saving the receipt
+                        _saveReceipt();
+                      },
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
