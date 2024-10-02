@@ -20,7 +20,7 @@ class ReceiptListScreen extends StatefulWidget {
 class _ReceiptListScreenState extends State<ReceiptListScreen> {
   Stream<QuerySnapshot>? receiptsStream;
   String currentSortField = 'date';
-  bool isDescending = false; // For toggling between ascending/descending order
+  bool isDescending = false;
 
   @override
   void initState() {
@@ -47,14 +47,10 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
     });
   }
 
-  void onSortChanged(String newSortField) {
+  void onSortChanged(String newSortField, bool descending) {
     setState(() {
-      if (currentSortField == newSortField) {
-        isDescending = !isDescending; // Toggle the order
-      } else {
-        currentSortField = newSortField;
-        isDescending = false; // Reset to ascending for the new field
-      }
+      currentSortField = newSortField;
+      isDescending = descending;
       fetchReceipts();
     });
   }
@@ -67,16 +63,29 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
         backgroundColor: Colors.lightBlueAccent,
         actions: [
           PopupMenuButton<String>(
-            onSelected: onSortChanged,
+            onSelected: (value) {
+              // Handle sort selection
+              if (value == 'date_asc') {
+                onSortChanged('date', false);
+              } else if (value == 'date_desc') {
+                onSortChanged('date', true);
+              } else if (value == 'amount_asc') {
+                onSortChanged('amount', false);
+              } else if (value == 'amount_desc') {
+                onSortChanged('amount', true);
+              }
+            },
             itemBuilder: (context) => [
               PopupMenuItem(
-                value: 'date',
-                child: Text('Sort by Date'),
-              ),
+                  value: 'sort_date_asc', child: Text('Date: Oldest First')),
               PopupMenuItem(
-                value: 'amount',
-                child: Text('Sort by Amount'),
-              ),
+                  value: 'sort_date_desc', child: Text('Date: Newest First')),
+              PopupMenuItem(
+                  value: 'sort_amount_asc',
+                  child: Text('Amount: Lowest First')),
+              PopupMenuItem(
+                  value: 'sort_amount_desc',
+                  child: Text('Amount: Highest First')),
             ],
             icon: Icon(Icons.sort),
           ),
