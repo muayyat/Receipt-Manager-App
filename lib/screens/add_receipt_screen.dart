@@ -218,8 +218,7 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
     }
 
     uploadedImageUrl = await uploadReceiptImage();
-    // uploadedImageUrl =
-    //     'https://firebasestorage.googleapis.com/v0/b/receipt-manager-b3afe.appspot.com/o/Screenshot%202024-10-02%20at%2013.34.37.png?alt=media';
+
     // Create a map with receipt data
     Map<String, dynamic> receiptData = {
       'merchant': merchantController.text,
