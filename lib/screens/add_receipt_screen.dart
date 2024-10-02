@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:receipt_manager/screens/scan_screen.dart';
 
 import '../components//rounded_button.dart';
@@ -8,6 +12,7 @@ import '../services/auth_service.dart';
 
 final _firestore = FirebaseFirestore.instance;
 User? loggedInUser;
+final _storage = FirebaseStorage.instance;
 
 class AddReceiptScreen extends StatefulWidget {
   static const String id = 'add_receipt_screen';
@@ -31,6 +36,8 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
   String? selectedCurrency;
 
   bool isLoading = true; // To manage loading state
+
+  String? uploadedImageUrl; // Variable to store uploaded image URL
 
   void initState() {
     super.initState();
@@ -168,6 +175,36 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
     );
   }
 
+  Future<String?> uploadReceiptImage() async {
+    final ImagePicker _picker = ImagePicker();
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+
+    if (image == null) {
+      print('No image selected.');
+      return null;
+    }
+
+    print('Image selected: ${image.path}');
+    try {
+      String fileName = 'receipts/${DateTime.now().millisecondsSinceEpoch}.png';
+      Reference ref = _storage.ref().child(fileName);
+      await ref.putFile(File(image.path));
+      print('Image uploaded successfully.');
+
+      String downloadUrl = await ref.getDownloadURL();
+      print('Image URL: $downloadUrl');
+
+      setState(() {
+        uploadedImageUrl = downloadUrl; // Store the uploaded image URL
+      });
+
+      return downloadUrl;
+    } catch (e) {
+      print("Error uploading image: $e");
+      return null;
+    }
+  }
+
   Future<void> _saveReceipt() async {
     if (merchantController.text.isEmpty ||
         totalController.text.isEmpty ||
@@ -180,6 +217,9 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
       return;
     }
 
+    uploadedImageUrl = await uploadReceiptImage();
+    // uploadedImageUrl =
+    //     'https://firebasestorage.googleapis.com/v0/b/receipt-manager-b3afe.appspot.com/o/Screenshot%202024-10-02%20at%2013.34.37.png?alt=media';
     // Create a map with receipt data
     Map<String, dynamic> receiptData = {
       'merchant': merchantController.text,
@@ -190,7 +230,7 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
       'itemName': itemNameController.text,
       'description': descriptionController.text,
       'userId': loggedInUser?.email,
-      'imageUrl': '',
+      'imageUrl': uploadedImageUrl ?? '',
     };
 
     try {
@@ -361,11 +401,15 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  // Add functionality to capture a receipt image
-                  Navigator.pushNamed(context, ScanScreen.id);
+                  uploadReceiptImage(); // Upload the image
                 },
-                child: Text('Add Receipt Image'),
+                child: Text('Upload Receipt Image'),
               ),
+              // Display the uploaded image
+              if (uploadedImageUrl != null) ...[
+                SizedBox(height: 20),
+                Image.network(uploadedImageUrl!), // Display the image
+              ],
               SizedBox(height: 20),
               RoundedButton(
                 color: Colors.lightBlueAccent,
