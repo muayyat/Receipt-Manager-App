@@ -18,7 +18,7 @@ class ReceiptListScreen extends StatefulWidget {
 }
 
 class _ReceiptListScreenState extends State<ReceiptListScreen> {
-  Stream<QuerySnapshot>? receiptsStream;
+  Stream<DocumentSnapshot>? receiptsStream;
   String currentSortField = 'date';
   bool isDescending = false;
 
@@ -40,10 +40,12 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
   void fetchReceipts() {
     setState(() {
       receiptsStream = _firestore
-          .collection('receipts')
-          .where('userId', isEqualTo: loggedInUser?.email)
-          .orderBy(currentSortField, descending: isDescending)
-          .snapshots();
+              .collection('receipts')
+              .doc(loggedInUser?.email) // Fetch the document using email (userId)
+              .snapshots()
+          as Stream<
+              DocumentSnapshot<
+                  Object?>>?; // Return the document snapshot stream
     });
   }
 
@@ -102,9 +104,9 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
     return Center(child: CircularProgressIndicator());
   }
 
-  StreamBuilder<QuerySnapshot> _buildReceiptList() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: receiptsStream,
+  StreamBuilder<DocumentSnapshot> _buildReceiptList() {
+    return StreamBuilder<DocumentSnapshot>(
+      stream: receiptsStream, // Stream for the single document snapshot
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
@@ -114,26 +116,39 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
           return Center(child: CircularProgressIndicator());
         }
 
-        final receipts = snapshot.data?.docs ?? [];
-
-        if (receipts.isEmpty) {
+        // Check if the document exists and has data
+        if (!snapshot.hasData ||
+            snapshot.data == null ||
+            snapshot.data!.data() == null) {
           return Center(child: Text('No receipts found.'));
         }
 
+        // Get the receiptlist array from the document
+        final receiptList =
+            snapshot.data!.get('receiptlist') as List<dynamic>? ?? [];
+
+        // Check if the receiptlist array is empty
+        if (receiptList.isEmpty) {
+          return Center(child: Text('No receipts available.'));
+        }
+
+        // Display the receipt cards using ListView.builder
         return ListView.builder(
           padding: EdgeInsets.only(bottom: 80),
-          itemCount: receipts.length,
+          itemCount: receiptList.length,
           itemBuilder: (context, index) {
-            return _buildReceiptCard(receipts[index]);
+            final receipt = receiptList[index]
+                as Map<String, dynamic>; // Treat each receipt as a Map
+            return _buildReceiptCard(
+                receipt); // Pass the receipt map to _buildReceiptCard
           },
         );
       },
     );
   }
 
-  Card _buildReceiptCard(QueryDocumentSnapshot receipt) {
-    var receiptData = receipt.data() as Map<String, dynamic>;
-
+  Card _buildReceiptCard(Map<String, dynamic> receiptData) {
+    // Extract data from the receipt map
     Timestamp timestamp = receiptData['date'] ?? Timestamp.now();
     DateTime dateTime = timestamp.toDate();
     String date = DateFormat('yyyy-MM-dd').format(dateTime);

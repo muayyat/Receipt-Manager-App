@@ -252,13 +252,26 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
       'currency': selectedCurrency,
       'itemName': itemNameController.text,
       'description': descriptionController.text,
-      'userId': loggedInUser?.email,
       'imageUrl': uploadedImageUrl ?? '', // Use the uploaded image URL
     };
 
     try {
-      // Add the document to Firestore
-      await _firestore.collection('receipts').add(receiptData);
+      // Get the user document by userId or email
+      DocumentReference userDocRef =
+          _firestore.collection('receipts').doc(loggedInUser!.email);
+
+      // Update the array field (create the array if it doesn't exist)
+      await userDocRef.update({
+        'receiptlist':
+            FieldValue.arrayUnion([receiptData]) // Add receiptData to the array
+      }).catchError((error) async {
+        // If document doesn't exist, create it and set the array
+        await userDocRef.set({
+          'receiptlist': [
+            receiptData
+          ] // Create the array with the first receipt
+        });
+      });
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
