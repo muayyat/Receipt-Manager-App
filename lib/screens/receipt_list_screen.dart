@@ -8,7 +8,6 @@ import '../services/receipt_service.dart';
 import 'add_receipt_screen.dart';
 import 'expense_chart_screen.dart';
 
-final _firestore = FirebaseFirestore.instance;
 User? loggedInUser;
 
 class ReceiptListScreen extends StatefulWidget {

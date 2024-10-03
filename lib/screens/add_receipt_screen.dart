@@ -1,11 +1,8 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:receipt_manager/screens/scan_screen.dart';
 
 import '../components//rounded_button.dart';
@@ -13,8 +10,8 @@ import '../components/category_select_popup.dart';
 import '../services/auth_service.dart';
 import '../services/currency_service.dart';
 import '../services/receipt_service.dart';
+import '../services/storage_service.dart';
 
-final _firestore = FirebaseFirestore.instance;
 User? loggedInUser;
 final _storage = FirebaseStorage.instance;
 
@@ -27,6 +24,8 @@ class AddReceiptScreen extends StatefulWidget {
 
 class _AddReceiptScreenState extends State<AddReceiptScreen> {
   final ReceiptService receiptService = ReceiptService(); // Create an instance
+  final StorageService storageService =
+      StorageService(); // Create an instance of StorageService
 
   final TextEditingController merchantController = TextEditingController();
   final TextEditingController dateController = TextEditingController();
@@ -132,29 +131,13 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
   }
 
   Future<void> uploadReceiptImage() async {
-    final ImagePicker _picker = ImagePicker();
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    String? imageUrl = await storageService
+        .uploadReceiptImage(); // Use the new service to upload the image
 
-    if (image == null) {
-      print('No image selected.');
-      return; // Exit the function if no image is selected
-    }
-
-    print('Image selected: ${image.path}');
-    try {
-      String fileName = 'receipts/${DateTime.now().millisecondsSinceEpoch}.png';
-      Reference ref = _storage.ref().child(fileName);
-      await ref.putFile(File(image.path));
-      print('Image uploaded successfully.');
-
-      String downloadUrl = await ref.getDownloadURL();
-      print('Image URL: $downloadUrl');
-
+    if (imageUrl != null) {
       setState(() {
-        uploadedImageUrl = downloadUrl.trim(); // Store the uploaded image URL
+        uploadedImageUrl = imageUrl.trim(); // Store the uploaded image URL
       });
-    } catch (e) {
-      print("Error uploading image: $e");
     }
   }
 
