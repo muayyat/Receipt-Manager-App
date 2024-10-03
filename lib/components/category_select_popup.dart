@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import 'add_category_widget.dart';
+
 class CategorySelectPopup extends StatefulWidget {
   final String userId;
 
@@ -100,6 +102,43 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
     }
   }
 
+  // Function to show the AddCategoryWidget dialog
+  void _showAddCategoryDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: AddCategoryWidget(
+            userId: widget.userId,
+            onAdd: (name, icon) {
+              _addCategoryToFirestore(name, icon);
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  // Function to add a category to Firestore
+  Future<void> _addCategoryToFirestore(String name, String icon) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('categories')
+          .doc(widget.userId)
+          .update({
+        'categorylist': FieldValue.arrayUnion([
+          {'name': name, 'icon': icon}
+        ]),
+      });
+      fetchUserCategories(); // Refresh the categories
+    } catch (e) {
+      print("Error adding category: $e");
+    }
+  }
+
   Future<void> deleteCategory(String id) async {
     int indexToDelete =
         userCategories.indexWhere((category) => category['id'] == id);
@@ -193,9 +232,7 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
                       child: IconButton(
                         icon: Icon(Icons.add,
                             color: Colors.grey[600]), // Icon color
-                        onPressed: () {
-                          // Add your add category logic here
-                        },
+                        onPressed: _showAddCategoryDialog,
                         iconSize: 20,
                         padding: EdgeInsets.zero,
                       ),
