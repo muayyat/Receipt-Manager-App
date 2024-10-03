@@ -243,21 +243,35 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                                       .fold(0, (sum, item) => sum + item)) *
                               100;
 
-                          return Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 16,
-                                height: 16,
-                                color: categoryColors[entry.key],
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                  '${entry.key}: ${total.toStringAsFixed(2)} $selectedBaseCurrency (${percentage.toStringAsFixed(1)}%)'),
-                            ],
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical:
+                                    4.0), // Adjust the vertical padding as needed
+                            child: Row(
+                              mainAxisSize:
+                                  MainAxisSize.min, // Minimize the size
+                              crossAxisAlignment: CrossAxisAlignment
+                                  .center, // Center align vertically
+                              children: [
+                                Container(
+                                  width: 16,
+                                  height: 16,
+                                  color: categoryColors[entry.key],
+                                ),
+                                SizedBox(
+                                    width:
+                                        8), // Space between color box and text
+                                Text(
+                                  '${entry.key}: ${total.toStringAsFixed(2)} $selectedBaseCurrency (${percentage.toStringAsFixed(1)}%)',
+                                  style: TextStyle(fontSize: 16),
+                                  textAlign:
+                                      TextAlign.left, // Align text to the left
+                                ),
+                              ],
+                            ),
                           );
                         }).toList(),
-                      ),
+                      )
                     ],
                   ),
                 ),
