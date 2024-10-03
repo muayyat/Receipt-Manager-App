@@ -113,47 +113,39 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     if (loggedInUser == null) return;
 
     try {
-      if (selectedDateRange == null) {
-        QuerySnapshot snapshot = await _firestore
-            .collection('receipts')
-            .where('userId', isEqualTo: loggedInUser?.email)
-            .orderBy('date', descending: false)
-            .get();
-
-        if (snapshot.docs.isNotEmpty) {
-          Timestamp earliestDate =
-              snapshot.docs.first['date'] ?? Timestamp.now();
-          Timestamp latestDate = snapshot.docs.last['date'] ?? Timestamp.now();
-
-          setState(() {
-            selectedDateRange = DateTimeRange(
-              start: earliestDate.toDate(),
-              end: latestDate.toDate(),
-            );
-          });
-        }
-      }
-
-      QuerySnapshot snapshot = await _firestore
+      // Fetch the user document
+      DocumentSnapshot userDoc = await _firestore
           .collection('receipts')
-          .where('userId', isEqualTo: loggedInUser?.email)
-          .where('date',
-              isGreaterThanOrEqualTo:
-                  Timestamp.fromDate(selectedDateRange!.start))
-          .where('date',
-              isLessThanOrEqualTo: Timestamp.fromDate(selectedDateRange!.end))
+          .doc(loggedInUser!.email) // Get the document for the current user
           .get();
 
+      if (!userDoc.exists) return; // Exit if the document does not exist
+
+      // Get the receiptlist from the document
+      List<dynamic> receiptList =
+          userDoc.get('receiptlist') as List<dynamic>? ?? [];
+
+      // Filter by date range if selected
       Map<String, double> tempCategoryTotals = {};
       Set<String> categories = {};
 
-      for (var doc in snapshot.docs) {
-        var data = doc.data() as Map<String, dynamic>;
-        String category = data['category'];
-        double amount = (data['amount'] as num).toDouble();
-        String currency = data['currency'];
+      for (var receipt in receiptList) {
+        Map<String, dynamic> receiptData = receipt as Map<String, dynamic>;
+        Timestamp date = receiptData['date'];
+        double amount = (receiptData['amount'] as num).toDouble();
+        String currency = receiptData['currency'];
+
+        // Check if the date is within the selected date range
+        if (selectedDateRange != null) {
+          DateTime receiptDate = date.toDate();
+          if (receiptDate.isBefore(selectedDateRange!.start) ||
+              receiptDate.isAfter(selectedDateRange!.end)) {
+            continue; // Skip this receipt if it's outside the date range
+          }
+        }
 
         double convertedAmount = convertToBaseCurrency(amount, currency);
+        String category = receiptData['category'];
 
         categories.add(category);
 
@@ -241,7 +233,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
           : categoryTotals.isEmpty
               ? Center(child: Text('No data available.'))
               : Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(50.0),
                   child: Column(
                     children: [
                       Text(

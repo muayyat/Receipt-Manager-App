@@ -48,48 +48,57 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
         .toString()
         .split(' ')[0]; // Format to YYYY-MM-DD
     getCurrentUser();
-    fetchCategoriesAndCurrencies();
+    fetchCurrencies();
   }
 
   void getCurrentUser() async {
     loggedInUser = await AuthService.getCurrentUser();
   }
 
-// Fetch unique categories and currencies from the receipts collection for the current user only
-  Future<void> fetchCategoriesAndCurrencies() async {
+  // Fetch unique categories and currencies from the receipts collection for the current user only
+  Future<void> fetchCurrencies() async {
     if (loggedInUser == null) return; // Ensure the user is logged in
 
     try {
-      // Query Firestore for receipts for the current user
-      QuerySnapshot snapshot = await _firestore
+      // Get the document for the current user
+      DocumentSnapshot userDoc = await _firestore
           .collection('receipts')
-          .where('userId',
-              isEqualTo: loggedInUser?.email) // Filter by current user
+          .doc(loggedInUser!.email)
           .get();
 
-      Set<String> categorySet = {};
-      Set<String> currencySet = {};
+      if (!userDoc.exists) return; // If the user document doesn't exist, return
 
-      for (var doc in snapshot.docs) {
-        var data = doc.data() as Map<String, dynamic>;
-        String category = data['category'];
-        String currency = data['currency'];
+      // Get the receiptlist from the document
+      List<dynamic> receiptList =
+          userDoc.get('receiptlist') as List<dynamic>? ?? [];
 
-        // Add to sets to ensure uniqueness
-        categorySet.add(category);
-        currencySet.add(currency);
+      // Create sets to ensure unique values
+      Set<String> uniqueCurrencies = {};
+      Set<String> uniqueCategories = {};
+
+      // Iterate through the receipts and extract currencies and categories
+      for (var receipt in receiptList) {
+        Map<String, dynamic> receiptData = receipt as Map<String, dynamic>;
+        String? currency = receiptData['currency'];
+        String? category = receiptData['category'];
+
+        // Add to the set if not null
+        if (currency != null && currency.isNotEmpty) {
+          uniqueCurrencies.add(currency);
+        }
+        if (category != null && category.isNotEmpty) {
+          uniqueCategories.add(category);
+        }
       }
 
+      // Update the state with the unique currencies and categories
       setState(() {
-        categories = categorySet.toList(); // Convert to list for dropdown
-        currencies = currencySet.toList(); // Convert to list for dropdown
-        isLoading = false; // Set loading to false once data is fetched
+        currencies = uniqueCurrencies.toList();
+        categories = uniqueCategories.toList();
       });
     } catch (e) {
-      print("Error fetching data: $e");
-      setState(() {
-        isLoading = false;
-      });
+      // Handle errors (for example, Firestore errors)
+      print('Error fetching currencies and categories: $e');
     }
   }
 
@@ -154,6 +163,9 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
                       });
                       Navigator.of(context).pop(); // Close the dialog
                     },
+                    trailing: selectedCurrency == currencies[index]
+                        ? Icon(Icons.check, color: Colors.green)
+                        : null, // Show checkmark for selected currency
                   );
                 }
               },
