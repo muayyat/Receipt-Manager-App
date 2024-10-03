@@ -171,9 +171,6 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
         });
 
         print("has deleted category: $name");
-
-        // Optional: Call fetchUserCategories if needed to refresh the list
-        fetchUserCategories();
       } else {
         print("Category not found locally: $name");
       }
@@ -184,10 +181,6 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
 
   @override
   Widget build(BuildContext context) {
-    // Use userCategories if not empty, otherwise use defaultCategories
-    userCategories =
-        userCategories.isNotEmpty ? userCategories : defaultCategories;
-
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
