@@ -171,6 +171,8 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
         });
 
         print("has deleted category: $name");
+
+        fetchUserCategories();
       } else {
         print("Category not found locally: $name");
       }
