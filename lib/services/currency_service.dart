@@ -36,6 +36,25 @@ class CurrencyService {
     return apiKey;
   }
 
+  // Fetch the currency codes as a list
+  static Future<List<String>> fetchCurrencyCodes() async {
+    final String apiKey = await getApiKey();
+    const String apiUrl = 'https://openexchangerates.org/api/currencies.json';
+
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> currencies = json.decode(response.body);
+        return currencies.keys.toList(); // Return the list of currency codes
+      } else {
+        throw Exception('Failed to load currency codes');
+      }
+    } catch (e) {
+      throw Exception('Error fetching currency codes: $e');
+    }
+  }
+
   // Fetch conversion rates using the API key from Remote Config
   static Future<Map<String, double>> fetchConversionRates() async {
     final String apiKey =

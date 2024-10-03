@@ -10,6 +10,7 @@ import 'package:receipt_manager/screens/scan_screen.dart';
 import '../components//rounded_button.dart';
 import '../components/category_select_popup.dart';
 import '../services/auth_service.dart';
+import '../services/currency_service.dart';
 
 final _firestore = FirebaseFirestore.instance;
 User? loggedInUser;
@@ -51,55 +52,18 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
     fetchCurrencies();
   }
 
-  void getCurrentUser() async {
-    loggedInUser = await AuthService.getCurrentUser();
+  Future<void> fetchCurrencies() async {
+    try {
+      currencies =
+          await CurrencyService.fetchCurrencyCodes(); // Fetch currency codes
+      setState(() {}); // Update the UI after fetching currencies
+    } catch (e) {
+      print('Error fetching currencies: $e');
+    }
   }
 
-  // Fetch unique categories and currencies from the receipts collection for the current user only
-  Future<void> fetchCurrencies() async {
-    if (loggedInUser == null) return; // Ensure the user is logged in
-
-    try {
-      // Get the document for the current user
-      DocumentSnapshot userDoc = await _firestore
-          .collection('receipts')
-          .doc(loggedInUser!.email)
-          .get();
-
-      if (!userDoc.exists) return; // If the user document doesn't exist, return
-
-      // Get the receiptlist from the document
-      List<dynamic> receiptList =
-          userDoc.get('receiptlist') as List<dynamic>? ?? [];
-
-      // Create sets to ensure unique values
-      Set<String> uniqueCurrencies = {};
-      Set<String> uniqueCategories = {};
-
-      // Iterate through the receipts and extract currencies and categories
-      for (var receipt in receiptList) {
-        Map<String, dynamic> receiptData = receipt as Map<String, dynamic>;
-        String? currency = receiptData['currency'];
-        String? category = receiptData['category'];
-
-        // Add to the set if not null
-        if (currency != null && currency.isNotEmpty) {
-          uniqueCurrencies.add(currency);
-        }
-        if (category != null && category.isNotEmpty) {
-          uniqueCategories.add(category);
-        }
-      }
-
-      // Update the state with the unique currencies and categories
-      setState(() {
-        currencies = uniqueCurrencies.toList();
-        categories = uniqueCategories.toList();
-      });
-    } catch (e) {
-      // Handle errors (for example, Firestore errors)
-      print('Error fetching currencies and categories: $e');
-    }
+  void getCurrentUser() async {
+    loggedInUser = await AuthService.getCurrentUser();
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -180,37 +144,26 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        String newCurrency = '';
         return AlertDialog(
-          title: Text('Add New Currency'),
-          content: TextField(
-            onChanged: (value) {
-              newCurrency = value;
-            },
-            decoration: InputDecoration(hintText: 'Enter currency code'),
+          title: Text('Choose a Currency'),
+          content: SizedBox(
+            width: double.maxFinite, // Make the dialog full width
+            child: ListView.builder(
+              itemCount: currencies.length, // Use the existing currency list
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(currencies[index]), // Display each currency
+                  onTap: () {
+                    setState(() {
+                      selectedCurrency =
+                          currencies[index]; // Set the selected currency
+                    });
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                );
+              },
+            ),
           ),
-          actions: [
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-            ),
-            TextButton(
-              child: Text('Add'),
-              onPressed: () {
-                setState(() {
-                  if (newCurrency.isNotEmpty) {
-                    currencies
-                        .add(newCurrency); // Add the new currency to the list
-                    selectedCurrency =
-                        newCurrency; // Set it as the selected currency
-                  }
-                });
-                Navigator.of(context).pop(); // Close the dialog
-              },
-            ),
-          ],
         );
       },
     );
