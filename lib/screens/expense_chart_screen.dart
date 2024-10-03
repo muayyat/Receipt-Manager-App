@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
 import '../services/currency_service.dart';
+import '../services/receipt_service.dart';
 
-final _firestore = FirebaseFirestore.instance;
 User? loggedInUser;
 
 class ExpenseChartScreen extends StatefulWidget {
@@ -17,16 +17,11 @@ class ExpenseChartScreen extends StatefulWidget {
 }
 
 class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
-  Map<String, double> categoryTotals =
-      {}; // To store total expenses by category
-  Map<String, Color> categoryColors = {}; // To store category to color mapping
+  Map<String, double> categoryTotals = {};
+  Map<String, Color> categoryColors = {};
   bool isLoading = true;
-  String selectedBaseCurrency = 'EUR'; // Default base currency
-
-  // List of available currencies for filtering
-  final List<String> availableCurrencies = ['EUR', 'USD', 'GBP'];
-
-  // Predefined list of colors
+  String selectedBaseCurrency = 'EUR';
+  late List<String> availableCurrencies = [];
   final List<Color> availableColors = [
     Color(0xFF42A5F5), // Soft Blue
     Color(0xFF66BB6A), // Soft Green
@@ -38,130 +33,115 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     Color(0xFF8D6E63), // Soft Brown
   ];
 
-  DateTimeRange? selectedDateRange; // Store the selected date range
+  DateTimeRange? selectedDateRange;
+  final ReceiptService receiptService = ReceiptService();
 
   @override
   void initState() {
     super.initState();
     getCurrentUser();
     fetchConversionRates();
+    fetchCurrencyCodes();
   }
 
   void getCurrentUser() async {
     loggedInUser = await AuthService.getCurrentUser();
-    // Fetch the expense data after getting the user
-    fetchExpenseData();
+    fetchExpenseData(); // Fetch expense data after getting the user
   }
 
-  // Example static conversion rates
+  Future<void> fetchCurrencyCodes() async {
+    try {
+      availableCurrencies = await CurrencyService.fetchCurrencyCodes();
+      setState(() {}); // Update the UI after fetching currency codes
+    } catch (e) {
+      print('Failed to fetch available currencies: $e');
+    }
+  }
+
   Map<String, double> conversionRates = {
-    'USD': 0.85, // Fallback rate if fetch fails
+    'USD': 0.85,
     'EUR': 1.0,
     'GBP': 1.17,
   };
 
-  // Fetch real-time conversion rates
   Future<void> fetchConversionRates() async {
     try {
       final rates = await CurrencyService.fetchConversionRates();
       setState(() {
-        conversionRates = rates; // Update the conversion rates in state
+        conversionRates = rates;
       });
     } catch (e) {
       print('Failed to fetch conversion rates: $e');
     }
   }
 
-  // Convert the amount to the selected base currency with logging
   double convertToBaseCurrency(double amount, String currency) {
-    print("Original Amount: $amount $currency");
-    print("Selected base currency: $selectedBaseCurrency");
-
-    // If the selected base currency is the same as the original currency, no conversion is needed
     if (currency == selectedBaseCurrency) {
-      print(
-          "Selected base currency is the same as the original currency. Amount remains: $amount");
       return amount;
     }
 
-    // Convert to USD if needed
     double amountInUSD;
     if (currency != 'USD') {
       double rateToUSD = conversionRates[currency] ?? 1.0;
-      amountInUSD = amount / rateToUSD; // Convert to USD
-      print("Converted $amount $currency to USD: $amountInUSD");
+      amountInUSD = amount / rateToUSD;
     } else {
       amountInUSD = amount;
-      print("Amount is already in USD: $amountInUSD");
     }
 
-    // Convert from USD to the selected base currency (if it's not already USD)
     if (selectedBaseCurrency != 'USD') {
       double rateToBaseCurrency = conversionRates[selectedBaseCurrency] ?? 1.0;
-      double convertedAmount = amountInUSD *
-          rateToBaseCurrency; // Convert to the selected base currency
-      print(
-          "Converted $amountInUSD USD to $selectedBaseCurrency: $convertedAmount");
-      return convertedAmount;
+      return amountInUSD * rateToBaseCurrency;
     } else {
-      print("Selected base currency is USD. Amount remains: $amountInUSD");
-      return amountInUSD; // No conversion needed if base currency is USD
+      return amountInUSD;
     }
   }
 
-  Future<void> fetchExpenseData() async {
-    if (loggedInUser == null) return;
-
+  // Fetch expense data using ReceiptService
+  void fetchExpenseData() async {
     try {
-      // Fetch the user document
-      DocumentSnapshot userDoc = await _firestore
-          .collection('receipts')
-          .doc(loggedInUser!.email) // Get the document for the current user
-          .get();
+      // Listen to the receipts stream
+      receiptService.fetchReceipts().listen((userDoc) {
+        if (!userDoc.exists) return;
 
-      if (!userDoc.exists) return; // Exit if the document does not exist
+        List<dynamic> receiptList =
+            userDoc.get('receiptlist') as List<dynamic>? ?? [];
 
-      // Get the receiptlist from the document
-      List<dynamic> receiptList =
-          userDoc.get('receiptlist') as List<dynamic>? ?? [];
+        Map<String, double> tempCategoryTotals = {};
+        Set<String> categories = {};
 
-      // Filter by date range if selected
-      Map<String, double> tempCategoryTotals = {};
-      Set<String> categories = {};
+        for (var receipt in receiptList) {
+          Map<String, dynamic> receiptData = receipt as Map<String, dynamic>;
+          Timestamp date = receiptData['date'];
+          double amount = (receiptData['amount'] as num).toDouble();
+          String currency = receiptData['currency'];
 
-      for (var receipt in receiptList) {
-        Map<String, dynamic> receiptData = receipt as Map<String, dynamic>;
-        Timestamp date = receiptData['date'];
-        double amount = (receiptData['amount'] as num).toDouble();
-        String currency = receiptData['currency'];
+          if (selectedDateRange != null) {
+            DateTime receiptDate = date.toDate();
+            if (receiptDate.isBefore(selectedDateRange!.start) ||
+                receiptDate.isAfter(selectedDateRange!.end)) {
+              continue; // Skip this receipt if it's outside the date range
+            }
+          }
 
-        // Check if the date is within the selected date range
-        if (selectedDateRange != null) {
-          DateTime receiptDate = date.toDate();
-          if (receiptDate.isBefore(selectedDateRange!.start) ||
-              receiptDate.isAfter(selectedDateRange!.end)) {
-            continue; // Skip this receipt if it's outside the date range
+          double convertedAmount = convertToBaseCurrency(amount, currency);
+          String category = receiptData['category'];
+
+          categories.add(category);
+
+          if (tempCategoryTotals.containsKey(category)) {
+            tempCategoryTotals[category] =
+                tempCategoryTotals[category]! + convertedAmount;
+          } else {
+            tempCategoryTotals[category] = convertedAmount;
           }
         }
 
-        double convertedAmount = convertToBaseCurrency(amount, currency);
-        String category = receiptData['category'];
+        generateColorMapping(categories);
 
-        categories.add(category);
-
-        if (tempCategoryTotals.containsKey(category)) {
-          tempCategoryTotals[category] =
-              tempCategoryTotals[category]! + convertedAmount;
-        } else {
-          tempCategoryTotals[category] = convertedAmount;
-        }
-      }
-
-      generateColorMapping(categories);
-
-      setState(() {
-        categoryTotals = tempCategoryTotals;
-        isLoading = false;
+        setState(() {
+          categoryTotals = tempCategoryTotals;
+          isLoading = false;
+        });
       });
     } catch (e) {
       print("Error fetching data: $e");
@@ -179,7 +159,6 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     }
   }
 
-  // Method to open the date range picker
   Future<void> _selectDateRange(BuildContext context) async {
     final DateTimeRange? picked = await showDateRangePicker(
       context: context,
@@ -207,7 +186,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
             icon: Icon(Icons.calendar_today),
             onPressed: () => _selectDateRange(context),
           ),
-          SizedBox(width: 16), // Add some space between the buttons
+          SizedBox(width: 16),
           DropdownButton<String>(
             value: selectedBaseCurrency,
             icon: Icon(Icons.money),

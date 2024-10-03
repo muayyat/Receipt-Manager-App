@@ -42,7 +42,7 @@ class CurrencyService {
     const String apiUrl = 'https://openexchangerates.org/api/currencies.json';
 
     try {
-      final response = await http.get(Uri.parse(apiUrl));
+      final response = await http.get(Uri.parse('$apiUrl?app_id=$apiKey'));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> currencies = json.decode(response.body);

@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:receipt_manager/screens/scan_screen.dart';
@@ -13,7 +12,6 @@ import '../services/receipt_service.dart';
 import '../services/storage_service.dart';
 
 User? loggedInUser;
-final _storage = FirebaseStorage.instance;
 
 class AddReceiptScreen extends StatefulWidget {
   static const String id = 'add_receipt_screen';
