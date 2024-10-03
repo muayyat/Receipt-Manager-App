@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../services/auth_service.dart';
+import '../services/receipt_service.dart';
 import 'add_receipt_screen.dart';
 import 'expense_chart_screen.dart';
 
@@ -18,9 +19,12 @@ class ReceiptListScreen extends StatefulWidget {
 }
 
 class _ReceiptListScreenState extends State<ReceiptListScreen> {
+  final ReceiptService receiptService = ReceiptService(); // Create an instance
+
   Stream<DocumentSnapshot>? receiptsStream;
   String currentSortField = 'date';
   bool isDescending = false;
+  List<Map<String, dynamic>> sortedReceiptList = [];
 
   @override
   void initState() {
@@ -32,28 +36,35 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
     loggedInUser = await AuthService.getCurrentUser();
     if (loggedInUser != null) {
       setState(() {
-        fetchReceipts();
+        receiptsStream =
+            receiptService.fetchReceipts(); // Fetch receipts using the service
       });
     }
-  }
-
-  void fetchReceipts() {
-    setState(() {
-      receiptsStream = _firestore
-              .collection('receipts')
-              .doc(loggedInUser?.email) // Fetch the document using email (userId)
-              .snapshots()
-          as Stream<
-              DocumentSnapshot<
-                  Object?>>?; // Return the document snapshot stream
-    });
   }
 
   void onSortChanged(String newSortField, bool descending) {
     setState(() {
       currentSortField = newSortField;
       isDescending = descending;
-      fetchReceipts();
+    });
+    // Sort the existing sortedReceiptList based on the new sorting parameters
+    _sortReceiptList();
+  }
+
+  void _sortReceiptList() {
+    sortedReceiptList.sort((a, b) {
+      var aValue, bValue;
+
+      if (currentSortField == 'date') {
+        aValue = (a['date'] as Timestamp).toDate();
+        bValue = (b['date'] as Timestamp).toDate();
+      } else if (currentSortField == 'amount') {
+        aValue = (a['amount'] as num).toDouble();
+        bValue = (b['amount'] as num).toDouble();
+      }
+
+      // Determine the sort order
+      return isDescending ? bValue.compareTo(aValue) : aValue.compareTo(bValue);
     });
   }
 
@@ -106,7 +117,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
 
   StreamBuilder<DocumentSnapshot> _buildReceiptList() {
     return StreamBuilder<DocumentSnapshot>(
-      stream: receiptsStream, // Stream for the single document snapshot
+      stream: receiptsStream,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
@@ -123,42 +134,24 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
           return Center(child: Text('No receipts found.'));
         }
 
-        // Get the receiptlist array from the document
+        // Get the receipt list from the document
         final receiptList =
             snapshot.data!.get('receiptlist') as List<dynamic>? ?? [];
 
-        // Check if the receiptlist array is empty
-        if (receiptList.isEmpty) {
-          return Center(child: Text('No receipts available.'));
-        }
+        // Convert dynamic list to a list of maps
+        sortedReceiptList = receiptList
+            .cast<Map<String, dynamic>>(); // Cast to List<Map<String, dynamic>>
 
-        // Sort the receiptList based on the currentSortField and isDescending
-        receiptList.sort((a, b) {
-          var aValue, bValue;
-
-          if (currentSortField == 'date') {
-            aValue = (a['date'] as Timestamp).toDate();
-            bValue = (b['date'] as Timestamp).toDate();
-          } else if (currentSortField == 'amount') {
-            aValue = (a['amount'] as num).toDouble();
-            bValue = (b['amount'] as num).toDouble();
-          }
-
-          // Determine the sort order
-          return isDescending
-              ? bValue.compareTo(aValue)
-              : aValue.compareTo(bValue);
-        });
+        // Sort the list based on the current sort field and order
+        _sortReceiptList();
 
         // Display the receipt cards using ListView.builder
         return ListView.builder(
           padding: EdgeInsets.only(bottom: 80),
-          itemCount: receiptList.length,
+          itemCount: sortedReceiptList.length,
           itemBuilder: (context, index) {
-            final receipt = receiptList[index]
-                as Map<String, dynamic>; // Treat each receipt as a Map
-            return _buildReceiptCard(
-                receipt); // Pass the receipt map to _buildReceiptCard
+            final receipt = sortedReceiptList[index];
+            return _buildReceiptCard(receipt);
           },
         );
       },
@@ -173,7 +166,10 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
     String itemName = receiptData['itemName'] ?? '';
     String merchant = receiptData['merchant'] ?? '';
     String category = receiptData['category'] ?? '';
-    double amount = receiptData['amount'] ?? 0.0;
+    // Ensure amount is treated as double
+    double amount = (receiptData['amount'] is int)
+        ? (receiptData['amount'] as int).toDouble()
+        : (receiptData['amount'] as double);
     String currency = receiptData['currency'] ?? '';
     String imageUrl = receiptData['imageUrl'] ?? '';
 

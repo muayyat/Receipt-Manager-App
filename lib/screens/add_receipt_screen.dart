@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:receipt_manager/screens/scan_screen.dart';
 
@@ -11,6 +12,7 @@ import '../components//rounded_button.dart';
 import '../components/category_select_popup.dart';
 import '../services/auth_service.dart';
 import '../services/currency_service.dart';
+import '../services/receipt_service.dart';
 
 final _firestore = FirebaseFirestore.instance;
 User? loggedInUser;
@@ -24,6 +26,8 @@ class AddReceiptScreen extends StatefulWidget {
 }
 
 class _AddReceiptScreenState extends State<AddReceiptScreen> {
+  final ReceiptService receiptService = ReceiptService(); // Create an instance
+
   final TextEditingController merchantController = TextEditingController();
   final TextEditingController dateController = TextEditingController();
   final TextEditingController totalController = TextEditingController();
@@ -179,22 +183,7 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
     };
 
     try {
-      // Get the user document by userId or email
-      DocumentReference userDocRef =
-          _firestore.collection('receipts').doc(loggedInUser!.email);
-
-      // Update the array field (create the array if it doesn't exist)
-      await userDocRef.update({
-        'receiptlist':
-            FieldValue.arrayUnion([receiptData]) // Add receiptData to the array
-      }).catchError((error) async {
-        // If document doesn't exist, create it and set the array
-        await userDocRef.set({
-          'receiptlist': [
-            receiptData
-          ] // Create the array with the first receipt
-        });
-      });
+      await receiptService.addReceipt(receiptData);
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -330,9 +319,15 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
                         labelText: 'Total',
                         hintText: 'e.g. 0.00',
                       ),
-                      keyboardType: TextInputType.number,
+                      keyboardType:
+                          TextInputType.number, // Show numeric keyboard
+                      inputFormatters: [
+                        // Only allow digits (0-9) and decimal numbers
+                        FilteringTextInputFormatter.allow(
+                            RegExp(r'^\d+\.?\d{0,2}')),
+                      ],
                     ),
-                  ),
+                  )
                 ],
               ),
 
