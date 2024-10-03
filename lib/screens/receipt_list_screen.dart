@@ -132,6 +132,24 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
           return Center(child: Text('No receipts available.'));
         }
 
+        // Sort the receiptList based on the currentSortField and isDescending
+        receiptList.sort((a, b) {
+          var aValue, bValue;
+
+          if (currentSortField == 'date') {
+            aValue = (a['date'] as Timestamp).toDate();
+            bValue = (b['date'] as Timestamp).toDate();
+          } else if (currentSortField == 'amount') {
+            aValue = (a['amount'] as num).toDouble();
+            bValue = (b['amount'] as num).toDouble();
+          }
+
+          // Determine the sort order
+          return isDescending
+              ? bValue.compareTo(aValue)
+              : aValue.compareTo(bValue);
+        });
+
         // Display the receipt cards using ListView.builder
         return ListView.builder(
           padding: EdgeInsets.only(bottom: 80),
