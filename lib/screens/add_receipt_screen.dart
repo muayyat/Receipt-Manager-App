@@ -121,34 +121,82 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
     }
   }
 
-  void _showNewCurrencyDialog() {
-    final TextEditingController newCurrencyController = TextEditingController();
+  void _showCurrencyDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          title: Text('Select Currency'),
+          content: Container(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount:
+                  currencies.length + 1, // Include "Add New Currency" option
+              itemBuilder: (BuildContext context, int index) {
+                if (index == currencies.length) {
+                  // The last item is "Add New Currency"
+                  return ListTile(
+                    title: Text('Add New Currency',
+                        style: TextStyle(color: Colors.blue)),
+                    onTap: () {
+                      Navigator.of(context).pop(); // Close the currency dialog
+                      _showNewCurrencyDialog(); // Open the "Add New Currency" dialog
+                    },
+                  );
+                } else {
+                  return ListTile(
+                    title: Text(currencies[index]), // Display each currency
+                    onTap: () {
+                      setState(() {
+                        selectedCurrency =
+                            currencies[index]; // Update selected currency
+                      });
+                      Navigator.of(context).pop(); // Close the dialog
+                    },
+                  );
+                }
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showNewCurrencyDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String newCurrency = '';
+        return AlertDialog(
           title: Text('Add New Currency'),
           content: TextField(
-            controller: newCurrencyController,
-            decoration: InputDecoration(hintText: "Enter new currency"),
+            onChanged: (value) {
+              newCurrency = value;
+            },
+            decoration: InputDecoration(hintText: 'Enter currency code'),
           ),
           actions: [
             TextButton(
+              child: Text('Cancel'),
               onPressed: () {
-                setState(() {
-                  currencies.add(newCurrencyController.text);
-                  selectedCurrency = newCurrencyController
-                      .text; // Set newly created currency as selected
-                });
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Close the dialog
               },
-              child: Text('Add'),
             ),
             TextButton(
+              child: Text('Add'),
               onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
+                setState(() {
+                  if (newCurrency.isNotEmpty) {
+                    currencies
+                        .add(newCurrency); // Add the new currency to the list
+                    selectedCurrency =
+                        newCurrency; // Set it as the selected currency
+                  }
+                });
+                Navigator.of(context).pop(); // Close the dialog
               },
-              child: Text('Cancel'),
             ),
           ],
         );
@@ -282,7 +330,6 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Category'), // Label for category
                         GestureDetector(
                           onTap:
                               _showCategorySelectPopup, // Open the popup when tapped
@@ -313,7 +360,9 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
                   ),
                 ],
               ),
+
               // Currency and Total Input Side by Side
+              SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -321,42 +370,78 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Currency'), // Label for currency
-                        DropdownButton<String>(
-                          hint: Text('Select Currency'),
-                          value: selectedCurrency,
-                          onChanged: (String? newValue) {
-                            if (newValue == 'Add New Currency') {
-                              _showNewCurrencyDialog(); // Show dialog to add new currency
-                            } else {
-                              setState(() {
-                                selectedCurrency =
-                                    newValue; // Update selected currency
-                              });
-                            }
-                          },
-                          items: [...currencies, 'Add New Currency']
-                              .map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
+                        GestureDetector(
+                          onTap: () => _showCurrencyDialog(
+                              context), // Trigger the dialog
+                          child: AbsorbPointer(
+                            child: TextField(
+                              decoration: InputDecoration(
+                                labelText: selectedCurrency ??
+                                    'Select Currency', // Display selected currency or hint
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  SizedBox(width: 20), // Space between dropdown and total input
+                  SizedBox(width: 20), // Space between currency and total input
                   Expanded(
                     child: TextField(
                       controller: totalController,
                       decoration: InputDecoration(
-                          labelText: 'Total', hintText: 'e.g. €0.00'),
+                        labelText: 'Total',
+                        hintText: 'e.g. 0.00',
+                      ),
                       keyboardType: TextInputType.number,
                     ),
                   ),
                 ],
               ),
+
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //   children: [
+              //     Expanded(
+              //       child: Column(
+              //         crossAxisAlignment: CrossAxisAlignment.start,
+              //         children: [
+              //           DropdownButton<String>(
+              //             hint: Text('Select Currency'),
+              //             value: selectedCurrency,
+              //             onChanged: (String? newValue) {
+              //               if (newValue == 'Add New Currency') {
+              //                 _showNewCurrencyDialog(); // Show dialog to add new currency
+              //               } else {
+              //                 setState(() {
+              //                   selectedCurrency =
+              //                       newValue; // Update selected currency
+              //                 });
+              //               }
+              //             },
+              //             items: [...currencies, 'Add New Currency']
+              //                 .map<DropdownMenuItem<String>>((String value) {
+              //               return DropdownMenuItem<String>(
+              //                 value: value,
+              //                 child: Text(value),
+              //               );
+              //             }).toList(),
+              //           ),
+              //         ],
+              //       ),
+              //     ),
+              //     SizedBox(width: 20), // Space between dropdown and total input
+              //     Expanded(
+              //       child: TextField(
+              //         controller: totalController,
+              //         decoration: InputDecoration(
+              //             labelText: 'Total', hintText: 'e.g. €0.00'),
+              //         keyboardType: TextInputType.number,
+              //       ),
+              //     ),
+              //   ],
+              // ),
               // Description Input
               TextField(
                 controller: descriptionController,
