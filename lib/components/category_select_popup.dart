@@ -52,11 +52,9 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
   }
 
   Future<void> deleteCategory(String id) async {
-    // Find the index of the category to delete
     int indexToDelete =
         userCategories.indexWhere((category) => category['id'] == id);
 
-    // Remove the category locally for immediate feedback
     if (indexToDelete != -1) {
       setState(() {
         userCategories.removeAt(indexToDelete);
@@ -68,57 +66,86 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
           .collection('categories')
           .doc(id)
           .delete();
-
-      // Optionally, fetch the updated categories again if needed
       fetchUserCategories();
     } catch (e) {
       print("Error deleting category: $e");
-      // Optionally, you could add back the deleted category if the deletion fails
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('Select Category',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-      content: userCategories.isEmpty
-          ? CircularProgressIndicator()
-          : SizedBox(
-              height: 400,
-              width: double.maxFinite,
-              child: ListView.builder(
-                itemCount: userCategories.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: Text(userCategories[index]['icon'] ?? '',
-                        style: TextStyle(fontSize: 24)), // Handle null case
-                    title: Text(userCategories[index]['name'] ??
-                        'Unknown'), // Handle null case
-                    trailing: IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        deleteCategory(userCategories[index]['id']);
-                      },
-                    ),
-                    onTap: () {
-                      setState(() {
-                        selectedCategory = userCategories[index]['name'];
-                      });
-                      Navigator.pop(context, selectedCategory);
-                    },
-                  );
-                },
-              ),
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Stack(
+        alignment: Alignment.topRight,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(
+                vertical: 50, horizontal: 20), // Adjusted for buttons
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Select Category',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                userCategories.isEmpty
+                    ? CircularProgressIndicator()
+                    : SizedBox(
+                        height: 400,
+                        width: double.maxFinite,
+                        child: ListView.builder(
+                          itemCount: userCategories.length,
+                          itemBuilder: (context, index) {
+                            return ListTile(
+                              leading: Text(userCategories[index]['icon'] ?? '',
+                                  style: TextStyle(fontSize: 24)),
+                              title: Text(
+                                  userCategories[index]['name'] ?? 'Unknown'),
+                              trailing: IconButton(
+                                icon: Icon(Icons.delete_outline,
+                                    color: Colors.red),
+                                onPressed: () {
+                                  deleteCategory(userCategories[index]['id']);
+                                },
+                              ),
+                              onTap: () {
+                                setState(() {
+                                  selectedCategory =
+                                      userCategories[index]['name'];
+                                });
+                                Navigator.pop(context, selectedCategory);
+                              },
+                            );
+                          },
+                        ),
+                      ),
+              ],
             ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: Text('Cancel', style: TextStyle(color: Colors.blue)),
-        ),
-      ],
+          ),
+          Positioned(
+            top: 10,
+            right: 10,
+            child: IconButton(
+              icon: Icon(Icons.add),
+              onPressed: () {
+                // Add your add category logic here
+              },
+            ),
+          ),
+          Positioned(
+            top: 10,
+            left: 10,
+            child: IconButton(
+              icon: Icon(Icons.close),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
