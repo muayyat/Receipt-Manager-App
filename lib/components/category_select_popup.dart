@@ -14,6 +14,18 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
   List<Map<String, dynamic>> userCategories = [];
   String? selectedCategory;
 
+  // Define default categories
+  final List<Map<String, dynamic>> defaultCategories = [
+    {'name': 'Food', 'icon': '🍔'},
+    {'name': 'Gym', 'icon': '🏋️‍♂️'},
+    {'name': 'Internet', 'icon': '📞'},
+    {'name': 'Rent', 'icon': '🏡'},
+    {'name': 'Subscriptions', 'icon': '🔄'},
+    {'name': 'Transport', 'icon': '🚗'},
+    {'name': 'Utilities', 'icon': '💡'},
+    {'name': 'iPhone', 'icon': '📱'},
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -74,74 +86,113 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
 
   @override
   Widget build(BuildContext context) {
+    // Use userCategories if not empty, otherwise use defaultCategories
+    userCategories =
+        userCategories.isNotEmpty ? userCategories : defaultCategories;
+
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
       child: Stack(
-        alignment: Alignment.topRight,
+        alignment: Alignment.topCenter, // Center the content horizontally
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(
-                vertical: 50, horizontal: 20), // Adjusted for buttons
+            padding: const EdgeInsets.all(20), // Adjusted for buttons
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Select Category',
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                userCategories.isEmpty
-                    ? CircularProgressIndicator()
-                    : SizedBox(
-                        height: 400,
-                        width: double.maxFinite,
-                        child: ListView.builder(
-                          itemCount: userCategories.length,
-                          itemBuilder: (context, index) {
-                            return ListTile(
-                              leading: Text(userCategories[index]['icon'] ?? '',
-                                  style: TextStyle(fontSize: 24)),
-                              title: Text(
-                                  userCategories[index]['name'] ?? 'Unknown'),
-                              trailing: IconButton(
-                                icon: Icon(Icons.delete_outline,
-                                    color: Colors.red),
-                                onPressed: () {
-                                  deleteCategory(userCategories[index]['id']);
-                                },
-                              ),
-                              onTap: () {
-                                setState(() {
-                                  selectedCategory =
-                                      userCategories[index]['name'];
-                                });
-                                Navigator.pop(context, selectedCategory);
-                              },
-                            );
+                // Wrap text and buttons in a Row for alignment
+                Row(
+                  mainAxisAlignment: MainAxisAlignment
+                      .spaceBetween, // Space between text and buttons
+                  children: [
+                    // Close button on the left
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[400], // Light gray background
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 4.0,
+                            offset: Offset(0, 2), // Shadow position
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: Icon(Icons.close,
+                            color: Colors.grey[600]), // Icon color
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        iconSize: 20,
+                        padding: EdgeInsets.zero,
+                      ),
+                    ),
+                    // Centered text
+                    Text(
+                      'Select Category',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    // Add button on the right
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[400], // Light gray background
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 4.0,
+                            offset: Offset(0, 2), // Shadow position
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: Icon(Icons.add,
+                            color: Colors.grey[600]), // Icon color
+                        onPressed: () {
+                          // Add your add category logic here
+                        },
+                        iconSize: 20,
+                        padding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20), // Add some space below the text
+                SizedBox(
+                  height: 400,
+                  width: double.maxFinite,
+                  child: ListView.builder(
+                    itemCount: userCategories.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        leading: Text(userCategories[index]['icon'] ?? '',
+                            style: TextStyle(fontSize: 24)),
+                        title: Text(userCategories[index]['name'] ?? 'Unknown'),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete_outline, color: Colors.red),
+                          onPressed: () {
+                            deleteCategory(userCategories[index]['id']);
                           },
                         ),
-                      ),
+                        onTap: () {
+                          setState(() {
+                            selectedCategory = userCategories[index]['name'];
+                          });
+                          Navigator.pop(context, selectedCategory);
+                        },
+                      );
+                    },
+                  ),
+                ),
               ],
-            ),
-          ),
-          Positioned(
-            top: 10,
-            right: 10,
-            child: IconButton(
-              icon: Icon(Icons.add),
-              onPressed: () {
-                // Add your add category logic here
-              },
-            ),
-          ),
-          Positioned(
-            top: 10,
-            left: 10,
-            child: IconButton(
-              icon: Icon(Icons.close),
-              onPressed: () {
-                Navigator.pop(context);
-              },
             ),
           ),
         ],
