@@ -39,7 +39,7 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
       // Check if the document exists for the user
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection('categories')
-          .doc(widget.userId) // Assuming userId is the document ID
+          .doc(widget.userId)
           .get();
 
       // Define the default categories
@@ -54,47 +54,51 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
         {'name': 'iPhone', 'icon': '📱'},
       ];
 
-      if (!userDoc.exists) {
-        // If the document does not exist, create it with the default categories
+      // If the document does not exist, create it with the default categories
+      if (!userDoc.exists || userDoc.data() == null) {
         await FirebaseFirestore.instance
             .collection('categories')
             .doc(widget.userId)
             .set({
           'categorylist': defaultCategories,
         });
+
         // Assign the default categories to userCategories
         setState(() {
           userCategories = defaultCategories;
         });
       } else {
-        // If the document exists, check the category list
-        var data = userDoc.data() as Map<String, dynamic>;
-        List<dynamic> categoryList = data['categorylist'] ?? [];
+        // Safely handle the case where userDoc.data() is not a Map<String, dynamic>
+        var data = userDoc.data() as Map<String, dynamic>?;
 
-        if (categoryList.isEmpty) {
-          // If the list is empty, update it with the default categories
-          await FirebaseFirestore.instance
-              .collection('categories')
-              .doc(widget.userId)
-              .update({
-            'categorylist': defaultCategories,
-          });
-          // Assign the default categories to userCategories
-          setState(() {
-            userCategories = defaultCategories;
-          });
-        } else {
-          // If the list is not empty, assign it to userCategories
-          setState(() {
-            userCategories = categoryList
-                .map((category) => {
-                      'id': userDoc
-                          .id, // You might want to adjust how you store IDs
-                      'name': category['name'] ?? 'Unknown',
-                      'icon': category['icon'] ?? '',
-                    })
-                .toList();
-          });
+        if (data != null) {
+          List<dynamic> categoryList = data['categorylist'] ?? [];
+
+          if (categoryList.isEmpty) {
+            // If the list is empty, update it with the default categories
+            await FirebaseFirestore.instance
+                .collection('categories')
+                .doc(widget.userId)
+                .update({
+              'categorylist': defaultCategories,
+            });
+
+            // Assign the default categories to userCategories
+            setState(() {
+              userCategories = defaultCategories;
+            });
+          } else {
+            // If the list is not empty, assign it to userCategories
+            setState(() {
+              userCategories = categoryList
+                  .map((category) => {
+                        'id': userDoc.id, // Assuming user ID is the document ID
+                        'name': category['name'] ?? 'Unknown',
+                        'icon': category['icon'] ?? '',
+                      })
+                  .toList();
+            });
+          }
         }
       }
     } catch (e) {
@@ -139,22 +143,40 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
     }
   }
 
-  Future<void> deleteCategory(String id) async {
-    int indexToDelete =
-        userCategories.indexWhere((category) => category['id'] == id);
-
-    if (indexToDelete != -1) {
-      setState(() {
-        userCategories.removeAt(indexToDelete);
-      });
-    }
-
+  Future<void> deleteCategory(String name) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('categories')
-          .doc(id)
-          .delete();
-      fetchUserCategories();
+      // Find the category that matches the name
+      var categoryToRemove = userCategories.firstWhere(
+        (category) => category['name'] == name,
+        orElse: () => <String, dynamic>{},
+      );
+
+      if (categoryToRemove != null) {
+        // Remove the category from Firestore first
+        await FirebaseFirestore.instance
+            .collection('categories')
+            .doc(widget.userId)
+            .update({
+          'categorylist': FieldValue.arrayRemove([
+            {
+              'name': name,
+              'icon': categoryToRemove['icon'], // Use the correct icon value
+            }
+          ])
+        });
+
+        // Once Firestore is updated, remove it locally
+        setState(() {
+          userCategories.removeWhere((category) => category['name'] == name);
+        });
+
+        print("has deleted category: $name");
+
+        // Optional: Call fetchUserCategories if needed to refresh the list
+        fetchUserCategories();
+      } else {
+        print("Category not found locally: $name");
+      }
     } catch (e) {
       print("Error deleting category: $e");
     }
@@ -246,22 +268,49 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
                   child: ListView.builder(
                     itemCount: userCategories.length,
                     itemBuilder: (context, index) {
-                      return ListTile(
-                        leading: Text(userCategories[index]['icon'] ?? '',
-                            style: TextStyle(fontSize: 24)),
-                        title: Text(userCategories[index]['name'] ?? 'Unknown'),
-                        trailing: IconButton(
-                          icon: Icon(Icons.delete_outline, color: Colors.red),
-                          onPressed: () {
-                            deleteCategory(userCategories[index]['id']);
+                      String categoryName =
+                          userCategories[index]['name']?.trim() ??
+                              ''; // Safely get and trim category name
+
+                      // Debugging print statement
+                      print(
+                          'Category: $categoryName, Selected: ${selectedCategory?.trim() ?? ''}');
+
+                      bool isSelected = categoryName ==
+                          (selectedCategory?.trim() ??
+                              ''); // Compare trimmed values
+
+                      return Container(
+                        color: isSelected
+                            ? Colors.lightBlue.withOpacity(0.2)
+                            : null, // Highlight selected row
+                        child: ListTile(
+                          leading: Text(userCategories[index]['icon'] ?? '',
+                              style: TextStyle(fontSize: 24)),
+                          title: Text(
+                            categoryName,
+                            style: TextStyle(
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight
+                                      .normal, // Make text bold if selected
+                            ),
+                          ),
+                          trailing: IconButton(
+                            icon: Icon(Icons.delete_outline, color: Colors.red),
+                            onPressed: () {
+                              deleteCategory(userCategories[index]['name']);
+                            },
+                          ),
+                          onTap: () {
+                            setState(() {
+                              selectedCategory =
+                                  categoryName; // Update selected category
+                            });
+                            Navigator.pop(context,
+                                selectedCategory); // Return selected category
                           },
                         ),
-                        onTap: () {
-                          setState(() {
-                            selectedCategory = userCategories[index]['name'];
-                          });
-                          Navigator.pop(context, selectedCategory);
-                        },
                       );
                     },
                   ),
