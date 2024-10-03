@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:receipt_manager/screens/scan_screen.dart';
 
 import '../components//rounded_button.dart';
+import '../components/category_select_popup.dart';
 import '../services/auth_service.dart';
 
 final _firestore = FirebaseFirestore.instance;
@@ -105,39 +106,19 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
     }
   }
 
-  void _showNewCategoryDialog() {
-    final TextEditingController newCategoryController = TextEditingController();
-    showDialog(
+  void _showCategorySelectPopup() async {
+    final selectedCategory = await showDialog<String>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Add New Category'),
-          content: TextField(
-            controller: newCategoryController,
-            decoration: InputDecoration(hintText: "Enter new category"),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  categories.add(newCategoryController.text);
-                  selectedCategory = newCategoryController
-                      .text; // Set newly created category as selected
-                });
-                Navigator.of(context).pop();
-              },
-              child: Text('Add'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-              },
-              child: Text('Cancel'),
-            ),
-          ],
-        );
-      },
+      builder: (context) =>
+          CategorySelectPopup(userId: loggedInUser?.email ?? ''),
     );
+
+    if (selectedCategory != null) {
+      setState(() {
+        this.selectedCategory =
+            selectedCategory; // Update the selected category
+      });
+    }
   }
 
   void _showNewCurrencyDialog() {
@@ -302,32 +283,28 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Category'), // Label for category
-                        DropdownButton<String>(
-                          hint: Text('Select Category'),
-                          value: selectedCategory,
-                          onChanged: (String? newValue) {
-                            if (newValue == 'Add New Category') {
-                              _showNewCategoryDialog(); // Show dialog to add new category
-                            } else {
-                              setState(() {
-                                selectedCategory =
-                                    newValue; // Update selected category
-                              });
-                            }
-                          },
-                          items: [...categories, 'Add New Category']
-                              .map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
+                        GestureDetector(
+                          onTap:
+                              _showCategorySelectPopup, // Open the popup when tapped
+                          child: AbsorbPointer(
+                            child: TextField(
+                              decoration: InputDecoration(
+                                labelText: selectedCategory?.isNotEmpty == true
+                                    ? selectedCategory
+                                    : 'Select Category', // Show selected category or hint
+                                border: OutlineInputBorder(),
+                                hintText: selectedCategory == null
+                                    ? 'Select Category'
+                                    : null, // Only show hint if no category is selected
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
                   SizedBox(
-                      width: 20), // Space between dropdown and item name input
+                      width: 20), // Space between category and item name input
                   Expanded(
                     child: TextField(
                       controller: itemNameController,
