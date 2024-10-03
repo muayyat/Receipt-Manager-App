@@ -74,31 +74,15 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
         if (data != null) {
           List<dynamic> categoryList = data['categorylist'] ?? [];
 
-          if (categoryList.isEmpty) {
-            // If the list is empty, update it with the default categories
-            await FirebaseFirestore.instance
-                .collection('categories')
-                .doc(widget.userId)
-                .update({
-              'categorylist': defaultCategories,
-            });
-
-            // Assign the default categories to userCategories
-            setState(() {
-              userCategories = defaultCategories;
-            });
-          } else {
-            // If the list is not empty, assign it to userCategories
-            setState(() {
-              userCategories = categoryList
-                  .map((category) => {
-                        'id': userDoc.id, // Assuming user ID is the document ID
-                        'name': category['name'] ?? 'Unknown',
-                        'icon': category['icon'] ?? '',
-                      })
-                  .toList();
-            });
-          }
+          setState(() {
+            userCategories = categoryList
+                .map((category) => {
+                      'id': userDoc.id, // Assuming user ID is the document ID
+                      'name': category['name'] ?? 'Unknown',
+                      'icon': category['icon'] ?? '',
+                    })
+                .toList();
+          });
         }
       }
     } catch (e) {
@@ -117,30 +101,14 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
           ),
           child: AddCategoryWidget(
             userId: widget.userId,
-            onAdd: (name, icon) {
-              _addCategoryToFirestore(name, icon);
+            onCategoryAdded: () {
+              // Refresh categories when a new category is added
+              fetchUserCategories();
             },
           ),
         );
       },
     );
-  }
-
-  // Function to add a category to Firestore
-  Future<void> _addCategoryToFirestore(String name, String icon) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('categories')
-          .doc(widget.userId)
-          .update({
-        'categorylist': FieldValue.arrayUnion([
-          {'name': name, 'icon': icon}
-        ]),
-      });
-      fetchUserCategories(); // Refresh the categories
-    } catch (e) {
-      print("Error adding category: $e");
-    }
   }
 
   Future<void> deleteCategory(String name) async {

@@ -6,10 +6,10 @@ import 'package:receipt_manager/components/rounded_button.dart';
 
 class AddCategoryWidget extends StatefulWidget {
   final String userId; // Add userId parameter
-  final Function(String name, String icon)
-      onAdd; // Callback for adding a category
+  final VoidCallback
+      onCategoryAdded; // Callback to trigger after adding category
 
-  AddCategoryWidget({required this.userId, required this.onAdd});
+  AddCategoryWidget({required this.userId, required this.onCategoryAdded});
 
   @override
   _AddCategoryWidgetState createState() => _AddCategoryWidgetState();
@@ -19,6 +19,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
   String categoryName = '';
   String selectedIcon = '😊'; // Default icon
   bool showEmojiPicker = false; // Track whether to show emoji picker
+  String? _errorMessage; // Error message for duplicate category names
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +61,7 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
             onChanged: (value) {
               setState(() {
                 categoryName = value;
+                _errorMessage = null; // Reset error when input changes
               });
             },
             decoration: InputDecoration(
@@ -71,6 +73,15 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                   EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
           ),
+          // Display error message below the text field if exists
+          if (_errorMessage != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Text(
+                _errorMessage!,
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
           SizedBox(height: 20),
           // Show emoji picker if toggled
           if (showEmojiPicker)
@@ -87,16 +98,11 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                   checkPlatformCompatibility: true,
                   viewOrderConfig: const ViewOrderConfig(),
                   emojiViewConfig: EmojiViewConfig(
-                    // Issue: https://github.com/flutter/flutter/issues/28894
                     emojiSizeMax: 28 *
                         (foundation.defaultTargetPlatform == TargetPlatform.iOS
                             ? 1.2
                             : 1.0),
                   ),
-                  skinToneConfig: const SkinToneConfig(),
-                  categoryViewConfig: const CategoryViewConfig(),
-                  bottomActionBarConfig: const BottomActionBarConfig(),
-                  searchViewConfig: const SearchViewConfig(),
                 ),
               ),
             ),
@@ -104,13 +110,27 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
           RoundedButton(
             color: Colors.blueAccent,
             title: 'Add Category',
-            onPressed: () {
+            onPressed: () async {
               if (categoryName.isNotEmpty) {
-                // Call the onAdd callback and add to Firestore
-                addCategoryToFirestore(
-                    widget.userId, categoryName, selectedIcon);
-                widget.onAdd(categoryName, selectedIcon); // Call the callback
-                Navigator.pop(context); // Close the dialog
+                // Check if the category exists
+                bool categoryExists = await _categoryExists(categoryName);
+
+                if (categoryExists) {
+                  // Show error if category already exists
+                  setState(() {
+                    _errorMessage = "Category '$categoryName' already exists.";
+                  });
+                } else {
+                  // Add category to Firestore if it doesn't exist
+                  await addCategoryToFirestore(
+                      widget.userId, categoryName, selectedIcon);
+
+                  // Call the callback after adding category
+                  widget.onCategoryAdded();
+
+                  // Close the dialog
+                  Navigator.pop(context);
+                }
               }
             },
           ),
@@ -119,10 +139,35 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
     );
   }
 
+  // Function to check if the category already exists
+  Future<bool> _categoryExists(String name) async {
+    try {
+      // Get the user's categories from Firestore
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('categories')
+          .doc(widget.userId)
+          .get();
+
+      if (userDoc.exists && userDoc.data() != null) {
+        var data = userDoc.data() as Map<String, dynamic>;
+        List<dynamic> categoryList = data['categorylist'] ?? [];
+
+        // Check if the category with the same name already exists
+        return categoryList.any((category) =>
+            category['name'].toString().toLowerCase() == name.toLowerCase());
+      }
+      return false;
+    } catch (e) {
+      print("Error checking if category exists: $e");
+      return false;
+    }
+  }
+
+  // Function to add a category to Firestore
   Future<void> addCategoryToFirestore(
       String userId, String name, String icon) async {
     try {
-      // Add the new category to the Firestore document for the user
+      // Add the new category to Firestore
       await FirebaseFirestore.instance
           .collection('categories')
           .doc(userId)
