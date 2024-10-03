@@ -233,9 +233,16 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                         ),
                       ),
                       SizedBox(height: 20),
+                      // Custom Legend
                       Wrap(
                         spacing: 10,
                         children: categoryTotals.entries.map((entry) {
+                          final total = entry.value;
+                          final percentage = (total /
+                                  categoryTotals.values
+                                      .fold(0, (sum, item) => sum + item)) *
+                              100;
+
                           return Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -245,7 +252,8 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                                 color: categoryColors[entry.key],
                               ),
                               SizedBox(width: 8),
-                              Text(entry.key),
+                              Text(
+                                  '${entry.key}: ${total.toStringAsFixed(2)} $selectedBaseCurrency (${percentage.toStringAsFixed(1)}%)'),
                             ],
                           );
                         }).toList(),
@@ -257,6 +265,9 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   }
 
   List<PieChartSectionData> getSections() {
+    double totalAmount =
+        categoryTotals.values.fold(0, (sum, item) => sum + item);
+
     return categoryTotals.entries.map((entry) {
       final category = entry.key;
       final total = entry.value;
@@ -264,10 +275,10 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
       return PieChartSectionData(
         color: categoryColors[category],
         value: total,
-        title:
-            '${category}\n(${total.toStringAsFixed(2)} $selectedBaseCurrency)',
+        title: '', // Set the title to empty
         radius: 70,
-        titleStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+        titleStyle:
+            TextStyle(fontSize: 0), // Set title style font size to 0 to hide it
       );
     }).toList();
   }
