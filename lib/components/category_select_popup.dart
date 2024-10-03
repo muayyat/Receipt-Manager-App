@@ -34,30 +34,67 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
 
   Future<void> fetchUserCategories() async {
     try {
-      QuerySnapshot snapshot = await FirebaseFirestore.instance
+      // Check if the document exists for the user
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection('categories')
-          .where('userId', isEqualTo: widget.userId)
+          .doc(widget.userId) // Assuming userId is the document ID
           .get();
 
-      List<Map<String, dynamic>> categories = [];
+      // Define the default categories
+      List<Map<String, dynamic>> defaultCategories = [
+        {'name': 'Food', 'icon': '🍔'},
+        {'name': 'Gym', 'icon': '🏋️‍♂️'},
+        {'name': 'Internet', 'icon': '📞'},
+        {'name': 'Rent', 'icon': '🏡'},
+        {'name': 'Subscriptions', 'icon': '🔄'},
+        {'name': 'Transport', 'icon': '🚗'},
+        {'name': 'Utilities', 'icon': '💡'},
+        {'name': 'iPhone', 'icon': '📱'},
+      ];
 
-      for (var doc in snapshot.docs) {
-        var data = doc.data() as Map<String, dynamic>;
-        List<dynamic> categoryList =
-            data['categorylist'] ?? []; // Ensure it's a list
+      if (!userDoc.exists) {
+        // If the document does not exist, create it with the default categories
+        await FirebaseFirestore.instance
+            .collection('categories')
+            .doc(widget.userId)
+            .set({
+          'categorylist': defaultCategories,
+        });
+        // Assign the default categories to userCategories
+        setState(() {
+          userCategories = defaultCategories;
+        });
+      } else {
+        // If the document exists, check the category list
+        var data = userDoc.data() as Map<String, dynamic>;
+        List<dynamic> categoryList = data['categorylist'] ?? [];
 
-        for (var category in categoryList) {
-          categories.add({
-            'id': doc.id,
-            'name': category['name'] ?? 'Unknown', // Handle null case
-            'icon': category['icon'] ?? '', // Handle null case
+        if (categoryList.isEmpty) {
+          // If the list is empty, update it with the default categories
+          await FirebaseFirestore.instance
+              .collection('categories')
+              .doc(widget.userId)
+              .update({
+            'categorylist': defaultCategories,
+          });
+          // Assign the default categories to userCategories
+          setState(() {
+            userCategories = defaultCategories;
+          });
+        } else {
+          // If the list is not empty, assign it to userCategories
+          setState(() {
+            userCategories = categoryList
+                .map((category) => {
+                      'id': userDoc
+                          .id, // You might want to adjust how you store IDs
+                      'name': category['name'] ?? 'Unknown',
+                      'icon': category['icon'] ?? '',
+                    })
+                .toList();
           });
         }
       }
-
-      setState(() {
-        userCategories = categories;
-      });
     } catch (e) {
       print("Error fetching user categories: $e");
     }
