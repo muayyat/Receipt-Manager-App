@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,7 +6,6 @@ import 'package:flutter_tesseract_ocr/flutter_tesseract_ocr.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-
 import '../services/auth_service.dart';
 
 final _auth = FirebaseAuth.instance;
@@ -22,15 +20,15 @@ class ScanScreen extends StatefulWidget {
 class _ScanScreenState extends State<ScanScreen> {
   File? _imageFile;
   String _extractedText = '';
+  String _date = '';
+  String _totalPrice = '';
+  List<String> _items = [];
   final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
-
     getCurrentUser();
-
-    // Copy tessdata files from app bundle to Documents directory
     copyTessdataToDocuments().then((_) {
       print('Tessdata files copied successfully');
     }).catchError((error) {
@@ -43,25 +41,20 @@ class _ScanScreenState extends State<ScanScreen> {
   }
 
   Future<void> copyTessdataToDocuments() async {
-    // Get the path of the app's documents directory
     final directory = await getApplicationDocumentsDirectory();
     final tessdataPath = '${directory.path}/tessdata';
 
-    // Create the tessdata directory if it doesn't exist
     final tessdataDir = Directory(tessdataPath);
     if (!(await tessdataDir.exists())) {
       await tessdataDir.create();
     }
 
-    // Copy the .traineddata files from the app bundle to the documents directory
-    final languages = ['eng', 'fin']; // List of languages you're using
+    final languages = ['eng', 'fin'];
     for (var language in languages) {
       final traineddataAssetPath = 'assets/tessdata/$language.traineddata';
       final traineddataDestPath = '$tessdataPath/$language.traineddata';
 
-      // Check if the file already exists
       if (!File(traineddataDestPath).existsSync()) {
-        // Read from the asset bundle and write to the documents directory
         final data = await rootBundle.load(traineddataAssetPath);
         final bytes = data.buffer.asUint8List();
         await File(traineddataDestPath).writeAsBytes(bytes);
@@ -70,7 +63,6 @@ class _ScanScreenState extends State<ScanScreen> {
     print('Tessdata files copied to: $tessdataPath');
   }
 
-  // Function to request camera permission and capture a photo
   Future<void> _captureFromCamera() async {
     PermissionStatus cameraStatus = await Permission.camera.request();
 
@@ -81,11 +73,6 @@ class _ScanScreenState extends State<ScanScreen> {
           _imageFile = File(pickedFile.path);
         });
         print('Image path: ${pickedFile.path}');
-        if (_imageFile!.existsSync()) {
-          print("Image file exists");
-        } else {
-          print("Image file does not exist");
-        }
         _performTextRecognition(_imageFile!);
       }
     } else {
@@ -93,15 +80,12 @@ class _ScanScreenState extends State<ScanScreen> {
     }
   }
 
-  // Function to request gallery permission and pick a photo from the gallery
   Future<void> _pickFromGallery() async {
     PermissionStatus permissionStatus;
 
     if (Platform.isIOS) {
-      // Request permission for iOS
       permissionStatus = await Permission.photos.request();
     } else {
-      // Request permission for Android
       permissionStatus = await Permission.storage.request();
     }
 
@@ -112,11 +96,6 @@ class _ScanScreenState extends State<ScanScreen> {
           _imageFile = File(pickedFile.path);
         });
         print('Image path: ${pickedFile.path}');
-        if (_imageFile!.existsSync()) {
-          print("Image file exists");
-        } else {
-          print("Image file does not exist");
-        }
         _performTextRecognition(_imageFile!);
       }
     } else {
@@ -124,44 +103,34 @@ class _ScanScreenState extends State<ScanScreen> {
     }
   }
 
-  // Function to perform text recognition on an image using Flutter Tesseract OCR
   Future<void> _performTextRecognition(File image) async {
     setState(() {
       _extractedText = "Processing...";
+      _date = '';
+      _totalPrice = '';
+      _items = [];
     });
 
     try {
       String tessdataPath = '';
       if (Platform.isIOS) {
         final directory = await getApplicationDocumentsDirectory();
-        tessdataPath =
-            '${directory.path}/tessdata'; // This is the correct path for iOS.
+        tessdataPath = '${directory.path}/tessdata';
       } else if (Platform.isAndroid) {
-        tessdataPath =
-            'assets/tessdata'; // This is the correct path for Android.
+        tessdataPath = 'assets/tessdata';
       }
       print('Using tessdata path: $tessdataPath');
 
-      // Check if tessdata folder exists and list its contents
-      Directory tessdataDir = Directory(tessdataPath);
-      if (await tessdataDir.exists()) {
-        print("tessdata folder exists.");
-        tessdataDir.listSync().forEach((file) {
-          print("File in tessdata: ${file.path}");
-        });
-      } else {
-        print("tessdata folder does not exist.");
-      }
-
-      // Use Tesseract OCR to extract text from the image
       String text = await FlutterTesseractOcr.extractText(image.path,
           language: 'fin+eng',
           args: {
             "tessdata": tessdataPath,
             "preserve_interword_spaces": "1",
           });
+
       setState(() {
         _extractedText = text;
+        _extractReceiptInfo(text);
       });
     } catch (e, stackTrace) {
       print('Error during text recognition: $e');
@@ -170,7 +139,47 @@ class _ScanScreenState extends State<ScanScreen> {
         _extractedText = "Error extracting text: $e";
       });
     }
-    print(_extractedText);
+  }
+
+  void _extractReceiptInfo(String text) {
+    print('Extracting receipt info from:\n$text'); // Debugging line
+
+    // Extract date
+    RegExp dateRegex = RegExp(r'\b\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\b');
+    Match? dateMatch = dateRegex.firstMatch(text);
+    if (dateMatch != null) {
+      _date = dateMatch.group(0)!;
+      print('Date found: $_date'); // Debugging line
+    } else {
+      print('No date found'); // Debugging line
+    }
+
+    // Extract total price
+    RegExp totalRegex = RegExp(r'Total:?\s*€?\s*(\d+[.,]\d{2})', caseSensitive: false);
+    Match? totalMatch = totalRegex.firstMatch(text);
+    if (totalMatch != null) {
+      _totalPrice = totalMatch.group(1)!;
+      print('Total price found: $_totalPrice'); // Debugging line
+    } else {
+      print('No total price found'); // Debugging line
+      // Fallback: try to find the last price in the text
+      RegExp priceRegex = RegExp(r'\b\d+[.,]\d{2}\b');
+      final prices = priceRegex.allMatches(text).map((m) => m.group(0)!).toList();
+      if (prices.isNotEmpty) {
+        _totalPrice = prices.last;
+        print('Fallback total price found: $_totalPrice'); // Debugging line
+      }
+    }
+
+    // Extract items
+    _items.clear();
+    List<String> lines = text.split('\n');
+    for (String line in lines) {
+      if (line.contains(RegExp(r'\d+[.,]\d{2}')) && !line.toLowerCase().contains('total')) {
+        _items.add(line.trim());
+      }
+    }
+    print('Items found: ${_items.length}'); // Debugging line
   }
 
   @override
@@ -182,7 +191,6 @@ class _ScanScreenState extends State<ScanScreen> {
           IconButton(
               icon: Icon(Icons.close),
               onPressed: () {
-                //Implement logout functionality
                 _auth.signOut();
                 Navigator.pop(context);
               }),
@@ -190,35 +198,46 @@ class _ScanScreenState extends State<ScanScreen> {
         title: Text('⚡️Capture Receipt'),
         backgroundColor: Colors.lightBlueAccent,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            _imageFile != null
-                ? Image.file(
-                    _imageFile!,
-                    width: 300,
-                    height: 400,
-                  )
-                : Text("No image selected or captured"),
+            if (_imageFile != null)
+              Image.file(
+                _imageFile!,
+                width: 300,
+                height: 200,
+                fit: BoxFit.cover,
+              )
+            else
+              Text("No image selected or captured"),
             SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _captureFromCamera,
-              child: Text('Capture from Camera'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: _captureFromCamera,
+                  child: Text('Capture from Camera'),
+                ),
+                ElevatedButton(
+                  onPressed: _pickFromGallery,
+                  child: Text('Pick from Gallery'),
+                ),
+              ],
             ),
+            SizedBox(height: 20),
+            Text('Date: $_date', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Total Price: $_totalPrice', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _pickFromGallery,
-              child: Text('Pick from Gallery'),
+            Text('Items:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: _items.map((item) => Text('- $item')).toList(),
             ),
             SizedBox(height: 20),
-            _extractedText.isNotEmpty
-                ? Text(
-                    'Extracted Text:\n$_extractedText',
-                    textAlign: TextAlign.center,
-                  )
-                : Text("No text extracted yet"),
+            Text('Full Extracted Text:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(_extractedText),
           ],
         ),
       ),
