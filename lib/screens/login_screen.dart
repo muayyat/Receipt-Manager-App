@@ -7,6 +7,7 @@ import '../constants.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String id = 'login_screen';
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -33,9 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 200.0,
                 child: Image.asset('images/logo.png'),
               ),
-              SizedBox(
-                height: 48.0,
-              ),
+              SizedBox(height: 48.0),
               TextField(
                 onChanged: (value) {
                   email = value;
@@ -43,9 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 decoration:
                     kTextFieldDecoration.copyWith(hintText: 'Enter your email'),
               ),
-              SizedBox(
-                height: 8.0,
-              ),
+              SizedBox(height: 8.0),
               TextField(
                 onChanged: (value) {
                   password = value;
@@ -54,9 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 decoration: kTextFieldDecoration.copyWith(
                     hintText: 'Enter your password'),
               ),
-              SizedBox(
-                height: 24.0,
-              ),
+              SizedBox(height: 24.0),
               // Error message display
               if (errorMessage.isNotEmpty)
                 Padding(
@@ -78,8 +73,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   try {
                     final user = await _auth.signInWithEmailAndPassword(
                         email: email, password: password);
-                    if (user != null) {
-                      Navigator.pushNamed(context, DashboardScreen.id);
+
+                    // Check if the email is verified
+                    if (user.user != null) {
+                      if (user.user!.emailVerified) {
+                        Navigator.pushNamed(context, DashboardScreen.id);
+                      } else {
+                        // Sign out if email is not verified
+                        await _auth.signOut();
+                        setState(() {
+                          errorMessage =
+                              'Please verify your email before logging in.';
+                        });
+                      }
                     }
                   } on FirebaseAuthException catch (e) {
                     setState(() {

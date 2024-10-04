@@ -35,9 +35,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 height: 200.0,
                 child: Image.asset('images/logo.png'),
               ),
-              SizedBox(
-                height: 48.0,
-              ),
+              SizedBox(height: 48.0),
               TextField(
                 onChanged: (value) {
                   email = value;
@@ -45,9 +43,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 decoration:
                     kTextFieldDecoration.copyWith(hintText: 'Enter your email'),
               ),
-              SizedBox(
-                height: 8.0,
-              ),
+              SizedBox(height: 8.0),
               TextField(
                 onChanged: (value) {
                   password = value;
@@ -56,9 +52,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 decoration: kTextFieldDecoration.copyWith(
                     hintText: 'Enter your password'),
               ),
-              SizedBox(
-                height: 24.0,
-              ),
+              SizedBox(height: 24.0),
               // Error message display
               if (errorMessage.isNotEmpty)
                 Padding(
@@ -80,6 +74,16 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     final newUser = await _auth.createUserWithEmailAndPassword(
                         email: email, password: password);
                     if (newUser != null) {
+                      // Send verification email
+                      await newUser.user!.sendEmailVerification();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                'Verification email sent! Please check your inbox.')),
+                      );
+
+                      // Sign out the user after registration
+                      await _auth.signOut();
                       Navigator.pushNamed(context, ScanScreen.id);
                     }
                   } on FirebaseAuthException catch (e) {
