@@ -69,6 +69,7 @@ To get a copy of the project up and running on your local machine, follow these 
 - **firebase_remote_config**: For fetching remote configuration settings.
 - **flutter_tesseract_ocr**: For OCR capabilities to extract text from receipts.
 - **fl_chart**: For charting and visualizations.
+- **emoji_picker_flutter**: For users to add emotional context and categorize their expenses creatively using emojis.
 
 ## Currency API Integration
 
