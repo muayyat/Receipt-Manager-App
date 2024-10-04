@@ -70,6 +70,14 @@ To get a copy of the project up and running on your local machine, follow these 
 - **flutter_tesseract_ocr**: For OCR capabilities to extract text from receipts.
 - **fl_chart**: For charting and visualizations.
 
+## Currency API Integration
+
+The application uses the [Open Exchange Rates API](https://openexchangerates.org/) to provide real-time currency data. Key functionalities include:
+
+- **Currency Codes Fetching**: The app can fetch a list of available currency codes from the Open Exchange Rates API.
+
+- **Conversion Rates Fetching**: The service retrieves current conversion rates, allowing users to view expenses in their preferred currency.
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
