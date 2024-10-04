@@ -19,6 +19,21 @@ class _LoginScreenState extends State<LoginScreen> {
   bool showPassword = false;
   String errorMessage = ''; // Variable to store error messages
 
+  void _resetPassword() async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content:
+                Text('Password reset email sent! Please check your inbox.')),
+      );
+    } catch (e) {
+      setState(() {
+        errorMessage = 'Error: ${e.toString()}';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,6 +113,62 @@ class _LoginScreenState extends State<LoginScreen> {
                     });
                   }
                 },
+              ),
+              SizedBox(height: 20),
+              // Forgot Password Row
+              GestureDetector(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('Reset Password'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextField(
+                              onChanged: (value) {
+                                email = value;
+                              },
+                              decoration: InputDecoration(
+                                  labelText: 'Enter your email'),
+                            ),
+                            SizedBox(height: 20),
+                            if (errorMessage.isNotEmpty)
+                              Text(
+                                errorMessage,
+                                style: TextStyle(color: Colors.red),
+                              ),
+                          ],
+                        ),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              _resetPassword();
+                              Navigator.of(context).pop();
+                            },
+                            child: Text('Send Reset Link'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text('Cancel'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+                child: Text(
+                  'Forgot Password?',
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontSize: 16.0,
+                    decoration: TextDecoration.underline,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
             ],
           ),
