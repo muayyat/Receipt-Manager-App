@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,9 +7,9 @@ import 'package:flutter_tesseract_ocr/flutter_tesseract_ocr.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+
 import '../services/auth_service.dart';
 
-final _auth = FirebaseAuth.instance;
 User? loggedInUser;
 
 class ScanScreen extends StatefulWidget {
@@ -155,7 +156,8 @@ class _ScanScreenState extends State<ScanScreen> {
     }
 
     // Extract total price
-    RegExp totalRegex = RegExp(r'Total:?\s*€?\s*(\d+[.,]\d{2})', caseSensitive: false);
+    RegExp totalRegex =
+        RegExp(r'Total:?\s*€?\s*(\d+[.,]\d{2})', caseSensitive: false);
     Match? totalMatch = totalRegex.firstMatch(text);
     if (totalMatch != null) {
       _totalPrice = totalMatch.group(1)!;
@@ -164,7 +166,8 @@ class _ScanScreenState extends State<ScanScreen> {
       print('No total price found'); // Debugging line
       // Fallback: try to find the last price in the text
       RegExp priceRegex = RegExp(r'\b\d+[.,]\d{2}\b');
-      final prices = priceRegex.allMatches(text).map((m) => m.group(0)!).toList();
+      final prices =
+          priceRegex.allMatches(text).map((m) => m.group(0)!).toList();
       if (prices.isNotEmpty) {
         _totalPrice = prices.last;
         print('Fallback total price found: $_totalPrice'); // Debugging line
@@ -175,7 +178,8 @@ class _ScanScreenState extends State<ScanScreen> {
     _items.clear();
     List<String> lines = text.split('\n');
     for (String line in lines) {
-      if (line.contains(RegExp(r'\d+[.,]\d{2}')) && !line.toLowerCase().contains('total')) {
+      if (line.contains(RegExp(r'\d+[.,]\d{2}')) &&
+          !line.toLowerCase().contains('total')) {
         _items.add(line.trim());
       }
     }
@@ -191,7 +195,7 @@ class _ScanScreenState extends State<ScanScreen> {
           IconButton(
               icon: Icon(Icons.close),
               onPressed: () {
-                _auth.signOut();
+                AuthService.signOut();
                 Navigator.pop(context);
               }),
         ],
@@ -227,16 +231,20 @@ class _ScanScreenState extends State<ScanScreen> {
               ],
             ),
             SizedBox(height: 20),
-            Text('Date: $_date', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            Text('Total Price: $_totalPrice', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Date: $_date',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Total Price: $_totalPrice',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 10),
-            Text('Items:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Items:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: _items.map((item) => Text('- $item')).toList(),
             ),
             SizedBox(height: 20),
-            Text('Full Extracted Text:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Full Extracted Text:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Text(_extractedText),
           ],
         ),
