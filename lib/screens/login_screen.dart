@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:receipt_manager/screens/dashboard_screen.dart';
+import 'package:receipt_manager/screens/receipt_list_screen.dart';
 import 'package:receipt_manager/services/auth_service.dart';
 
 import '../components/rounded_button.dart';
@@ -92,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (user != null) {
                       // Check if the email is verified
                       if (user.emailVerified) {
-                        Navigator.pushNamed(context, DashboardScreen.id);
+                        Navigator.pushNamed(context, ReceiptListScreen.id);
                       } else {
                         // Sign out if email is not verified
                         await AuthService.signOut();
