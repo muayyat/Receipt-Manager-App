@@ -224,125 +224,115 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Settings'),
+        title: Text('Manage Account'),
         backgroundColor: Colors.lightBlueAccent,
       ),
       drawer: CustomDrawer(),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Center(
-                  child: GestureDetector(
-                    onTap: isEditing ? _pickImage : null,
-                    child: CircleAvatar(
-                      backgroundColor: Colors.grey,
-                      backgroundImage: profileImage != null
-                          ? FileImage(profileImage!)
-                          : null,
-                      radius: 50.0,
-                      child: profileImage == null
-                          ? Icon(Icons.person, size: 50, color: Colors.white)
-                          : null,
-                    ),
-                  ),
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: <Widget>[
+            Center(
+              child: GestureDetector(
+                onTap: isEditing ? _pickImage : null,
+                child: CircleAvatar(
+                  backgroundColor: Colors.grey,
+                  backgroundImage:
+                      profileImage != null ? FileImage(profileImage!) : null,
+                  radius: 50.0,
+                  child: profileImage == null
+                      ? Icon(Icons.person, size: 50, color: Colors.white)
+                      : null,
                 ),
-                SizedBox(height: 20),
-                TextField(
-                  enabled: isEditing,
-                  controller: _userNameController,
-                  decoration: InputDecoration(labelText: 'Name'),
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  enabled: isEditing,
-                  controller: _phoneController,
-                  decoration: InputDecoration(labelText: 'Phone Number'),
-                  keyboardType: TextInputType.phone,
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  enabled: isEditing,
-                  controller: _cityController,
-                  decoration: InputDecoration(labelText: 'City'),
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  enabled: isEditing,
-                  controller: _countryController,
-                  decoration: InputDecoration(labelText: 'Country'),
-                ),
-                SizedBox(height: 30),
-                isEditing
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: RoundedButton(
-                              color: Colors.blueAccent,
-                              title: 'Save',
-                              onPressed: saveProfileData,
-                            ),
-                          ),
-                          SizedBox(
-                              width: 10), // Add space between the two buttons
-                          Expanded(
-                            child: RoundedButton(
-                              color: Colors.grey,
-                              title: 'Cancel',
-                              onPressed: () {
-                                setState(() {
-                                  isEditing = false;
-                                });
-                              },
-                            ),
-                          ),
-                        ],
-                      )
-                    : Expanded(
+              ),
+            ),
+            SizedBox(height: 20),
+            TextField(
+              enabled: isEditing,
+              controller: _userNameController,
+              decoration: InputDecoration(labelText: 'Name'),
+            ),
+            SizedBox(height: 10),
+            TextField(
+              enabled: isEditing,
+              controller: _phoneController,
+              decoration: InputDecoration(labelText: 'Phone Number'),
+              keyboardType: TextInputType.phone,
+            ),
+            SizedBox(height: 10),
+            TextField(
+              enabled: isEditing,
+              controller: _cityController,
+              decoration: InputDecoration(labelText: 'City'),
+            ),
+            SizedBox(height: 10),
+            TextField(
+              enabled: isEditing,
+              controller: _countryController,
+              decoration: InputDecoration(labelText: 'Country'),
+            ),
+            SizedBox(height: 30),
+            isEditing
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
                         child: RoundedButton(
                           color: Colors.blueAccent,
-                          title: 'Edit',
+                          title: 'Save',
+                          onPressed: saveProfileData,
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: RoundedButton(
+                          color: Colors.grey,
+                          title: 'Cancel',
                           onPressed: () {
                             setState(() {
-                              isEditing = true;
+                              isEditing = false;
                             });
                           },
                         ),
                       ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment
-                      .spaceBetween, // Ensure buttons are spaced
-                  children: [
-                    Expanded(
-                      child: RoundedButton(
-                        color: Colors.orange,
-                        title: 'Clear Receipt History',
-                        onPressed: () {
-                          _confirmClearHistory(
-                              context); // Show confirmation dialog inside a function
-                        },
-                      ),
+                    ],
+                  )
+                : Expanded(
+                    child: RoundedButton(
+                      color: Colors.blueAccent,
+                      title: 'Edit',
+                      onPressed: () {
+                        setState(() {
+                          isEditing = true;
+                        });
+                      },
                     ),
-                    SizedBox(width: 10), // Add space between the two buttons
-                    Expanded(
-                      child: RoundedButton(
-                        color: Colors.red,
-                        title: 'Delete Account',
-                        onPressed: () {
-                          _confirmDeleteAccount(
-                              context); // Show confirmation dialog inside a function
-                        },
-                      ),
-                    ),
-                  ],
-                )
+                  ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: RoundedButton(
+                    color: Colors.orange,
+                    title: 'Clear Receipt History',
+                    onPressed: () {
+                      _confirmClearHistory(context);
+                    },
+                  ),
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  child: RoundedButton(
+                    color: Colors.red,
+                    title: 'Delete Account',
+                    onPressed: () {
+                      _confirmDeleteAccount(context);
+                    },
+                  ),
+                ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );

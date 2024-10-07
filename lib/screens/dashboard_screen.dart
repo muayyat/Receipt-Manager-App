@@ -2,9 +2,10 @@ import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../components/custom_drawer.dart';
+import '../services/auth_service.dart';
+import '../services/user_service.dart';
 import 'profile_screen.dart';
 import 'scan_screen.dart';
 
@@ -16,12 +17,15 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final _auth = FirebaseAuth.instance;
   User? loggedInUser;
   String? userName = '';
+  String? phoneNumber = '';
   String? city = '';
   String? country = '';
   File? profileImage;
+
+  // Instantiate the UserService
+  UserService userService = UserService();
 
   @override
   void initState() {
@@ -31,9 +35,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void getCurrentUser() async {
     try {
-      final user = _auth.currentUser;
-      if (user != null) {
-        loggedInUser = user;
+      loggedInUser = await AuthService.getCurrentUser();
+      if (loggedInUser != null) {
         loadProfileData();
       }
     } catch (e) {
@@ -42,15 +45,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> loadProfileData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      userName =
-          prefs.getString('userName') ?? loggedInUser?.displayName ?? 'No Name';
-      city = prefs.getString('city') ?? 'No City';
-      country = prefs.getString('country') ?? 'No Country';
-      String? profileImagePath = prefs.getString('profileImagePath');
-      if (profileImagePath != null) {
-        profileImage = File(profileImagePath);
+      // Optionally set a loading state if necessary
+    });
+
+    // Use the UserService to fetch the user profile
+    userService.fetchUserProfile().listen((snapshot) {
+      if (snapshot.exists) {
+        setState(() {
+          userName = snapshot.data()?['userName'] ?? 'No Name';
+          phoneNumber = snapshot.data()?['phoneNumber'] ?? '';
+          city = snapshot.data()?['city'] ?? '';
+          country = snapshot.data()?['country'] ?? '';
+          String? profileImagePath = snapshot.data()?['profileImagePath'];
+          if (profileImagePath != null) {
+            profileImage = File(profileImagePath);
+          }
+        });
       }
     });
   }
