@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:receipt_manager/screens/login_screen.dart';
 
 import '../components/custom_drawer.dart';
 import '../components/rounded_button.dart'; // Import the RoundedButton widget
@@ -211,7 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Account deleted successfully!')),
       );
-      Navigator.pushReplacementNamed(context, 'login_screen');
+      Navigator.pushReplacementNamed(context, LoginScreen.id);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error deleting account: $e')),
@@ -307,12 +308,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 RoundedButton(
                   color: Colors.orange,
                   title: 'Clear Receipt History',
-                  onPressed: _clearHistory,
+                  onPressed: () {
+                    _confirmClearHistory(
+                        context); // Show confirmation dialog inside a function
+                  },
                 ),
                 RoundedButton(
                   color: Colors.red,
                   title: 'Delete Account',
-                  onPressed: _deleteAccount,
+                  onPressed: () {
+                    _confirmDeleteAccount(
+                        context); // Show confirmation dialog inside a function
+                  },
                 ),
               ],
             ),
