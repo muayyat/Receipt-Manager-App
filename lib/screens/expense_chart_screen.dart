@@ -275,7 +275,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
           : categoryTotals.isEmpty
               ? Center(child: Text('No data available.'))
               : Padding(
-                  padding: const EdgeInsets.all(50.0),
+                  padding: const EdgeInsets.all(20.0),
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
