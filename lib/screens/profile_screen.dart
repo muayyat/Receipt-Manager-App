@@ -1,16 +1,19 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class SettingsScreen extends StatefulWidget {
-  static const String id = 'settings_screen';
+class ProfileScreen extends StatefulWidget {
+  static const String id = 'profile_screen';
+
+  const ProfileScreen({super.key});
 
   @override
-  _SettingsScreenState createState() => _SettingsScreenState();
+  _ProfileScreenState createState() => _ProfileScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _ProfileScreenState extends State<ProfileScreen> {
   String? userName = '';
   String? phoneNumber = '';
   String? city = '';
@@ -147,7 +150,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 SizedBox(height: 20),
                 // Form fields
                 TextField(
-                  enabled: isEditing,  // Only enabled in edit mode
+                  enabled: isEditing, // Only enabled in edit mode
                   controller: _userNameController,
                   decoration: InputDecoration(labelText: 'Name'),
                 ),
@@ -174,41 +177,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // Save/Cancel button
                 isEditing
                     ? Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton(
-                      onPressed: isSaving ? null : saveProfileData, // Disable if saving
-                      child: isSaving
-                          ? Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+                          ElevatedButton(
+                            onPressed: isSaving
+                                ? null
+                                : saveProfileData, // Disable if saving
+                            child: isSaving
+                                ? Row(
+                                    children: [
+                                      CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text('Saving...'),
+                                    ],
+                                  )
+                                : Text('Save'),
                           ),
-                          SizedBox(width: 8),
-                          Text('Saving...'),
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                isEditing = false; // Cancel edit
+                              });
+                            },
+                            child: Text('Cancel'),
+                          ),
                         ],
                       )
-                          : Text('Save'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          isEditing = false;  // Cancel edit
-                        });
-                      },
-                      child: Text('Cancel'),
-                    ),
-                  ],
-                )
                     : ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      isEditing = true;  // Enable editing
-                    });
-                  },
-                  child: Text('Edit'),
-                ),
+                        onPressed: () {
+                          setState(() {
+                            isEditing = true; // Enable editing
+                          });
+                        },
+                        child: Text('Edit'),
+                      ),
               ],
             ),
           ),

@@ -1,10 +1,12 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'scan_screen.dart';
+
+import 'profile_screen.dart';
 import 'receipt_list_screen.dart';
-import 'settings_screen.dart';
+import 'scan_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   static const String id = 'dashboard_screen';
@@ -42,7 +44,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> loadProfileData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      userName = prefs.getString('userName') ?? loggedInUser?.displayName ?? 'No Name';
+      userName =
+          prefs.getString('userName') ?? loggedInUser?.displayName ?? 'No Name';
       city = prefs.getString('city') ?? 'No City';
       country = prefs.getString('country') ?? 'No Country';
       String? profileImagePath = prefs.getString('profileImagePath');
@@ -53,7 +56,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _navigateAndReloadSettings(BuildContext context) async {
-    final result = await Navigator.pushNamed(context, SettingsScreen.id);
+    final result = await Navigator.pushNamed(context, ProfileScreen.id);
     if (result == true) {
       loadProfileData();
     }
@@ -63,7 +66,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Dashboard'),
+        title: Text('HOME'),
         backgroundColor: Colors.lightBlueAccent,
         leading: Builder(
           builder: (BuildContext context) {
@@ -85,25 +88,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 decoration: BoxDecoration(
                   color: Colors.lightBlueAccent,
                 ),
-
                 currentAccountPicture: Padding(
-                  padding: const EdgeInsets.only(bottom: 10.0), // Adjust padding as needed
+                  padding: const EdgeInsets.only(
+                      bottom: 10.0), // Adjust padding as needed
                   child: CircleAvatar(
-                    radius: 50.0, // Increase this value to make the picture larger
+                    radius:
+                        50.0, // Increase this value to make the picture larger
                     backgroundColor: Colors.white,
-                    backgroundImage: profileImage != null ? FileImage(profileImage!) : null,
+                    backgroundImage:
+                        profileImage != null ? FileImage(profileImage!) : null,
                     child: profileImage == null
                         ? Icon(
-                      Icons.person,
-                      size: 30.0, // Set a reasonable size for the icon inside the larger CircleAvatar
-                      color: Colors.grey,
-                    )
+                            Icons.person,
+                            size:
+                                30.0, // Set a reasonable size for the icon inside the larger CircleAvatar
+                            color: Colors.grey,
+                          )
                         : null,
                   ),
                 ),
-
-
-
                 accountName: Row(
                   children: [
                     Expanded(
@@ -113,7 +116,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
-                          height:1.2,
+                          height: 1.2,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -129,7 +132,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.black,
-                        height:1.2,
+                        height: 1.2,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -140,7 +143,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.black,
-                        height:1.2,
+                        height: 1.2,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -164,7 +167,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               ListTile(
                 leading: Icon(Icons.settings),
-                title: Text('Settings'),
+                title: Text('Profile'),
                 onTap: () {
                   _navigateAndReloadSettings(context);
                 },
