@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'auth_service.dart';
+
 final _firestore = FirebaseFirestore.instance;
 
 class UserService {
@@ -91,21 +93,25 @@ class UserService {
 
     // Delete categories
     await _firestore.collection('categories').doc(loggedInUser!.email).delete();
-
-    // Delete user profile
-    await _firestore.collection('users').doc(loggedInUser!.email).delete();
   }
 
   // Delete the Firebase Authentication account and Firestore profile
-  Future<void> deleteAccount() async {
-    if (loggedInUser == null) {
-      throw Exception('User not logged in');
+  Future<void> deleteUser() async {
+    User? user = await AuthService.getCurrentUser();
+    if (user != null) {
+      try {
+        // Delete user profile in Firestore
+        await _firestore.collection('users').doc(user.email).delete();
+
+        // Call the deleteAccount method from AuthService to remove the user's auth record
+        await AuthService.deleteAccount();
+
+        print('User profile and account deleted successfully');
+      } catch (e) {
+        print("Error deleting user: $e");
+      }
+    } else {
+      print("No user is currently signed in.");
     }
-
-    // Delete user document in Firestore
-    await _firestore.collection('users').doc(loggedInUser!.email).delete();
-
-    // Delete the Firebase Authentication account
-    await loggedInUser!.delete();
   }
 }

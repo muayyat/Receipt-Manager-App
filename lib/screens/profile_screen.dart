@@ -208,7 +208,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _deleteAccount() async {
     try {
-      await _userService.deleteAccount();
+      await _userService.deleteUser();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Account deleted successfully!')),
       );
