@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../components/custom_drawer.dart';
+import '../components/rounded_button.dart'; // Import the RoundedButton widget
 import '../services/user_service.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -23,7 +23,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? country = '';
   File? profileImage;
   bool isEditing = false;
-  bool isSaving = false; // To indicate that saving is in progress
+  bool isSaving = false;
 
   final ImagePicker _picker = ImagePicker();
   final UserService _userService = UserService();
@@ -41,7 +41,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _phoneController = TextEditingController();
     _cityController = TextEditingController();
     _countryController = TextEditingController();
-    loadProfileData(); // Load the profile data using the service
+    loadProfileData();
   }
 
   @override
@@ -54,10 +54,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> loadProfileData() async {
-    // Subscribe to the Firestore stream to get the latest profile data
-    _userService
-        .fetchUserProfile()
-        .listen((DocumentSnapshot<Map<String, dynamic>> snapshot) {
+    _userService.fetchUserProfile().listen((snapshot) {
       if (snapshot.exists) {
         setState(() {
           userName = snapshot.data()?['userName'] ?? 'No Name';
@@ -69,7 +66,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             profileImage = File(profileImagePath);
           }
 
-          // Initialize controllers with the loaded data
           _userNameController.text = userName!;
           _phoneController.text = phoneNumber!;
           _cityController.text = city!;
@@ -80,12 +76,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> saveProfileData() async {
-    try {
-      setState(() {
-        isSaving = true; // Start saving
-      });
+    setState(() {
+      isSaving = true;
+    });
 
-      // Save the profile data using the UserService
+    try {
       await _userService.updateUserProfile(
         userName: _userNameController.text,
         phoneNumber: _phoneController.text,
@@ -94,24 +89,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
         profileImagePath: profileImage?.path,
       );
 
-      // Simulate a delay to show saving process for feedback
       await Future.delayed(Duration(seconds: 1));
 
       setState(() {
-        isSaving = false; // Stop spinner
-        isEditing = false; // Disable editing after saving
+        isSaving = false;
+        isEditing = false;
       });
 
-      // Display a message or some feedback
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Profile updated successfully!')),
       );
 
-      // Return to Dashboard and reload data
-      Navigator.pop(context, true); // Return true to indicate changes were made
+      Navigator.pop(context, true);
     } catch (e) {
       setState(() {
-        isSaving = false; // Stop spinner if there was an error
+        isSaving = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error saving profile: $e')),
@@ -125,6 +117,105 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         profileImage = File(pickedFile.path);
       });
+    }
+  }
+
+  Future<void> _confirmClearHistory(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible:
+          false, // Prevents closing the dialog by clicking outside
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Clear All History'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(
+                    'Are you sure you want to clear all history? This action cannot be undone.'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Dismiss the dialog
+              },
+            ),
+            TextButton(
+              child: Text('Confirm'),
+              onPressed: () async {
+                Navigator.of(context).pop(); // Close the dialog
+                await _clearHistory(); // Proceed with clearing history
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _clearHistory() async {
+    try {
+      await _userService.clearAllHistory();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('All history cleared successfully!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error clearing history: $e')),
+      );
+    }
+  }
+
+  Future<void> _confirmDeleteAccount(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible:
+          false, // Prevents closing the dialog by clicking outside
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete Account'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(
+                    'Are you sure you want to delete your account? This action cannot be undone and you will lose all your data.'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Dismiss the dialog
+              },
+            ),
+            TextButton(
+              child: Text('Confirm'),
+              onPressed: () async {
+                Navigator.of(context).pop(); // Close the dialog
+                await _deleteAccount(); // Proceed with deleting account
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteAccount() async {
+    try {
+      await _userService.deleteAccount();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Account deleted successfully!')),
+      );
+      Navigator.pushReplacementNamed(context, 'login_screen');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting account: $e')),
+      );
     }
   }
 
@@ -159,9 +250,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 SizedBox(height: 20),
-                // Form fields
                 TextField(
-                  enabled: isEditing, // Only enabled in edit mode
+                  enabled: isEditing,
                   controller: _userNameController,
                   decoration: InputDecoration(labelText: 'Name'),
                 ),
@@ -185,46 +275,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   decoration: InputDecoration(labelText: 'Country'),
                 ),
                 SizedBox(height: 30),
-                // Save/Cancel button
                 isEditing
                     ? Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          ElevatedButton(
-                            onPressed: isSaving
-                                ? null
-                                : saveProfileData, // Disable if saving
-                            child: isSaving
-                                ? Row(
-                                    children: [
-                                      CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                      SizedBox(width: 8),
-                                      Text('Saving...'),
-                                    ],
-                                  )
-                                : Text('Save'),
+                          RoundedButton(
+                            color: Colors.blueAccent,
+                            title: 'Save',
+                            onPressed: saveProfileData,
                           ),
-                          TextButton(
+                          RoundedButton(
+                            color: Colors.grey,
+                            title: 'Cancel',
                             onPressed: () {
                               setState(() {
-                                isEditing = false; // Cancel edit
+                                isEditing = false;
                               });
                             },
-                            child: Text('Cancel'),
                           ),
                         ],
                       )
-                    : ElevatedButton(
+                    : RoundedButton(
+                        color: Colors.blueAccent,
+                        title: 'Edit',
                         onPressed: () {
                           setState(() {
-                            isEditing = true; // Enable editing
+                            isEditing = true;
                           });
                         },
-                        child: Text('Edit'),
                       ),
+                RoundedButton(
+                  color: Colors.orange,
+                  title: 'Clear Receipt History',
+                  onPressed: _clearHistory,
+                ),
+                RoundedButton(
+                  color: Colors.red,
+                  title: 'Delete Account',
+                  onPressed: _deleteAccount,
+                ),
               ],
             ),
           ),

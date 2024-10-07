@@ -1,8 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:flutter/material.dart';
 import 'package:receipt_manager/components/rounded_button.dart';
+
+import '../services/category_service.dart';
 
 class AddCategoryWidget extends StatefulWidget {
   final String userId; // Add userId parameter
@@ -20,6 +21,8 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
   String selectedIcon = '😊'; // Default icon
   bool showEmojiPicker = false; // Track whether to show emoji picker
   String? _errorMessage; // Error message for duplicate category names
+
+  final CategoryService _categoryService = CategoryService();
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +116,8 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
             onPressed: () async {
               if (categoryName.isNotEmpty) {
                 // Check if the category exists
-                bool categoryExists = await _categoryExists(categoryName);
+                bool categoryExists = await _categoryService.categoryExists(
+                    widget.userId, categoryName);
 
                 if (categoryExists) {
                   // Show error if category already exists
@@ -122,9 +126,10 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                   });
                 } else {
                   // Add category to Firestore if it doesn't exist
-                  await addCategoryToFirestore(
+                  await _categoryService.addCategoryToFirestore(
                       widget.userId, categoryName, selectedIcon);
 
+                  widget.onCategoryAdded();
                   // Call the callback after adding category
                   widget.onCategoryAdded();
 
@@ -137,47 +142,5 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
         ],
       ),
     );
-  }
-
-  // Function to check if the category already exists
-  Future<bool> _categoryExists(String name) async {
-    try {
-      // Get the user's categories from Firestore
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('categories')
-          .doc(widget.userId)
-          .get();
-
-      if (userDoc.exists && userDoc.data() != null) {
-        var data = userDoc.data() as Map<String, dynamic>;
-        List<dynamic> categoryList = data['categorylist'] ?? [];
-
-        // Check if the category with the same name already exists
-        return categoryList.any((category) =>
-            category['name'].toString().toLowerCase() == name.toLowerCase());
-      }
-      return false;
-    } catch (e) {
-      print("Error checking if category exists: $e");
-      return false;
-    }
-  }
-
-  // Function to add a category to Firestore
-  Future<void> addCategoryToFirestore(
-      String userId, String name, String icon) async {
-    try {
-      // Add the new category to Firestore
-      await FirebaseFirestore.instance
-          .collection('categories')
-          .doc(userId)
-          .update({
-        'categorylist': FieldValue.arrayUnion([
-          {'name': name, 'icon': icon}
-        ]),
-      });
-    } catch (e) {
-      print("Error adding category: $e");
-    }
   }
 }

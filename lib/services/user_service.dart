@@ -23,9 +23,8 @@ class UserService {
 
     // Retrieve the user profile data from Firestore
     return _firestore
-        .collection(
-            'users') // Assuming your Firestore collection is named 'users'
-        .doc(loggedInUser!.uid) // Use uid to uniquely identify the user
+        .collection('users') // Firestore collection is named 'users'
+        .doc(loggedInUser!.email) // Use email as document ID
         .snapshots();
   }
 
@@ -37,13 +36,13 @@ class UserService {
     required String country,
     String? profileImagePath,
   }) async {
-    if (loggedInUser == null) {
+    if (loggedInUser == null || loggedInUser?.email == null) {
       throw Exception('User not logged in');
     }
 
-    // Reference to the user's document in Firestore
+    // Reference to the user's document in Firestore using their email as document ID
     DocumentReference userDocRef =
-        _firestore.collection('users').doc(loggedInUser!.uid);
+        _firestore.collection('users').doc(loggedInUser!.email);
 
     // Set or update the user's profile data
     await userDocRef.set({
@@ -57,12 +56,12 @@ class UserService {
 
   // Update profile image
   Future<void> updateProfileImage(String profileImagePath) async {
-    if (loggedInUser == null) {
+    if (loggedInUser == null || loggedInUser?.email == null) {
       throw Exception('User not logged in');
     }
 
     DocumentReference userDocRef =
-        _firestore.collection('users').doc(loggedInUser!.uid);
+        _firestore.collection('users').doc(loggedInUser!.email);
 
     await userDocRef.update({
       'profileImagePath': profileImagePath,
@@ -71,13 +70,42 @@ class UserService {
 
   // Delete the user profile data
   Future<void> deleteUserProfile() async {
-    if (loggedInUser == null) {
+    if (loggedInUser == null || loggedInUser?.email == null) {
       throw Exception('User not logged in');
     }
 
     DocumentReference userDocRef =
-        _firestore.collection('users').doc(loggedInUser!.uid);
+        _firestore.collection('users').doc(loggedInUser!.email);
 
     await userDocRef.delete();
+  }
+
+  // Clear all history: Receipts, Categories, and Profile
+  Future<void> clearAllHistory() async {
+    if (loggedInUser == null || loggedInUser?.email == null) {
+      throw Exception('User not logged in');
+    }
+
+    // Delete receipts
+    await _firestore.collection('receipts').doc(loggedInUser!.email).delete();
+
+    // Delete categories
+    await _firestore.collection('categories').doc(loggedInUser!.email).delete();
+
+    // Delete user profile
+    await _firestore.collection('users').doc(loggedInUser!.email).delete();
+  }
+
+  // Delete the Firebase Authentication account and Firestore profile
+  Future<void> deleteAccount() async {
+    if (loggedInUser == null) {
+      throw Exception('User not logged in');
+    }
+
+    // Delete user document in Firestore
+    await _firestore.collection('users').doc(loggedInUser!.email).delete();
+
+    // Delete the Firebase Authentication account
+    await loggedInUser!.delete();
   }
 }

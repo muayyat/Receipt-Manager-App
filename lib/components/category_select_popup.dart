@@ -1,6 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
+import '../services/category_service.dart';
 import 'add_category_widget.dart';
 
 class CategorySelectPopup extends StatefulWidget {
@@ -28,6 +28,8 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
     {'name': 'iPhone', 'icon': '📱'},
   ];
 
+  final CategoryService _categoryService = CategoryService();
+
   @override
   void initState() {
     super.initState();
@@ -36,55 +38,16 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
 
   Future<void> fetchUserCategories() async {
     try {
-      // Check if the document exists for the user
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('categories')
-          .doc(widget.userId)
-          .get();
+      List<Map<String, dynamic>> categories =
+          await _categoryService.fetchUserCategories(widget.userId);
 
-      // Define the default categories
-      List<Map<String, dynamic>> defaultCategories = [
-        {'name': 'Food', 'icon': '🍔'},
-        {'name': 'Gym', 'icon': '🏋️‍♂️'},
-        {'name': 'Internet', 'icon': '📞'},
-        {'name': 'Rent', 'icon': '🏡'},
-        {'name': 'Subscriptions', 'icon': '🔄'},
-        {'name': 'Transport', 'icon': '🚗'},
-        {'name': 'Utilities', 'icon': '💡'},
-        {'name': 'iPhone', 'icon': '📱'},
-      ];
-
-      // If the document does not exist, create it with the default categories
-      if (!userDoc.exists || userDoc.data() == null) {
-        await FirebaseFirestore.instance
-            .collection('categories')
-            .doc(widget.userId)
-            .set({
-          'categorylist': defaultCategories,
-        });
-
-        // Assign the default categories to userCategories
-        setState(() {
-          userCategories = defaultCategories;
-        });
-      } else {
-        // Safely handle the case where userDoc.data() is not a Map<String, dynamic>
-        var data = userDoc.data() as Map<String, dynamic>?;
-
-        if (data != null) {
-          List<dynamic> categoryList = data['categorylist'] ?? [];
-
-          setState(() {
-            userCategories = categoryList
-                .map((category) => {
-                      'id': userDoc.id, // Assuming user ID is the document ID
-                      'name': category['name'] ?? 'Unknown',
-                      'icon': category['icon'] ?? '',
-                    })
-                .toList();
-          });
-        }
+      if (categories.isEmpty) {
+        // Default categories can be handled here if needed
       }
+
+      setState(() {
+        userCategories = categories;
+      });
     } catch (e) {
       print("Error fetching user categories: $e");
     }
@@ -120,25 +83,12 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
       );
 
       if (categoryToRemove != null) {
-        // Remove the category from Firestore first
-        await FirebaseFirestore.instance
-            .collection('categories')
-            .doc(widget.userId)
-            .update({
-          'categorylist': FieldValue.arrayRemove([
-            {
-              'name': name,
-              'icon': categoryToRemove['icon'], // Use the correct icon value
-            }
-          ])
-        });
+        await _categoryService.deleteCategory(
+            widget.userId, name, categoryToRemove['icon']);
 
-        // Once Firestore is updated, remove it locally
         setState(() {
           userCategories.removeWhere((category) => category['name'] == name);
         });
-
-        print("has deleted category: $name");
 
         fetchUserCategories();
       } else {
