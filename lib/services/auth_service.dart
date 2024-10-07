@@ -82,4 +82,14 @@ class AuthService {
       print("Error deleting account: $e");
     }
   }
+
+  // Reset password by sending password reset email
+  static Future<void> sendPasswordResetEmail({required String email}) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      print("Password reset email sent to $email");
+    } catch (e) {
+      print("Error sending password reset email: $e");
+    }
+  }
 }

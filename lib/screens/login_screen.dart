@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:receipt_manager/screens/dashboard_screen.dart';
+import 'package:receipt_manager/services/auth_service.dart';
 
 import '../components/rounded_button.dart';
 import '../constants.dart';
@@ -13,7 +14,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _auth = FirebaseAuth.instance;
   late String email;
   late String password;
   bool showPassword = false;
@@ -21,7 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _resetPassword() async {
     try {
-      await _auth.sendPasswordResetEmail(email: email);
+      await AuthService.sendPasswordResetEmail(email: email);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content:
@@ -81,21 +81,21 @@ class _LoginScreenState extends State<LoginScreen> {
                 color: Colors.lightBlueAccent,
                 title: 'Log In',
                 onPressed: () async {
-                  // Implement login functionality.
                   setState(() {
                     errorMessage = ''; // Clear the error message
                   });
-                  try {
-                    final user = await _auth.signInWithEmailAndPassword(
-                        email: email, password: password);
 
-                    // Check if the email is verified
-                    if (user.user != null) {
-                      if (user.user!.emailVerified) {
+                  try {
+                    final user =
+                        await AuthService.signInWithEmail(email, password);
+
+                    if (user != null) {
+                      // Check if the email is verified
+                      if (user.emailVerified) {
                         Navigator.pushNamed(context, DashboardScreen.id);
                       } else {
                         // Sign out if email is not verified
-                        await _auth.signOut();
+                        await AuthService.signOut();
                         setState(() {
                           errorMessage =
                               'Please verify your email before logging in.';

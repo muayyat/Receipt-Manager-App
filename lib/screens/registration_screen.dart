@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:receipt_manager/screens/welcome_screen.dart';
+import 'package:receipt_manager/services/auth_service.dart';
 
 import '../components/rounded_button.dart';
 import '../constants.dart';
@@ -14,7 +15,6 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
-  final _auth = FirebaseAuth.instance;
   late String email;
   late String password;
   bool showPassword = false; // State to toggle password visibility
@@ -70,20 +70,27 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   setState(() {
                     errorMessage = ''; // Clear the error message
                   });
+
                   try {
-                    final newUser = await _auth.createUserWithEmailAndPassword(
-                        email: email, password: password);
+                    final newUser = await AuthService.registerWithEmail(
+                      email,
+                      password,
+                    );
+
                     if (newUser != null) {
                       // Send verification email
-                      await newUser.user!.sendEmailVerification();
+                      await newUser.sendEmailVerification();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                            content: Text(
-                                'Verification email sent! Please check your inbox.')),
+                          content: Text(
+                              'Verification email sent! Please check your inbox.'),
+                        ),
                       );
 
                       // Sign out the user after registration
-                      await _auth.signOut();
+                      await AuthService.signOut();
+
+                      // Navigate to the welcome screen
                       Navigator.pushNamed(context, WelcomeScreen.id);
                     }
                   } on FirebaseAuthException catch (e) {
