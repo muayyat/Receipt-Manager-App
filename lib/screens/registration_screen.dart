@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:receipt_manager/screens/welcome_screen.dart';
 
 import '../components/rounded_button.dart';
 import '../constants.dart';
-import 'scan_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {
   static const String id = 'registration_screen';
@@ -84,7 +84,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
                       // Sign out the user after registration
                       await _auth.signOut();
-                      Navigator.pushNamed(context, ScanScreen.id);
+                      Navigator.pushNamed(context, WelcomeScreen.id);
                     }
                   } on FirebaseAuthException catch (e) {
                     setState(() {
