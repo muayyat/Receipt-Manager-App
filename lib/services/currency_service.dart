@@ -87,4 +87,27 @@ class CurrencyService {
       throw Exception('Error fetching conversion rates: $e');
     }
   }
+
+  // Method to convert amount to the base currency
+  static double convertToBaseCurrency(double amount, String currency,
+      String selectedBaseCurrency, Map<String, double> conversionRates) {
+    if (currency == selectedBaseCurrency) {
+      return amount;
+    }
+
+    double amountInUSD;
+    if (currency != 'USD') {
+      double rateToUSD = conversionRates[currency] ?? 1.0;
+      amountInUSD = amount / rateToUSD;
+    } else {
+      amountInUSD = amount;
+    }
+
+    if (selectedBaseCurrency != 'USD') {
+      double rateToBaseCurrency = conversionRates[selectedBaseCurrency] ?? 1.0;
+      return amountInUSD * rateToBaseCurrency;
+    } else {
+      return amountInUSD;
+    }
+  }
 }

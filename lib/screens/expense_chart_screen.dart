@@ -76,27 +76,6 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     }
   }
 
-  double convertToBaseCurrency(double amount, String currency) {
-    if (currency == selectedBaseCurrency) {
-      return amount;
-    }
-
-    double amountInUSD;
-    if (currency != 'USD') {
-      double rateToUSD = conversionRates[currency] ?? 1.0;
-      amountInUSD = amount / rateToUSD;
-    } else {
-      amountInUSD = amount;
-    }
-
-    if (selectedBaseCurrency != 'USD') {
-      double rateToBaseCurrency = conversionRates[selectedBaseCurrency] ?? 1.0;
-      return amountInUSD * rateToBaseCurrency;
-    } else {
-      return amountInUSD;
-    }
-  }
-
   // Fetch expense data using ReceiptService
   void fetchExpenseData() async {
     try {
@@ -124,7 +103,9 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
             }
           }
 
-          double convertedAmount = convertToBaseCurrency(amount, currency);
+          double convertedAmount = CurrencyService.convertToBaseCurrency(
+              amount, currency, selectedBaseCurrency, conversionRates);
+
           String category = receiptData['category'];
 
           categories.add(category);
