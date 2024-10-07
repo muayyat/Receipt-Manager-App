@@ -280,47 +280,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ? Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          RoundedButton(
-                            color: Colors.blueAccent,
-                            title: 'Save',
-                            onPressed: saveProfileData,
+                          Expanded(
+                            child: RoundedButton(
+                              color: Colors.blueAccent,
+                              title: 'Save',
+                              onPressed: saveProfileData,
+                            ),
                           ),
-                          RoundedButton(
-                            color: Colors.grey,
-                            title: 'Cancel',
-                            onPressed: () {
-                              setState(() {
-                                isEditing = false;
-                              });
-                            },
+                          SizedBox(
+                              width: 10), // Add space between the two buttons
+                          Expanded(
+                            child: RoundedButton(
+                              color: Colors.grey,
+                              title: 'Cancel',
+                              onPressed: () {
+                                setState(() {
+                                  isEditing = false;
+                                });
+                              },
+                            ),
                           ),
                         ],
                       )
-                    : RoundedButton(
-                        color: Colors.blueAccent,
-                        title: 'Edit',
+                    : Expanded(
+                        child: RoundedButton(
+                          color: Colors.blueAccent,
+                          title: 'Edit',
+                          onPressed: () {
+                            setState(() {
+                              isEditing = true;
+                            });
+                          },
+                        ),
+                      ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment
+                      .spaceBetween, // Ensure buttons are spaced
+                  children: [
+                    Expanded(
+                      child: RoundedButton(
+                        color: Colors.orange,
+                        title: 'Clear Receipt History',
                         onPressed: () {
-                          setState(() {
-                            isEditing = true;
-                          });
+                          _confirmClearHistory(
+                              context); // Show confirmation dialog inside a function
                         },
                       ),
-                RoundedButton(
-                  color: Colors.orange,
-                  title: 'Clear Receipt History',
-                  onPressed: () {
-                    _confirmClearHistory(
-                        context); // Show confirmation dialog inside a function
-                  },
-                ),
-                RoundedButton(
-                  color: Colors.red,
-                  title: 'Delete Account',
-                  onPressed: () {
-                    _confirmDeleteAccount(
-                        context); // Show confirmation dialog inside a function
-                  },
-                ),
+                    ),
+                    SizedBox(width: 10), // Add space between the two buttons
+                    Expanded(
+                      child: RoundedButton(
+                        color: Colors.red,
+                        title: 'Delete Account',
+                        onPressed: () {
+                          _confirmDeleteAccount(
+                              context); // Show confirmation dialog inside a function
+                        },
+                      ),
+                    ),
+                  ],
+                )
               ],
             ),
           ),
