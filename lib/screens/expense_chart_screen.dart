@@ -176,6 +176,86 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     }
   }
 
+  // Method to build the card with gray background
+  Widget buildCard(BuildContext context, String title, Widget chart) {
+    return Card(
+      color: Colors.grey[200], // Set the background color to light grey
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10), // Optional: rounded corners
+      ),
+      elevation: 4, // Optional: give the card a shadow
+      child: Padding(
+        padding: const EdgeInsets.all(10.0), // Add padding inside the card
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 16),
+            chart, // The chart will define the card size
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Method to build the pie chart
+  Widget buildPieChart() {
+    return Column(
+      children: [
+        SizedBox(
+          height: 300, // Set a fixed height for the pie chart
+          child: PieChart(
+            PieChartData(
+              sections: getPieSections(),
+              centerSpaceRadius: 60,
+              borderData: FlBorderData(show: false),
+              sectionsSpace: 4,
+              startDegreeOffset: -90,
+            ),
+          ),
+        ),
+        SizedBox(height: 20), // Space between the chart and the legend
+        // Custom Legend
+        Wrap(
+          spacing: 10,
+          children: categoryTotals.entries.map((entry) {
+            final total = entry.value;
+            final percentage = (total /
+                    categoryTotals.values.fold(0, (sum, item) => sum + item)) *
+                100;
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 16,
+                    height: 16,
+                    color: categoryColors[entry.key],
+                  ),
+                  SizedBox(width: 8), // Space between color box and text
+                  Text(
+                    '${entry.key}: ${total.toStringAsFixed(2)} $selectedBaseCurrency (${percentage.toStringAsFixed(1)}%)',
+                    style: TextStyle(fontSize: 16),
+                    textAlign: TextAlign.left,
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -215,72 +295,22 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
               ? Center(child: Text('No data available.'))
               : Padding(
                   padding: const EdgeInsets.all(50.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Expenses by Category in $selectedBaseCurrency',
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: 20),
-                      Expanded(
-                        child: PieChart(
-                          PieChartData(
-                            sections: getSections(),
-                            centerSpaceRadius: 60,
-                            borderData: FlBorderData(show: false),
-                            sectionsSpace: 4,
-                            startDegreeOffset: -90,
-                          ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        buildCard(
+                          context,
+                          'Expenses by Category in $selectedBaseCurrency',
+                          buildPieChart(), // Build the pie chart here
                         ),
-                      ),
-                      SizedBox(height: 20),
-                      // Custom Legend
-                      Wrap(
-                        spacing: 10,
-                        children: categoryTotals.entries.map((entry) {
-                          final total = entry.value;
-                          final percentage = (total /
-                                  categoryTotals.values
-                                      .fold(0, (sum, item) => sum + item)) *
-                              100;
-
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical:
-                                    4.0), // Adjust the vertical padding as needed
-                            child: Row(
-                              mainAxisSize:
-                                  MainAxisSize.min, // Minimize the size
-                              crossAxisAlignment: CrossAxisAlignment
-                                  .center, // Center align vertically
-                              children: [
-                                Container(
-                                  width: 16,
-                                  height: 16,
-                                  color: categoryColors[entry.key],
-                                ),
-                                SizedBox(
-                                    width:
-                                        8), // Space between color box and text
-                                Text(
-                                  '${entry.key}: ${total.toStringAsFixed(2)} $selectedBaseCurrency (${percentage.toStringAsFixed(1)}%)',
-                                  style: TextStyle(fontSize: 16),
-                                  textAlign:
-                                      TextAlign.left, // Align text to the left
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      )
-                    ],
+                      ],
+                    ),
                   ),
                 ),
     );
   }
 
-  List<PieChartSectionData> getSections() {
+  List<PieChartSectionData> getPieSections() {
     double totalAmount =
         categoryTotals.values.fold(0, (sum, item) => sum + item);
 
