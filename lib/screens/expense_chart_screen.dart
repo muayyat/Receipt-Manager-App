@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import '../components/custom_drawer.dart';
 import '../services/auth_service.dart';
 import '../services/currency_service.dart';
 import '../services/receipt_service.dart';
@@ -207,6 +208,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
           ),
         ],
       ),
+      drawer: CustomDrawer(),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : categoryTotals.isEmpty

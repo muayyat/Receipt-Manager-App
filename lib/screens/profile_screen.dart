@@ -1,8 +1,11 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import '../components/custom_drawer.dart';
+import '../services/user_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   static const String id = 'profile_screen';
@@ -23,6 +26,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool isSaving = false; // To indicate that saving is in progress
 
   final ImagePicker _picker = ImagePicker();
+  final UserService _userService = UserService();
 
   // Controllers for text fields
   late TextEditingController _userNameController;
@@ -37,7 +41,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _phoneController = TextEditingController();
     _cityController = TextEditingController();
     _countryController = TextEditingController();
-    loadProfileData(); // Load the saved profile data
+    loadProfileData(); // Load the profile data using the service
   }
 
   @override
@@ -50,22 +54,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> loadProfileData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      userName = prefs.getString('userName') ?? 'No Name';
-      phoneNumber = prefs.getString('phoneNumber') ?? '';
-      city = prefs.getString('city') ?? '';
-      country = prefs.getString('country') ?? '';
-      String? profileImagePath = prefs.getString('profileImagePath');
-      if (profileImagePath != null) {
-        profileImage = File(profileImagePath);
-      }
+    // Subscribe to the Firestore stream to get the latest profile data
+    _userService
+        .fetchUserProfile()
+        .listen((DocumentSnapshot<Map<String, dynamic>> snapshot) {
+      if (snapshot.exists) {
+        setState(() {
+          userName = snapshot.data()?['userName'] ?? 'No Name';
+          phoneNumber = snapshot.data()?['phoneNumber'] ?? '';
+          city = snapshot.data()?['city'] ?? '';
+          country = snapshot.data()?['country'] ?? '';
+          String? profileImagePath = snapshot.data()?['profileImagePath'];
+          if (profileImagePath != null) {
+            profileImage = File(profileImagePath);
+          }
 
-      // Initialize controllers with the loaded data
-      _userNameController.text = userName!;
-      _phoneController.text = phoneNumber!;
-      _cityController.text = city!;
-      _countryController.text = country!;
+          // Initialize controllers with the loaded data
+          _userNameController.text = userName!;
+          _phoneController.text = phoneNumber!;
+          _cityController.text = city!;
+          _countryController.text = country!;
+        });
+      }
     });
   }
 
@@ -75,14 +85,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         isSaving = true; // Start saving
       });
 
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userName', _userNameController.text);
-      await prefs.setString('phoneNumber', _phoneController.text);
-      await prefs.setString('city', _cityController.text);
-      await prefs.setString('country', _countryController.text);
-      if (profileImage != null) {
-        await prefs.setString('profileImagePath', profileImage!.path);
-      }
+      // Save the profile data using the UserService
+      await _userService.updateUserProfile(
+        userName: _userNameController.text,
+        phoneNumber: _phoneController.text,
+        city: _cityController.text,
+        country: _countryController.text,
+        profileImagePath: profileImage?.path,
+      );
 
       // Simulate a delay to show saving process for feedback
       await Future.delayed(Duration(seconds: 1));
@@ -125,6 +135,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: Text('Settings'),
         backgroundColor: Colors.lightBlueAccent,
       ),
+      drawer: CustomDrawer(),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../components/custom_drawer.dart';
 import '../services/auth_service.dart';
 import '../services/receipt_service.dart';
 import 'add_receipt_screen.dart';
@@ -71,6 +72,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(),
+      drawer: CustomDrawer(),
       body:
           loggedInUser == null ? _buildLoadingIndicator() : _buildReceiptList(),
       floatingActionButton: _buildFloatingActionButtons(),
