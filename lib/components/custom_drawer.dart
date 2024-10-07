@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:receipt_manager/screens/expense_chart_screen.dart';
 import 'package:receipt_manager/screens/profile_screen.dart';
+import 'package:receipt_manager/screens/welcome_screen.dart';
 
 import '../screens/receipt_list_screen.dart';
 import '../services/user_service.dart';
@@ -154,7 +155,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   title: Text('Logout'),
                   onTap: () {
                     FirebaseAuth.instance.signOut();
-                    Navigator.pushReplacementNamed(context, 'login_screen');
+                    Navigator.pushReplacementNamed(context, WelcomeScreen.id);
                   },
                 ),
               ],
