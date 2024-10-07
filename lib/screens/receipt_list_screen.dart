@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../components/custom_drawer.dart';
+import '../components/calendar_filter_widget.dart'; // Import the CalendarFilterWidget
 import '../services/auth_service.dart';
 import '../services/receipt_service.dart';
 import 'add_receipt_screen.dart';
@@ -19,11 +20,13 @@ class ReceiptListScreen extends StatefulWidget {
 }
 
 class _ReceiptListScreenState extends State<ReceiptListScreen> {
-  final ReceiptService receiptService = ReceiptService(); // Create an instance
+  final ReceiptService receiptService = ReceiptService();
 
   Stream<DocumentSnapshot>? receiptsStream;
   String currentSortField = 'date';
   bool isDescending = false;
+  DateTime? _startDate;
+  DateTime? _endDate;
   List<Map<String, dynamic>> sortedReceiptList = [];
 
   @override
@@ -37,7 +40,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
     if (loggedInUser != null) {
       setState(() {
         receiptsStream =
-            receiptService.fetchReceipts(); // Fetch receipts using the service
+            receiptService.fetchReceipts();
       });
     }
   }
@@ -47,7 +50,6 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
       currentSortField = newSortField;
       isDescending = descending;
     });
-    // Sort the existing sortedReceiptList based on the new sorting parameters
     _sortReceiptList();
   }
 
@@ -63,18 +65,39 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
         bValue = (b['amount'] as num).toDouble();
       }
 
-      // Determine the sort order
       return isDescending ? bValue.compareTo(aValue) : aValue.compareTo(bValue);
     });
   }
+
+  Future<void> _showCalendarFilterDialog() async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (BuildContext context) {
+        return CalendarFilterWidget(
+          initialStartDate: _startDate ?? DateTime.now(),
+          initialEndDate: _endDate ?? DateTime.now(),
+          onApply: (start, end) {
+            setState(() {
+              _startDate = start;
+              _endDate = end;
+            });
+          },
+        );
+      },
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(),
       drawer: CustomDrawer(),
-      body:
-          loggedInUser == null ? _buildLoadingIndicator() : _buildReceiptList(),
+      body: loggedInUser == null ? _buildLoadingIndicator() : _buildReceiptList(),
       floatingActionButton: _buildFloatingActionButtons(),
     );
   }
@@ -83,14 +106,19 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
     return AppBar(
       title: Text('Receipt List'),
       backgroundColor: Colors.lightBlueAccent,
-      actions: [_buildSortPopup()],
+      actions: [
+        IconButton(
+          icon: Icon(Icons.calendar_today, color: Colors.white),
+          onPressed: _showCalendarFilterDialog,
+        ),
+        _buildSortPopup(),
+      ],
     );
   }
 
   PopupMenuButton<String> _buildSortPopup() {
     return PopupMenuButton<String>(
       onSelected: (value) {
-        // Handle sort selection
         if (value == 'date_asc') {
           onSortChanged('date', false);
         } else if (value == 'date_desc') {
@@ -105,8 +133,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
         PopupMenuItem(value: 'date_asc', child: Text('Date: Oldest First')),
         PopupMenuItem(value: 'date_desc', child: Text('Date: Newest First')),
         PopupMenuItem(value: 'amount_asc', child: Text('Amount: Lowest First')),
-        PopupMenuItem(
-            value: 'amount_desc', child: Text('Amount: Highest First')),
+        PopupMenuItem(value: 'amount_desc', child: Text('Amount: Highest First')),
       ],
       icon: Icon(Icons.sort),
     );
@@ -128,25 +155,22 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
           return Center(child: CircularProgressIndicator());
         }
 
-        // Check if the document exists and has data
-        if (!snapshot.hasData ||
-            snapshot.data == null ||
-            snapshot.data!.data() == null) {
+        if (!snapshot.hasData || snapshot.data == null || snapshot.data!.data() == null) {
           return Center(child: Text('No receipts found.'));
         }
 
-        // Get the receipt list from the document
-        final receiptList =
-            snapshot.data!.get('receiptlist') as List<dynamic>? ?? [];
+        final receiptList = snapshot.data!.get('receiptlist') as List<dynamic>? ?? [];
+        sortedReceiptList = receiptList.cast<Map<String, dynamic>>();
 
-        // Convert dynamic list to a list of maps
-        sortedReceiptList = receiptList
-            .cast<Map<String, dynamic>>(); // Cast to List<Map<String, dynamic>>
+        if (_startDate != null && _endDate != null) {
+          sortedReceiptList = sortedReceiptList.where((receipt) {
+            final receiptDate = (receipt['date'] as Timestamp).toDate();
+            return receiptDate.isAfter(_startDate!) && receiptDate.isBefore(_endDate!);
+          }).toList();
+        }
 
-        // Sort the list based on the current sort field and order
         _sortReceiptList();
 
-        // Display the receipt cards using ListView.builder
         return ListView.builder(
           padding: EdgeInsets.only(bottom: 80),
           itemCount: sortedReceiptList.length,
@@ -160,14 +184,12 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
   }
 
   Card _buildReceiptCard(Map<String, dynamic> receiptData) {
-    // Extract data from the receipt map
     Timestamp timestamp = receiptData['date'] ?? Timestamp.now();
     DateTime dateTime = timestamp.toDate();
     String date = DateFormat('yyyy-MM-dd').format(dateTime);
     String itemName = receiptData['itemName'] ?? '';
     String merchant = receiptData['merchant'] ?? '';
     String category = receiptData['category'] ?? '';
-    // Ensure amount is treated as double
     double amount = (receiptData['amount'] is int)
         ? (receiptData['amount'] as int).toDouble()
         : (receiptData['amount'] as double);
@@ -181,8 +203,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
         child: Row(
           children: [
             _buildImageSection(imageUrl),
-            Expanded(
-                child: _buildTextDetails(itemName, merchant, date, category)),
+            Expanded(child: _buildTextDetails(itemName, merchant, date, category)),
             _buildAmountSection(currency, amount),
           ],
         ),
@@ -194,42 +215,38 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
     return Container(
       height: 60,
       width: 60,
-      margin: EdgeInsets.only(right: 10), // Space between image and text
+      margin: EdgeInsets.only(right: 10),
       decoration: BoxDecoration(
-        color: Colors.grey[300], // Placeholder color
+        color: Colors.grey[300],
         borderRadius: BorderRadius.circular(4),
       ),
       child: imageUrl.isNotEmpty
           ? ClipRRect(
-              borderRadius:
-                  BorderRadius.circular(4), // Add border radius to image
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                loadingBuilder: (BuildContext context, Widget child,
-                    ImageChunkEvent? loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                              (loadingProgress.expectedTotalBytes ?? 1)
-                          : null,
-                    ),
-                  );
-                },
-                errorBuilder: (BuildContext context, Object error,
-                    StackTrace? stackTrace) {
-                  return Text('Image failed to load');
-                },
+        borderRadius: BorderRadius.circular(4),
+        child: Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                    (loadingProgress.expectedTotalBytes ?? 1)
+                    : null,
               ),
-            )
-          : Container(), // Empty container when image URL is not provided
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return Text('Image failed to load');
+          },
+        ),
+      )
+          : Container(),
     );
   }
 
-  Widget _buildTextDetails(
-      String itemName, String merchant, String date, String category) {
+  Widget _buildTextDetails(String itemName, String merchant, String date, String category) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
