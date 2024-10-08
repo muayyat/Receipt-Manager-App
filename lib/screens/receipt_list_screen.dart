@@ -32,6 +32,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
   List<Map<String, dynamic>> sortedReceiptList = [];
 
   @override
+  @override
   void initState() {
     super.initState();
     getCurrentUser();
@@ -39,11 +40,15 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
 
   void getCurrentUser() async {
     loggedInUser = await AuthService.getCurrentUser();
-    if (loggedInUser != null) {
-      setState(() {
+    print('Logged in user: $loggedInUser'); // Log user details for debugging
+    setState(() {
+      if (loggedInUser != null) {
         receiptsStream = receiptService.fetchReceipts();
-      });
-    }
+      } else {
+        // You can handle the case where the user is not logged in if needed.
+        print('No user is logged in.');
+      }
+    });
   }
 
   void onSortChanged(String newSortField, bool descending) {
@@ -92,27 +97,55 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
     );
   }
 
-  PopupMenuButton<String> _buildSortPopup() {
-    return PopupMenuButton<String>(
-      onSelected: (value) {
-        if (value == 'date_asc') {
-          onSortChanged('date', false);
-        } else if (value == 'date_desc') {
-          onSortChanged('date', true);
-        } else if (value == 'amount_asc') {
-          onSortChanged('amount', false);
-        } else if (value == 'amount_desc') {
-          onSortChanged('amount', true);
-        }
+  void _showSortDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Sort Options'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: Text('Date: Oldest First'),
+                onTap: () {
+                  onSortChanged('date', false);
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+              ),
+              ListTile(
+                title: Text('Date: Newest First'),
+                onTap: () {
+                  onSortChanged('date', true);
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+              ),
+              ListTile(
+                title: Text('Amount: Lowest First'),
+                onTap: () {
+                  onSortChanged('amount', false);
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+              ),
+              ListTile(
+                title: Text('Amount: Highest First'),
+                onTap: () {
+                  onSortChanged('amount', true);
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+          ],
+        );
       },
-      itemBuilder: (context) => [
-        PopupMenuItem(value: 'date_asc', child: Text('Date: Oldest First')),
-        PopupMenuItem(value: 'date_desc', child: Text('Date: Newest First')),
-        PopupMenuItem(value: 'amount_asc', child: Text('Amount: Lowest First')),
-        PopupMenuItem(
-            value: 'amount_desc', child: Text('Amount: Highest First')),
-      ],
-      icon: Icon(Icons.sort),
     );
   }
 
@@ -342,17 +375,70 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
       appBar: AppBar(
         title: Text('Your Receipts'),
         backgroundColor: Colors.lightBlueAccent,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.calendar_today, color: Colors.white),
-            onPressed: _showCalendarFilterDialog,
-          ),
-          _buildSortPopup(),
-        ],
       ),
       drawer: CustomDrawer(),
-      body:
-          loggedInUser == null ? _buildLoadingIndicator() : _buildReceiptList(),
+      body: loggedInUser == null
+          ? _buildLoadingIndicator()
+          : Column(
+              children: [
+                SizedBox(
+                  height: 20,
+                ),
+                // Buttons (actions) above the scrolling list
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: 12), // Apply padding to the Row
+                  child: Row(
+                    mainAxisSize:
+                        MainAxisSize.min, // Minimize the size of the Row
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                              color: Colors.lightBlue), // Add border color
+                          borderRadius:
+                              BorderRadius.circular(8), // Rounded borders
+                        ),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 0), // Add some padding
+                        child: Row(
+                          mainAxisSize:
+                              MainAxisSize.min, // Minimize the size of the Row
+                          children: [
+                            Text(
+                              '$_startDate - $_endDate', // Replace with your dynamic date range
+                              style: TextStyle(color: Colors.lightBlue),
+                            ),
+                            SizedBox(
+                                width: 8), // Add spacing between text and icon
+                            IconButton(
+                              icon: Icon(Icons.calendar_today,
+                                  color: Colors.lightBlue),
+                              onPressed: () {
+                                _showCalendarFilterDialog(); // Corrected onPressed function call
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 8), // Add spacing between the two buttons
+                      IconButton(
+                        icon: Icon(Icons.sort,
+                            color: Colors.lightBlue), // Sort button icon
+                        onPressed: () {
+                          _showSortDialog(
+                              context); // Trigger the dialog when the button is pressed
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child:
+                      _buildReceiptList(), // The receipt list that can scroll
+                ),
+              ],
+            ),
       floatingActionButton: _buildFloatingActionButtons(),
     );
   }
