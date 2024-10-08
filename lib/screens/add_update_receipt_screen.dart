@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:receipt_manager/screens/scan_screen.dart';
 
 import '../components//rounded_button.dart';
-import '../components/category_select_popup.dart';
+import '../components/add_category_widget.dart';
 import '../services/auth_service.dart';
 import '../services/category_service.dart';
 import '../services/currency_service.dart';
@@ -30,7 +30,7 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
   final ReceiptService receiptService = ReceiptService(); // Create an instance
   final StorageService storageService =
       StorageService(); // Create an instance of StorageService
-  final CategoryService categoryService = CategoryService();
+  final CategoryService _categoryService = CategoryService();
 
   final TextEditingController merchantController = TextEditingController();
   final TextEditingController dateController = TextEditingController();
@@ -39,7 +39,8 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
   final TextEditingController itemNameController = TextEditingController();
 
   // Categories and currencies will be loaded from Firestore
-  List<String> categories = [];
+  List<Map<String, dynamic>> categories = [];
+
   String? selectedCategoryId;
   String? selectedCategoryIcon; // Store selected category icon
   String? selectedCategoryName; // Store selected category name
@@ -83,6 +84,7 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       }
 
       fetchCurrencies(); // Fetch the currencies only after user is initialized
+      fetchUserCategories();
     });
   }
 
@@ -91,9 +93,24 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
     setState(() {}); // Trigger a rebuild after the user is loaded
   }
 
+  Future<void> fetchUserCategories() async {
+    try {
+      // Fetch categories from the service
+      final fetchedCategories =
+          await _categoryService.fetchUserCategories(loggedInUser!.email!);
+
+      setState(() {
+        categories =
+            fetchedCategories; // Set the fetched categories in the state
+      });
+    } catch (e) {
+      print("Error fetching user categories: $e");
+    }
+  }
+
   // Function to fetch category details based on the categoryId
   Future<void> _fetchCategoryDetails(String categoryId) async {
-    final categoryData = await categoryService.fetchCategoryById(
+    final categoryData = await _categoryService.fetchCategoryById(
         loggedInUser!.email!, categoryId);
 
     setState(() {
@@ -124,25 +141,6 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
     if (pickedDate != null) {
       dateController.text =
           "${pickedDate.toLocal()}".split(' ')[0]; // Format date
-    }
-  }
-
-// Function to handle selecting a new category
-  Future<void> _showCategorySelectPopup() async {
-    final selectedCategoryId = await showDialog<String>(
-      context: context,
-      builder: (context) =>
-          CategorySelectPopup(userId: loggedInUser?.email ?? ''),
-    );
-
-    if (selectedCategoryId != null) {
-      // Correctly pass the selected category ID, not the email
-      await _fetchCategoryDetails(selectedCategoryId);
-
-      setState(() {
-        this.selectedCategoryId =
-            selectedCategoryId; // Ensure this is a valid category ID
-      });
     }
   }
 
@@ -188,6 +186,104 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
         uploadedImageUrl = imageUrl.trim(); // Store the uploaded image URL
       });
     }
+  }
+
+  // Function to show the AddCategoryWidget dialog
+  void _showAddCategoryDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: AddCategoryWidget(
+            userId: loggedInUser!.email!,
+            onCategoryAdded: () {
+              // Refresh categories when a new category is added
+              fetchUserCategories();
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showCategoryBottomSheet(BuildContext context) async {
+    final result = await showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      isScrollControlled: true, // To make the height flexible
+      builder: (BuildContext context) {
+        return Padding(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Select Category',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close, color: Colors.grey[600]),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              SizedBox(
+                height: 400, // Set a height for the list view
+                child: ListView.builder(
+                  itemCount: categories.length,
+                  itemBuilder: (context, index) {
+                    String categoryId = categories[index]['id'] ?? '';
+                    String categoryName = categories[index]['name'] ?? '';
+                    String categoryIcon = categories[index]['icon'] ?? '';
+
+                    bool isSelected = categoryId == selectedCategoryId;
+
+                    return Container(
+                      color: isSelected
+                          ? Colors.lightBlue.withOpacity(0.2)
+                          : null, // Highlight selected row
+                      child: ListTile(
+                        leading:
+                            Text(categoryIcon, style: TextStyle(fontSize: 24)),
+                        title: Text(
+                          categoryName,
+                          style: TextStyle(
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.pop(context,
+                              categoryId); // Return the selected categoryId
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+              ElevatedButton(
+                onPressed:
+                    // Handle add category action
+                    _showAddCategoryDialog,
+                child: Text('Add Category'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _saveReceipt() async {
@@ -357,8 +453,10 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         GestureDetector(
-                          onTap:
-                              _showCategorySelectPopup, // Open the popup when tapped
+                          onTap: () {
+                            _showCategoryBottomSheet(
+                                context); // Call the bottom sheet here
+                          },
                           child: AbsorbPointer(
                             child: TextField(
                               decoration: InputDecoration(
