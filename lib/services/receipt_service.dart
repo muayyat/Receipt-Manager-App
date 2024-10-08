@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 
 final _firestore = FirebaseFirestore.instance;
+
+enum TimeInterval { day, week, month, year }
 
 class ReceiptService {
   User? loggedInUser;
@@ -135,5 +138,75 @@ class ReceiptService {
     } else {
       throw Exception('No receipts found for the current user');
     }
+  }
+
+  int getWeekNumber(DateTime date) {
+    // Get the first day of the year
+    final firstDayOfYear = DateTime(date.year, 1, 1);
+
+    // Calculate the number of days between the given date and the first day of the year
+    int daysSinceFirstDay = date.difference(firstDayOfYear).inDays + 1;
+
+    // Calculate the week number (integer division of days by 7, plus 1 to account for the first week)
+    return (daysSinceFirstDay / 7).ceil();
+  }
+
+  // Group receipts by day, week, month, or year
+  Future<Map<String, double>> groupReceiptsByInterval(
+      TimeInterval interval) async {
+    if (loggedInUser == null) {
+      throw Exception('User not logged in');
+    }
+
+    DocumentReference userDocRef =
+        _firestore.collection('receipts').doc(loggedInUser!.email);
+
+    DocumentSnapshot userDoc = await userDocRef.get();
+
+    if (!userDoc.exists) {
+      throw Exception('User document not found');
+    }
+
+    // Get the receipt list
+    List<dynamic> receiptList = userDoc['receiptlist'] ?? [];
+
+    Map<String, double> groupedExpenses = {};
+
+    for (var receipt in receiptList) {
+      Map<String, dynamic> receiptData = receipt as Map<String, dynamic>;
+      double amount = (receiptData['amount'] as num).toDouble();
+      Timestamp timestamp = receiptData['date'];
+      DateTime receiptDate = timestamp.toDate();
+
+      // Generate a grouping key based on the selected interval
+      String groupKey;
+      switch (interval) {
+        case TimeInterval.day:
+          groupKey =
+              DateFormat('yyyy-MM-dd').format(receiptDate); // Group by day
+          break;
+        case TimeInterval.week:
+          int weekNumber =
+              getWeekNumber(receiptDate); // Use the custom week calculation
+          groupKey = '${receiptDate.year}-W$weekNumber'; // Group by week
+          break;
+        case TimeInterval.month:
+          groupKey =
+              DateFormat('yyyy-MM').format(receiptDate); // Group by month
+          break;
+        case TimeInterval.year:
+          groupKey = DateFormat('yyyy').format(receiptDate); // Group by year
+          break;
+      }
+
+      // Aggregate the expenses
+      if (groupedExpenses.containsKey(groupKey)) {
+        groupedExpenses[groupKey] = groupedExpenses[groupKey]! + amount;
+      } else {
+        groupedExpenses[groupKey] = amount;
+      }
+    }
+
+    return groupedExpenses;
   }
 }
