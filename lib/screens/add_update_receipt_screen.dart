@@ -51,36 +51,44 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
 
   String? uploadedImageUrl; // Variable to store uploaded image URL
 
+  @override
   void initState() {
     super.initState();
 
-    if (widget.existingReceipt != null) {
-      // Populate the fields with existing receipt data
-      merchantController.text = widget.existingReceipt!['merchant'] ?? '';
-      dateController.text = (widget.existingReceipt!['date'] as Timestamp)
-          .toDate()
-          .toLocal()
-          .toString()
-          .split(' ')[0];
-      totalController.text = widget.existingReceipt!['amount'].toString();
-      descriptionController.text = widget.existingReceipt!['description'] ?? '';
-      itemNameController.text = widget.existingReceipt!['itemName'] ?? '';
-      selectedCategoryId = widget.existingReceipt!['categoryId'];
+    getCurrentUser().then((_) {
+      if (widget.existingReceipt != null) {
+        // Populate the fields with existing receipt data
+        merchantController.text = widget.existingReceipt!['merchant'] ?? '';
+        dateController.text = (widget.existingReceipt!['date'] as Timestamp)
+            .toDate()
+            .toLocal()
+            .toString()
+            .split(' ')[0];
+        totalController.text = widget.existingReceipt!['amount'].toString();
+        descriptionController.text =
+            widget.existingReceipt!['description'] ?? '';
+        itemNameController.text = widget.existingReceipt!['itemName'] ?? '';
+        selectedCategoryId = widget.existingReceipt!['categoryId'];
 
-      // Check if selectedCategoryId is not null or empty, and then fetch the category details
-      if (selectedCategoryId != null && selectedCategoryId!.isNotEmpty) {
-        _fetchCategoryDetails(selectedCategoryId!);
+        // Check if selectedCategoryId is not null or empty, and then fetch the category details
+        if (selectedCategoryId != null && selectedCategoryId!.isNotEmpty) {
+          _fetchCategoryDetails(selectedCategoryId!);
+        }
+
+        selectedCurrency = widget.existingReceipt!['currency'] ?? null;
+        uploadedImageUrl = widget.existingReceipt!['imageUrl'] ?? null;
+      } else {
+        // Set the default date to today for new receipts
+        dateController.text = DateTime.now().toLocal().toString().split(' ')[0];
       }
 
-      selectedCurrency = widget.existingReceipt!['currency'] ?? null;
-      uploadedImageUrl = widget.existingReceipt!['imageUrl'] ?? null;
-    } else {
-      // Set the default date to today for new receipts
-      dateController.text = DateTime.now().toLocal().toString().split(' ')[0];
-    }
+      fetchCurrencies(); // Fetch the currencies only after user is initialized
+    });
+  }
 
-    getCurrentUser();
-    fetchCurrencies();
+  Future<void> getCurrentUser() async {
+    loggedInUser = await AuthService.getCurrentUser();
+    setState(() {}); // Trigger a rebuild after the user is loaded
   }
 
   // Function to fetch category details based on the categoryId
@@ -92,7 +100,8 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       selectedCategoryIcon = categoryData?['icon'] ?? ''; // Get category icon
       selectedCategoryName = categoryData?['name'] ?? ''; // Get category name
     });
-    print(selectedCategoryName);
+
+    print('selectedCategoryName: ' + selectedCategoryName!);
   }
 
   Future<void> fetchCurrencies() async {
@@ -103,10 +112,6 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
     } catch (e) {
       print('Error fetching currencies: $e');
     }
-  }
-
-  void getCurrentUser() async {
-    loggedInUser = await AuthService.getCurrentUser();
   }
 
   Future<void> _selectDate(BuildContext context) async {
