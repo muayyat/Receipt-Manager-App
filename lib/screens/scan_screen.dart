@@ -10,8 +10,6 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../services/auth_service.dart';
 
-User? loggedInUser;
-
 class ScanScreen extends StatefulWidget {
   static const String id = 'scan_screen';
   @override
@@ -19,6 +17,8 @@ class ScanScreen extends StatefulWidget {
 }
 
 class _ScanScreenState extends State<ScanScreen> {
+  User? loggedInUser;
+
   File? _imageFile;
   String _extractedText = '';
   String _date = '';

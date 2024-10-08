@@ -18,6 +18,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   User? loggedInUser;
+
   String? userName = '';
   String? phoneNumber = '';
   String? city = '';

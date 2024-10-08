@@ -11,8 +11,6 @@ import '../services/currency_service.dart';
 import '../services/receipt_service.dart';
 import '../services/storage_service.dart';
 
-User? loggedInUser;
-
 class AddReceiptScreen extends StatefulWidget {
   static const String id = 'add_receipt_screen';
 
@@ -21,6 +19,8 @@ class AddReceiptScreen extends StatefulWidget {
 }
 
 class _AddReceiptScreenState extends State<AddReceiptScreen> {
+  User? loggedInUser;
+
   final ReceiptService receiptService = ReceiptService(); // Create an instance
   final StorageService storageService =
       StorageService(); // Create an instance of StorageService

@@ -3,14 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../components/custom_drawer.dart';
 import '../components/calendar_filter_widget.dart'; // Import the CalendarFilterWidget
+import '../components/custom_drawer.dart';
 import '../services/auth_service.dart';
 import '../services/receipt_service.dart';
 import 'add_receipt_screen.dart';
 import 'expense_chart_screen.dart';
-
-User? loggedInUser;
 
 class ReceiptListScreen extends StatefulWidget {
   static const String id = 'receipt_list_screen';
@@ -20,6 +18,7 @@ class ReceiptListScreen extends StatefulWidget {
 }
 
 class _ReceiptListScreenState extends State<ReceiptListScreen> {
+  User? loggedInUser;
   final ReceiptService receiptService = ReceiptService();
 
   Stream<DocumentSnapshot>? receiptsStream;
@@ -39,8 +38,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
     loggedInUser = await AuthService.getCurrentUser();
     if (loggedInUser != null) {
       setState(() {
-        receiptsStream =
-            receiptService.fetchReceipts();
+        receiptsStream = receiptService.fetchReceipts();
       });
     }
   }
@@ -91,13 +89,13 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(),
       drawer: CustomDrawer(),
-      body: loggedInUser == null ? _buildLoadingIndicator() : _buildReceiptList(),
+      body:
+          loggedInUser == null ? _buildLoadingIndicator() : _buildReceiptList(),
       floatingActionButton: _buildFloatingActionButtons(),
     );
   }
@@ -133,7 +131,8 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
         PopupMenuItem(value: 'date_asc', child: Text('Date: Oldest First')),
         PopupMenuItem(value: 'date_desc', child: Text('Date: Newest First')),
         PopupMenuItem(value: 'amount_asc', child: Text('Amount: Lowest First')),
-        PopupMenuItem(value: 'amount_desc', child: Text('Amount: Highest First')),
+        PopupMenuItem(
+            value: 'amount_desc', child: Text('Amount: Highest First')),
       ],
       icon: Icon(Icons.sort),
     );
@@ -155,17 +154,21 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
           return Center(child: CircularProgressIndicator());
         }
 
-        if (!snapshot.hasData || snapshot.data == null || snapshot.data!.data() == null) {
+        if (!snapshot.hasData ||
+            snapshot.data == null ||
+            snapshot.data!.data() == null) {
           return Center(child: Text('No receipts found.'));
         }
 
-        final receiptList = snapshot.data!.get('receiptlist') as List<dynamic>? ?? [];
+        final receiptList =
+            snapshot.data!.get('receiptlist') as List<dynamic>? ?? [];
         sortedReceiptList = receiptList.cast<Map<String, dynamic>>();
 
         if (_startDate != null && _endDate != null) {
           sortedReceiptList = sortedReceiptList.where((receipt) {
             final receiptDate = (receipt['date'] as Timestamp).toDate();
-            return receiptDate.isAfter(_startDate!) && receiptDate.isBefore(_endDate!);
+            return receiptDate.isAfter(_startDate!) &&
+                receiptDate.isBefore(_endDate!);
           }).toList();
         }
 
@@ -203,7 +206,8 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
         child: Row(
           children: [
             _buildImageSection(imageUrl),
-            Expanded(child: _buildTextDetails(itemName, merchant, date, category)),
+            Expanded(
+                child: _buildTextDetails(itemName, merchant, date, category)),
             _buildAmountSection(currency, amount),
           ],
         ),
@@ -222,31 +226,32 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
       ),
       child: imageUrl.isNotEmpty
           ? ClipRRect(
-        borderRadius: BorderRadius.circular(4),
-        child: Image.network(
-          imageUrl,
-          fit: BoxFit.cover,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Center(
-              child: CircularProgressIndicator(
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded /
-                    (loadingProgress.expectedTotalBytes ?? 1)
-                    : null,
+              borderRadius: BorderRadius.circular(4),
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              (loadingProgress.expectedTotalBytes ?? 1)
+                          : null,
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return Text('Image failed to load');
+                },
               ),
-            );
-          },
-          errorBuilder: (context, error, stackTrace) {
-            return Text('Image failed to load');
-          },
-        ),
-      )
+            )
           : Container(),
     );
   }
 
-  Widget _buildTextDetails(String itemName, String merchant, String date, String category) {
+  Widget _buildTextDetails(
+      String itemName, String merchant, String date, String category) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

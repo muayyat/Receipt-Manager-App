@@ -8,8 +8,6 @@ import '../services/auth_service.dart';
 import '../services/currency_service.dart';
 import '../services/receipt_service.dart';
 
-User? loggedInUser;
-
 class ExpenseChartScreen extends StatefulWidget {
   static const String id = 'expense_chart_screen';
 
@@ -18,6 +16,8 @@ class ExpenseChartScreen extends StatefulWidget {
 }
 
 class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
+  User? loggedInUser;
+
   Map<String, double> categoryTotals = {};
   Map<String, Color> categoryColors = {};
   bool isLoading = true;
@@ -41,13 +41,13 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   void initState() {
     super.initState();
     getCurrentUser();
+    fetchExpenseData(); // Fetch expense data after getting the user
     fetchConversionRates();
     fetchCurrencyCodes();
   }
 
   void getCurrentUser() async {
     loggedInUser = await AuthService.getCurrentUser();
-    fetchExpenseData(); // Fetch expense data after getting the user
   }
 
   Future<void> fetchCurrencyCodes() async {

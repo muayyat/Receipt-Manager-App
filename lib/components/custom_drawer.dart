@@ -136,6 +136,13 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     Navigator.pushNamed(context, ReceiptListScreen.id);
                   },
                 ),
+                // ListTile(
+                //   leading: Icon(Icons.category),
+                //   title: Text('Category'),
+                //   onTap: () {
+                //     Navigator.pushNamed(context, CategoryScreen.id);
+                //   },
+                // ),
                 ListTile(
                   leading: Icon(Icons.bar_chart),
                   title: Text('Reports'),
