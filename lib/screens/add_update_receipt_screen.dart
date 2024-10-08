@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:receipt_manager/screens/scan_screen.dart';
@@ -144,39 +145,6 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
     }
   }
 
-  void _showCurrencyDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Select Currency'),
-          content: Container(
-            width: double.maxFinite,
-            child: ListView.builder(
-                shrinkWrap: true,
-                itemCount:
-                    currencies.length + 1, // Include "Add New Currency" option
-                itemBuilder: (BuildContext context, int index) {
-                  return ListTile(
-                    title: Text(currencies[index]), // Display each currency
-                    onTap: () {
-                      setState(() {
-                        selectedCurrency =
-                            currencies[index]; // Update selected currency
-                      });
-                      Navigator.of(context).pop(); // Close the dialog
-                    },
-                    trailing: selectedCurrency == currencies[index]
-                        ? Icon(Icons.check, color: Colors.green)
-                        : null, // Show checkmark for selected currency
-                  );
-                }),
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> uploadReceiptImage() async {
     String? imageUrl = await storageService
         .uploadReceiptImage(); // Use the new service to upload the image
@@ -278,6 +246,50 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
                     // Handle add category action
                     _showAddCategoryDialog,
                 child: Text('Add Category'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showCurrencyPicker(BuildContext context) async {
+    // Check if selectedCurrency is null, and handle it by defaulting to the first currency
+    int initialIndex =
+        selectedCurrency != null ? currencies.indexOf(selectedCurrency!) : 0;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16),
+          height: 300, // Set an appropriate height for the picker
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Select Currency',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              Expanded(
+                child: CupertinoPicker(
+                  scrollController:
+                      FixedExtentScrollController(initialItem: initialIndex),
+                  itemExtent: 32.0, // Height of each item
+                  onSelectedItemChanged: (int index) {
+                    setState(() {
+                      selectedCurrency = currencies[index];
+                    });
+                  },
+                  children: currencies
+                      .map((currency) => Center(child: Text(currency)))
+                      .toList(),
+                ),
               ),
             ],
           ),
@@ -496,8 +508,10 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         GestureDetector(
-                          onTap: () => _showCurrencyDialog(
-                              context), // Trigger the dialog
+                          onTap: () {
+                            _showCurrencyPicker(
+                                context); // Show the picker when button is pressed
+                          },
                           child: AbsorbPointer(
                             child: TextField(
                               decoration: InputDecoration(
