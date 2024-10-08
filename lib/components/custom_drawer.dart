@@ -46,9 +46,9 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
         if (snapshot.hasData && snapshot.data!.data() != null) {
           final userData = snapshot.data!.data();
-          userName = userData?['userName'] ?? 'No Name';
-          city = userData?['city'] ?? 'No City';
-          country = userData?['country'] ?? 'No Country';
+          userName = userData?['userName'] ?? 'Your Name';
+          city = userData?['city'] ?? 'Your City';
+          country = userData?['country'] ?? 'Your Country';
           final profileImagePath = userData?['profileImagePath'];
           if (profileImagePath != null) {
             profileImage = File(profileImagePath);

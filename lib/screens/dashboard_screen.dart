@@ -94,7 +94,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       drawer: CustomDrawer(),
       body: Center(
         child: Text(
-          'Welcome to your dashboard, $userName!',
+          userName != null && userName!.isNotEmpty
+              ? 'Welcome 🥳, $userName!'
+              : 'Welcome 🥳',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
       ),
