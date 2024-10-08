@@ -133,16 +133,56 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    final DateTime? pickedDate = await showDatePicker(
+    DateTime initialDate = DateTime.now();
+
+    await showModalBottomSheet(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        DateTime tempPickedDate =
+            initialDate; // Hold the selected date temporarily
+
+        return Container(
+          height: 300, // Set an appropriate height for the picker
+          padding: EdgeInsets.all(16),
+          child: Column(
+            children: [
+              // Title
+              Text(
+                'Select Date',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              // Rolling Date Picker
+              Expanded(
+                child: CupertinoDatePicker(
+                  initialDateTime: initialDate,
+                  mode: CupertinoDatePickerMode.date,
+                  minimumDate: DateTime(2000),
+                  maximumDate: DateTime(2101),
+                  onDateTimeChanged: (DateTime newDate) {
+                    tempPickedDate = newDate; // Update the temporary date
+                  },
+                ),
+              ),
+              // Done Button to confirm the selection
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    dateController.text = "${tempPickedDate.toLocal()}"
+                        .split(' ')[0]; // Format date
+                  });
+                  Navigator.pop(context); // Close the bottom sheet
+                },
+                child: Text('Done'),
+              ),
+            ],
+          ),
+        );
+      },
     );
-    if (pickedDate != null) {
-      dateController.text =
-          "${pickedDate.toLocal()}".split(' ')[0]; // Format date
-    }
   }
 
   Future<void> uploadReceiptImage() async {
