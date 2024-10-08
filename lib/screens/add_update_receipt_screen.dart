@@ -230,20 +230,9 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Select Category',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.close, color: Colors.grey[600]),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
+              Text(
+                'Select Category',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 20),
               SizedBox(
@@ -292,6 +281,16 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
         );
       },
     );
+
+// Handle the result from the bottom sheet (selected categoryId)
+    if (result != null) {
+      setState(() {
+        selectedCategoryId = result; // Update the selected category ID
+      });
+
+      // Fetch category details after updating the selectedCategoryId
+      _fetchCategoryDetails(selectedCategoryId!);
+    }
   }
 
   Future<void> _showCurrencyPicker(BuildContext context) async {
