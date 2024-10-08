@@ -148,7 +148,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 ),
                 ListTile(
                   leading: Icon(Icons.bar_chart),
-                  title: Text('Reports'),
+                  title: Text('Graphs'),
                   onTap: () {
                     Navigator.pushNamed(context, ExpenseChartScreen.id);
                   },
