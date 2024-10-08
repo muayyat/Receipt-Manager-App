@@ -73,7 +73,7 @@ class _CalendarFilterWidgetState extends State<CalendarFilterWidget> {
                 onPressed: () => Navigator.pop(context),
                 child: Text('Done'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.purple,
+                  backgroundColor: Colors.blueAccent,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
