@@ -37,6 +37,11 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   DateTimeRange? selectedDateRange;
   final ReceiptService receiptService = ReceiptService();
 
+  Map<String, double> groupedExpenses =
+      {}; // Stores grouped expenses based on interval
+  TimeInterval selectedInterval =
+      TimeInterval.day; // Default time interval (day)
+
   @override
   void initState() {
     super.initState();
@@ -44,6 +49,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     fetchExpenseData(); // Fetch expense data after getting the user
     fetchConversionRates();
     fetchCurrencyCodes();
+    fetchGroupedExpenseData(); // Fetch data for the default interval (day)
   }
 
   void getCurrentUser() async {
@@ -128,6 +134,94 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     } catch (e) {
       print("Error fetching data: $e");
     }
+  }
+
+  void fetchGroupedExpenseData() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      // Call the groupReceiptsByInterval method based on the selected interval
+      groupedExpenses =
+          await receiptService.groupReceiptsByInterval(selectedInterval);
+      setState(() {
+        isLoading = false; // Data has been loaded
+      });
+    } catch (e) {
+      print('Error fetching grouped expense data: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Widget buildBarChart() {
+    if (groupedExpenses.isEmpty) {
+      return Center(
+          child: Text('No data available for the selected interval.'));
+    }
+
+    return SizedBox(
+      height: 300, // Set a fixed height for the bar chart
+      child: BarChart(
+        BarChartData(
+          alignment: BarChartAlignment.spaceEvenly,
+          borderData: FlBorderData(show: false),
+          titlesData: FlTitlesData(
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (double value, TitleMeta meta) {
+                  // Display the interval (day, week, month, or year) as the title
+                  final key = groupedExpenses.keys.elementAt(value.toInt());
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      key, // Display the grouped interval as the label
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  );
+                },
+                reservedSize: 42,
+              ),
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                interval: 20,
+                getTitlesWidget: (double value, TitleMeta meta) {
+                  return Text(
+                    value.toString(),
+                    style: TextStyle(fontSize: 10),
+                  );
+                },
+                reservedSize: 30,
+              ),
+            ),
+          ),
+          barGroups: getBarChartGroups(),
+        ),
+      ),
+    );
+  }
+
+  List<BarChartGroupData> getBarChartGroups() {
+    return groupedExpenses.entries.map((entry) {
+      final index = groupedExpenses.keys.toList().indexOf(entry.key);
+      final total = entry.value;
+      return BarChartGroupData(
+        x: index,
+        barRods: [
+          BarChartRodData(
+            toY: total,
+            color: availableColors[
+                index % availableColors.length], // Use available colors
+            width: 22,
+          ),
+        ],
+      );
+    }).toList();
   }
 
   void generateColorMapping(Set<String> categories) {
@@ -237,6 +331,25 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     );
   }
 
+  List<PieChartSectionData> getPieSections() {
+    double totalAmount =
+        categoryTotals.values.fold(0, (sum, item) => sum + item);
+
+    return categoryTotals.entries.map((entry) {
+      final category = entry.key;
+      final total = entry.value;
+
+      return PieChartSectionData(
+        color: categoryColors[category],
+        value: total,
+        title: '', // Set the title to empty
+        radius: 70,
+        titleStyle:
+            TextStyle(fontSize: 0), // Set title style font size to 0 to hide it
+      );
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -267,6 +380,26 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
               );
             }).toList(),
           ),
+          DropdownButton<TimeInterval>(
+            value: selectedInterval,
+            icon: Icon(Icons.filter_alt),
+            onChanged: (TimeInterval? newValue) {
+              setState(() {
+                selectedInterval = newValue!;
+                fetchGroupedExpenseData(); // Fetch data for the newly selected interval
+              });
+            },
+            items: TimeInterval.values
+                .map<DropdownMenuItem<TimeInterval>>((TimeInterval value) {
+              return DropdownMenuItem<TimeInterval>(
+                value: value,
+                child: Text(value
+                    .toString()
+                    .split('.')
+                    .last), // Display "day", "week", etc.
+              );
+            }).toList(),
+          ),
         ],
       ),
       drawer: CustomDrawer(),
@@ -279,34 +412,26 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
+                        // Pie Chart Card
                         buildCard(
                           context,
                           'Expenses by Category in $selectedBaseCurrency',
                           buildPieChart(), // Build the pie chart here
+                        ),
+                        SizedBox(
+                            height:
+                                20), // Space between pie chart and bar chart
+
+                        // Bar Chart Card
+                        buildCard(
+                          context,
+                          'Expenses by ${selectedInterval.toString().split('.').last} in $selectedBaseCurrency',
+                          buildBarChart(), // Build the bar chart here
                         ),
                       ],
                     ),
                   ),
                 ),
     );
-  }
-
-  List<PieChartSectionData> getPieSections() {
-    double totalAmount =
-        categoryTotals.values.fold(0, (sum, item) => sum + item);
-
-    return categoryTotals.entries.map((entry) {
-      final category = entry.key;
-      final total = entry.value;
-
-      return PieChartSectionData(
-        color: categoryColors[category],
-        value: total,
-        title: '', // Set the title to empty
-        radius: 70,
-        titleStyle:
-            TextStyle(fontSize: 0), // Set title style font size to 0 to hide it
-      );
-    }).toList();
   }
 }

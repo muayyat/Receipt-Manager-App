@@ -170,6 +170,9 @@ class ReceiptService {
     // Get the receipt list
     List<dynamic> receiptList = userDoc['receiptlist'] ?? [];
 
+    // Debugging: Print the number of receipts found
+    print('Number of receipts: ${receiptList.length}');
+
     Map<String, double> groupedExpenses = {};
 
     for (var receipt in receiptList) {
@@ -177,6 +180,9 @@ class ReceiptService {
       double amount = (receiptData['amount'] as num).toDouble();
       Timestamp timestamp = receiptData['date'];
       DateTime receiptDate = timestamp.toDate();
+
+      // Debugging: Print the receipt data before grouping
+      print('Receipt Date: $receiptDate, Amount: $amount');
 
       // Generate a grouping key based on the selected interval
       String groupKey;
@@ -199,6 +205,9 @@ class ReceiptService {
           break;
       }
 
+      // Debugging: Print the group key and amount
+      print('Group Key: $groupKey, Amount: $amount');
+
       // Aggregate the expenses
       if (groupedExpenses.containsKey(groupKey)) {
         groupedExpenses[groupKey] = groupedExpenses[groupKey]! + amount;
@@ -206,6 +215,9 @@ class ReceiptService {
         groupedExpenses[groupKey] = amount;
       }
     }
+
+    // Debugging: Print the grouped expenses map
+    print('Grouped Expenses: $groupedExpenses');
 
     return groupedExpenses;
   }
