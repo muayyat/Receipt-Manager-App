@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../components/calendar_filter_widget.dart'; // Import the CalendarFilterWidget
 import '../components/custom_drawer.dart';
+import '../components/date_range_container.dart';
 import '../services/auth_service.dart';
 import '../services/category_service.dart'; // Import CategoryService
 import '../services/receipt_service.dart';
@@ -27,11 +28,14 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
   Stream<DocumentSnapshot>? receiptsStream;
   String currentSortField = 'date';
   bool isDescending = false;
-  DateTime? _startDate;
-  DateTime? _endDate;
+
+  // Set default dates
+  DateTime? _startDate =
+      DateTime(DateTime.now().year, 1, 1); // Start date: first day of the year
+  DateTime? _endDate = DateTime.now(); // End date: today
+
   List<Map<String, dynamic>> sortedReceiptList = [];
 
-  @override
   @override
   void initState() {
     super.initState();
@@ -84,8 +88,8 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
       ),
       builder: (BuildContext context) {
         return CalendarFilterWidget(
-          initialStartDate: _startDate ?? DateTime.now(),
-          initialEndDate: _endDate ?? DateTime.now(),
+          initialStartDate: _startDate!,
+          initialEndDate: _endDate!,
           onApply: (start, end) {
             setState(() {
               _startDate = start;
@@ -392,34 +396,11 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
                     mainAxisSize:
                         MainAxisSize.min, // Minimize the size of the Row
                     children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                              color: Colors.lightBlue), // Add border color
-                          borderRadius:
-                              BorderRadius.circular(8), // Rounded borders
-                        ),
-                        padding: EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 0), // Add some padding
-                        child: Row(
-                          mainAxisSize:
-                              MainAxisSize.min, // Minimize the size of the Row
-                          children: [
-                            Text(
-                              '$_startDate - $_endDate', // Replace with your dynamic date range
-                              style: TextStyle(color: Colors.lightBlue),
-                            ),
-                            SizedBox(
-                                width: 8), // Add spacing between text and icon
-                            IconButton(
-                              icon: Icon(Icons.calendar_today,
-                                  color: Colors.lightBlue),
-                              onPressed: () {
-                                _showCalendarFilterDialog(); // Corrected onPressed function call
-                              },
-                            ),
-                          ],
-                        ),
+                      DateRangeContainer(
+                        startDate: _startDate!,
+                        endDate: _endDate!,
+                        onCalendarPressed:
+                            _showCalendarFilterDialog, // Pass the calendar callback
                       ),
                       SizedBox(width: 8), // Add spacing between the two buttons
                       IconButton(
