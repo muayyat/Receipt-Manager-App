@@ -85,7 +85,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     children: [
                       Expanded(
                         child: Text(
-                          userName ?? 'No Name',
+                          userName ?? 'Your Name',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -102,7 +102,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '$city, $country',
+                        '${city ?? 'Your City'}, ${country ?? 'Your Country'}',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.black,
