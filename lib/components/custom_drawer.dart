@@ -7,6 +7,7 @@ import 'package:receipt_manager/screens/expense_chart_screen.dart';
 import 'package:receipt_manager/screens/profile_screen.dart';
 import 'package:receipt_manager/screens/welcome_screen.dart';
 
+import '../screens/category_screen.dart';
 import '../screens/receipt_list_screen.dart';
 import '../services/user_service.dart';
 
@@ -136,13 +137,13 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     Navigator.pushNamed(context, ReceiptListScreen.id);
                   },
                 ),
-                // ListTile(
-                //   leading: Icon(Icons.category),
-                //   title: Text('Category'),
-                //   onTap: () {
-                //     Navigator.pushNamed(context, CategoryScreen.id);
-                //   },
-                // ),
+                ListTile(
+                  leading: Icon(Icons.category),
+                  title: Text('Category'),
+                  onTap: () {
+                    Navigator.pushNamed(context, CategoryScreen.id);
+                  },
+                ),
                 ListTile(
                   leading: Icon(Icons.bar_chart),
                   title: Text('Reports'),

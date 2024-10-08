@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:receipt_manager/screens/add_update_receipt_screen.dart';
+import 'package:receipt_manager/screens/category_screen.dart';
 import 'package:receipt_manager/screens/dashboard_screen.dart';
 import 'package:receipt_manager/screens/expense_chart_screen.dart';
 import 'package:receipt_manager/screens/login_screen.dart';
@@ -35,6 +36,7 @@ class MyApp extends StatelessWidget {
         ScanScreen.id: (context) => ScanScreen(),
         AddOrUpdateReceiptScreen.id: (context) => AddOrUpdateReceiptScreen(),
         ReceiptListScreen.id: (context) => ReceiptListScreen(),
+        CategoryScreen.id: (context) => CategoryScreen(),
         ExpenseChartScreen.id: (context) => ExpenseChartScreen(),
         DashboardScreen.id: (context) => DashboardScreen(),
         ProfileScreen.id: (context) => ProfileScreen(),
