@@ -141,7 +141,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 ),
                 ListTile(
                   leading: Icon(Icons.category),
-                  title: Text('Category'),
+                  title: Text('Categories'),
                   onTap: () {
                     Navigator.pushNamed(context, CategoryScreen.id);
                   },

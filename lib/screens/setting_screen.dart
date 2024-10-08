@@ -78,7 +78,7 @@ class _SettingScreenState extends State<SettingScreen> {
           false, // Prevents closing the dialog by clicking outside
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Delete Account'),
+          title: Text('Close Account'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
@@ -149,7 +149,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 Expanded(
                   child: RoundedButton(
                     color: Colors.red,
-                    title: 'Delete Account',
+                    title: 'Close Account',
                     onPressed: () {
                       _confirmDeleteAccount(context);
                     },
