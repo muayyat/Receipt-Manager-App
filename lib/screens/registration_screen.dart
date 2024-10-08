@@ -40,8 +40,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 onChanged: (value) {
                   email = value;
                 },
-                decoration:
-                    kTextFieldDecoration.copyWith(hintText: 'Enter your email'),
+                decoration: kTextFieldDecoration(hintText: 'Enter your email'),
               ),
               SizedBox(height: 8.0),
               TextField(
@@ -49,8 +48,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   password = value;
                 },
                 obscureText: !showPassword, // Toggle password visibility
-                decoration: kTextFieldDecoration.copyWith(
-                    hintText: 'Enter your password'),
+                decoration: kTextFieldDecoration(
+                  hintText: 'Enter your password',
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      showPassword ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        showPassword = !showPassword;
+                      });
+                    },
+                  ),
+                ),
               ),
               SizedBox(height: 24.0),
               // Error message display
