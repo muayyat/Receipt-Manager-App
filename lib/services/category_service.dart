@@ -75,4 +75,30 @@ class CategoryService {
       return false;
     }
   }
+
+  // New function to fetch icon by category name
+  Future<String?> fetchIconByCategoryName(
+      String userId, String categoryName) async {
+    try {
+      DocumentSnapshot userDoc =
+          await _firestore.collection('categories').doc(userId).get();
+
+      if (userDoc.exists && userDoc.data() != null) {
+        var data = userDoc.data() as Map<String, dynamic>;
+        List<dynamic> categoryList = data['categorylist'] ?? [];
+
+        for (var category in categoryList) {
+          if (category['name'].toString().toLowerCase() ==
+              categoryName.toLowerCase()) {
+            return category['icon'] ?? null;
+          }
+        }
+      }
+
+      return null; // Return null if category not found
+    } catch (e) {
+      print("Error fetching icon by category name: $e");
+      return null;
+    }
+  }
 }
