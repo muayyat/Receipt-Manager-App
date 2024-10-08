@@ -7,6 +7,7 @@ import 'package:receipt_manager/screens/scan_screen.dart';
 import '../components//rounded_button.dart';
 import '../components/category_select_popup.dart';
 import '../services/auth_service.dart';
+import '../services/category_service.dart';
 import '../services/currency_service.dart';
 import '../services/receipt_service.dart';
 import '../services/storage_service.dart';
@@ -29,6 +30,7 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
   final ReceiptService receiptService = ReceiptService(); // Create an instance
   final StorageService storageService =
       StorageService(); // Create an instance of StorageService
+  final CategoryService categoryService = CategoryService();
 
   final TextEditingController merchantController = TextEditingController();
   final TextEditingController dateController = TextEditingController();
@@ -39,6 +41,8 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
   // Categories and currencies will be loaded from Firestore
   List<String> categories = [];
   String? selectedCategoryId;
+  String? selectedCategoryIcon; // Store selected category icon
+  String? selectedCategoryName; // Store selected category name
 
   List<String> currencies = [];
   String? selectedCurrency;
@@ -61,16 +65,33 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       totalController.text = widget.existingReceipt!['amount'].toString();
       descriptionController.text = widget.existingReceipt!['description'] ?? '';
       itemNameController.text = widget.existingReceipt!['itemName'] ?? '';
-      selectedCategoryId = widget.existingReceipt!['categoryId'] ?? null;
+      selectedCategoryId = widget.existingReceipt!['categoryId'];
+
+      // Check if selectedCategoryId is not null or empty, and then fetch the category details
+      if (selectedCategoryId != null && selectedCategoryId!.isNotEmpty) {
+        _fetchCategoryDetails(selectedCategoryId!);
+      }
+
       selectedCurrency = widget.existingReceipt!['currency'] ?? null;
       uploadedImageUrl = widget.existingReceipt!['imageUrl'] ?? null;
     } else {
-      // Set the default date to today
+      // Set the default date to today for new receipts
       dateController.text = DateTime.now().toLocal().toString().split(' ')[0];
     }
 
     getCurrentUser();
     fetchCurrencies();
+  }
+
+  // Function to fetch category details based on the categoryId
+  Future<void> _fetchCategoryDetails(String categoryId) async {
+    final categoryData = await categoryService.fetchCategoryById(
+        loggedInUser!.email!, categoryId);
+
+    setState(() {
+      selectedCategoryIcon = categoryData?['icon'] ?? ''; // Get category icon
+      selectedCategoryName = categoryData?['name'] ?? ''; // Get category name
+    });
   }
 
   Future<void> fetchCurrencies() async {
@@ -100,7 +121,8 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
     }
   }
 
-  void _showCategorySelectPopup() async {
+// Function to handle selecting a new category
+  Future<void> _showCategorySelectPopup() async {
     final selectedCategoryId = await showDialog<String>(
       context: context,
       builder: (context) =>
@@ -108,9 +130,12 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
     );
 
     if (selectedCategoryId != null) {
+      // Fetch and set category details (icon and name) based on selectedCategoryId
+      await _fetchCategoryDetails(selectedCategoryId);
+
       setState(() {
         this.selectedCategoryId =
-            selectedCategoryId; // Update the selected categoryId
+            selectedCategoryId; // Update selected category ID
       });
     }
   }
@@ -333,8 +358,8 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
                               decoration: InputDecoration(
                                 labelText: selectedCategoryId?.isNotEmpty ==
                                         true
-                                    ? selectedCategoryId
-                                    : 'Select Category', // Show selected category or hint
+                                    ? '$selectedCategoryIcon $selectedCategoryName' // Display icon and name together
+                                    : 'Select Category', // Show hint if no category is selected
                                 border: OutlineInputBorder(),
                                 hintText: selectedCategoryId == null
                                     ? 'Select Category'

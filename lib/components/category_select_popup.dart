@@ -73,7 +73,7 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
     );
   }
 
-  Future<void> deleteCategory(String categoryId, String categoryName) async {
+  Future<void> deleteCategory(String categoryId) async {
     try {
       // Find the category that matches the id
       var categoryToRemove = userCategories.firstWhere(
@@ -89,7 +89,7 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
             return AlertDialog(
               title: Text('Delete Category'),
               content: Text(
-                  'If you delete this category, the receipts belonging to it will have a null category value. Are you sure you want to delete "$categoryName"?'),
+                  'If you delete this category, the receipts belonging to it will have a null category value. Are you sure you want to delete this category?'),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -101,7 +101,8 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
                   onPressed: () {
                     Navigator.of(context).pop(true); // Confirm deletion
                   },
-                  child: Text('Delete'),
+                  child:
+                      Text('Delete', style: TextStyle(color: Colors.redAccent)),
                 ),
               ],
             );
@@ -110,14 +111,11 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
 
         // If the user confirms the deletion, proceed to delete
         if (confirmDelete == true) {
-          // Ensure that 'categoryToRemove' contains the 'id' of the category
-          final categoryId = categoryToRemove['id'];
-
           // Delete the category using its unique id
           await _categoryService.deleteCategory(widget.userId, categoryId);
 
-          // Set receipts with this category to null
-          await receiptService.setReceiptsCategoryToNull(categoryName);
+          // Set receipts with this categoryId to null
+          await receiptService.setReceiptsCategoryToNull(categoryId);
 
           // Remove the category locally from the UI
           setState(() {
@@ -127,7 +125,7 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
 
           fetchUserCategories(); // Refresh the category list after deletion
         } else {
-          print("Category deletion canceled: $categoryName");
+          print("Category deletion canceled.");
         }
       } else {
         print("Category not found locally: $categoryId");

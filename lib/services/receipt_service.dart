@@ -111,8 +111,8 @@ class ReceiptService {
     }
   }
 
-  // Set category to null for all receipts that match the given category name
-  Future<void> setReceiptsCategoryToNull(String categoryName) async {
+// Set categoryId to null for all receipts that match the given categoryId
+  Future<void> setReceiptsCategoryToNull(String categoryId) async {
     if (loggedInUser == null) {
       throw Exception('User not logged in');
     }
@@ -125,10 +125,10 @@ class ReceiptService {
     if (doc.exists) {
       List<dynamic> receiptList = doc['receiptlist'] ?? [];
 
-      // Iterate over the receipts and set category to null for those with matching category
+      // Iterate over the receipts and set categoryId to null for those with matching categoryId
       List<dynamic> updatedReceiptList = receiptList.map((receipt) {
-        if (receipt['category'] == categoryName) {
-          receipt['category'] = null; // Set the category to null
+        if (receipt['categoryId'] == categoryId) {
+          receipt['categoryId'] = null; // Set the categoryId to null
         }
         return receipt;
       }).toList();
