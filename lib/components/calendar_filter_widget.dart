@@ -41,7 +41,13 @@ class _CalendarFilterWidgetState extends State<CalendarFilterWidget> {
   }
 
   Future<void> _showRollingDatePicker(BuildContext context, bool isStartDate) async {
-    DateTime initialDate = isStartDate ? _startDate ?? DateTime.now() : _endDate ?? DateTime.now();
+    DateTime initialDate = isStartDate ? (_startDate ?? DateTime.now()) : (_endDate ?? DateTime.now());
+    DateTime maximumDate = DateTime.now();
+
+    // Ensure initialDate does not exceed maximumDate
+    if (initialDate.isAfter(maximumDate)) {
+      initialDate = maximumDate;
+    }
 
     await showModalBottomSheet(
       context: context,
@@ -65,8 +71,8 @@ class _CalendarFilterWidgetState extends State<CalendarFilterWidget> {
                 child: CupertinoDatePicker(
                   mode: CupertinoDatePickerMode.date,
                   initialDateTime: initialDate,
-                  minimumDate: isStartDate ? DateTime(2000) : _startDate ?? DateTime(2000),
-                  maximumDate: isStartDate ? _endDate ?? DateTime.now() : DateTime.now(),
+                  minimumDate: isStartDate ? DateTime(2000) : (_startDate ?? DateTime(2000)),
+                  maximumDate: isStartDate ? _endDate ?? maximumDate : maximumDate,
                   onDateTimeChanged: (DateTime newDate) {
                     setState(() {
                       if (isStartDate) {
@@ -82,7 +88,7 @@ class _CalendarFilterWidgetState extends State<CalendarFilterWidget> {
                 onPressed: () => Navigator.pop(context),
                 child: Text('Done'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
+                  backgroundColor: Colors.lightBlueAccent,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -107,20 +113,20 @@ class _CalendarFilterWidgetState extends State<CalendarFilterWidget> {
         ),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Center(
             child: Container(
               width: 50,
               height: 5,
-              margin: EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
                 color: Colors.grey[300],
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
           ),
+          SizedBox(height: 16),
           Text(
             'Select Date Range',
             style: TextStyle(
@@ -212,7 +218,7 @@ class _CalendarFilterWidgetState extends State<CalendarFilterWidget> {
             children: [
               Expanded(
                 child: RoundedButton(
-                  color: Colors.blueAccent,
+                  color: Colors.lightBlueAccent,
                   title: 'Filter',
                   onPressed: () {
                     if (_startDate != null && _endDate != null) {
