@@ -395,7 +395,6 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                           onChanged: (String? newValue) {
                             setState(() {
                               selectedBaseCurrency = newValue!;
-                              isLoading = true;
                               fetchExpenseData();
                             });
                           },
