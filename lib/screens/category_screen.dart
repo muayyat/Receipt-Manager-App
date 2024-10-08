@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../components/add_category_widget.dart';
 import '../components/custom_drawer.dart';
+import '../services/auth_service.dart';
 import '../services/category_service.dart';
 import '../services/receipt_service.dart';
 
@@ -26,7 +27,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   void initState() {
     super.initState();
-    fetchUserCategories();
+    getCurrentUser();
+  }
+
+  void getCurrentUser() async {
+    loggedInUser = await AuthService.getCurrentUser();
+    if (loggedInUser != null) {
+      fetchUserCategories(); // Call fetchUserCategories only after loggedInUser is assigned.
+    }
   }
 
   Future<void> fetchUserCategories() async {
