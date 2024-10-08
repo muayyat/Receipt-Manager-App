@@ -81,15 +81,28 @@ class CategoryService {
       // Generate a unique random key for the category
       String categoryId = _firestore.collection('categories').doc().id;
 
-      await _firestore.collection('categories').doc(userId).update({
-        'categorylist': FieldValue.arrayUnion([
-          {
-            'id': categoryId,
-            'name': name,
-            'icon': icon
-          } // Store id along with name and icon
-        ]),
-      });
+      // Reference to the user's document
+      DocumentReference userDocRef =
+          _firestore.collection('categories').doc(userId);
+
+      // Fetch the user's document
+      DocumentSnapshot userDoc = await userDocRef.get();
+
+      if (!userDoc.exists) {
+        // If the document doesn't exist, create it and initialize categorylist with the new category
+        await userDocRef.set({
+          'categorylist': [
+            {'id': categoryId, 'name': name, 'icon': icon}
+          ],
+        });
+      } else {
+        // If the document exists, add the new category to the existing categorylist
+        await userDocRef.update({
+          'categorylist': FieldValue.arrayUnion([
+            {'id': categoryId, 'name': name, 'icon': icon}
+          ]),
+        });
+      }
     } catch (e) {
       print("Error adding category: $e");
     }

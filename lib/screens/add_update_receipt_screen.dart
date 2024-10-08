@@ -136,12 +136,12 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
     );
 
     if (selectedCategoryId != null) {
-      // Fetch and set category details (icon and name) based on selectedCategoryId
+      // Correctly pass the selected category ID, not the email
       await _fetchCategoryDetails(selectedCategoryId);
 
       setState(() {
         this.selectedCategoryId =
-            selectedCategoryId; // Update selected category ID
+            selectedCategoryId; // Ensure this is a valid category ID
       });
     }
   }
@@ -362,12 +362,10 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
                           child: AbsorbPointer(
                             child: TextField(
                               decoration: InputDecoration(
-                                labelText:
-                                    '$selectedCategoryIcon $selectedCategoryName',
-                                // selectedCategoryId?.isNotEmpty ==
-                                //         true
-                                //     ? '$selectedCategoryIcon $selectedCategoryName' // Display icon and name together
-                                //     : 'Select Category', // Show hint if no category is selected
+                                labelText: selectedCategoryId?.isNotEmpty ==
+                                        true
+                                    ? '$selectedCategoryIcon $selectedCategoryName' // Display icon and name together
+                                    : 'Select Category', // Show hint if no category is selected
                                 border: OutlineInputBorder(),
                                 hintText: selectedCategoryId == null
                                     ? 'Select Category'
