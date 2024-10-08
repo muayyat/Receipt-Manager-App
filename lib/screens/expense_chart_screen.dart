@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../components/calendar_filter_widget.dart';
@@ -365,6 +366,48 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     }).toList();
   }
 
+  Future<void> _showCurrencyPicker(BuildContext context) async {
+    int initialIndex = availableCurrencies.indexOf(selectedBaseCurrency);
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16),
+          height: 300, // Set an appropriate height for the picker
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Select Currency',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              Expanded(
+                child: CupertinoPicker(
+                  scrollController:
+                      FixedExtentScrollController(initialItem: initialIndex),
+                  itemExtent: 32.0, // Height of each item
+                  onSelectedItemChanged: (int index) {
+                    setState(() {
+                      selectedBaseCurrency = availableCurrencies[index];
+                    });
+                  },
+                  children: availableCurrencies
+                      .map((currency) => Center(child: Text(currency)))
+                      .toList(),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -389,22 +432,13 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                           onCalendarPressed:
                               _showCalendarFilterDialog, // Pass the calendar callback
                         ),
-                        SizedBox(width: 16), // Add some spacing
-                        DropdownButton<String>(
-                          value: selectedBaseCurrency,
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              selectedBaseCurrency = newValue!;
-                              fetchExpenseData();
-                            });
+                        SizedBox(width: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            _showCurrencyPicker(
+                                context); // Show the picker when button is pressed
                           },
-                          items: availableCurrencies
-                              .map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
+                          child: Text(selectedBaseCurrency),
                         ),
                       ],
                     ),
