@@ -92,6 +92,7 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       selectedCategoryIcon = categoryData?['icon'] ?? ''; // Get category icon
       selectedCategoryName = categoryData?['name'] ?? ''; // Get category name
     });
+    print(selectedCategoryName);
   }
 
   Future<void> fetchCurrencies() async {
@@ -356,10 +357,12 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
                           child: AbsorbPointer(
                             child: TextField(
                               decoration: InputDecoration(
-                                labelText: selectedCategoryId?.isNotEmpty ==
-                                        true
-                                    ? '$selectedCategoryIcon $selectedCategoryName' // Display icon and name together
-                                    : 'Select Category', // Show hint if no category is selected
+                                labelText:
+                                    '$selectedCategoryIcon $selectedCategoryName',
+                                // selectedCategoryId?.isNotEmpty ==
+                                //         true
+                                //     ? '$selectedCategoryIcon $selectedCategoryName' // Display icon and name together
+                                //     : 'Select Category', // Show hint if no category is selected
                                 border: OutlineInputBorder(),
                                 hintText: selectedCategoryId == null
                                     ? 'Select Category'

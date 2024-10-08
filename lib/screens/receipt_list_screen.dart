@@ -205,6 +205,8 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
 
     return GestureDetector(
       onTap: () {
+        print(
+            'Navigating to Edit Screen with Receipt ID: ${receiptData['id']}');
         // Navigate to AddReceiptScreen and pass receipt data
         Navigator.push(
           context,
@@ -305,14 +307,14 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
   }
 
   Widget _buildTextDetails(
-      String itemName, String merchant, String date, String category) {
+      String itemName, String merchant, String date, String categoryName) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(itemName, style: TextStyle(fontWeight: FontWeight.bold)),
         Text('Merchant: $merchant'),
         Text('Date: $date'),
-        Text('Category: $category'), // Display the fetched category name
+        Text('Category: $categoryName'), // Display the fetched category name
       ],
     );
   }

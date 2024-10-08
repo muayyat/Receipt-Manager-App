@@ -242,7 +242,7 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
                           trailing: IconButton(
                             icon: Icon(Icons.delete_outline, color: Colors.red),
                             onPressed: () {
-                              deleteCategory(categoryId, categoryName);
+                              deleteCategory(categoryId);
                             },
                           ),
                           onTap: () {

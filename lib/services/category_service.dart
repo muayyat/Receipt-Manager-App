@@ -35,29 +35,41 @@ class CategoryService {
   Future<Map<String, dynamic>?> fetchCategoryById(
       String userId, String categoryId) async {
     try {
+      print('Fetching categories for user: $userId'); // Debug print
+
       DocumentSnapshot userDoc =
           await _firestore.collection('categories').doc(userId).get();
 
       if (userDoc.exists && userDoc.data() != null) {
+        print('User document exists. Fetching category list...'); // Debug print
+
         var data = userDoc.data() as Map<String, dynamic>;
         List<dynamic> categoryList = data['categorylist'] ?? [];
+        print('Category list fetched: $categoryList'); // Debug print
 
         // Find the category by its ID
-        var category = categoryList.firstWhere(
-            (category) => category['id'] == categoryId,
-            orElse: () => null);
+        var category = categoryList
+            .firstWhere((category) => category['id'] == categoryId, orElse: () {
+          print('Category with ID $categoryId not found.'); // Debug print
+          return null;
+        });
 
         if (category != null) {
+          print('Category found: ${category['name']}'); // Debug print
           return {
             'name': category['name'] ?? 'Unknown',
             'icon': category['icon'] ?? ''
           };
         }
+      } else {
+        print('User document does not exist or has no data'); // Debug print
       }
 
+      print(
+          'Returning null, no category found for ID: $categoryId'); // Debug print
       return null; // Return null if category not found
     } catch (e) {
-      print("Error fetching category by ID: $e");
+      print("Error fetching category by ID: $e"); // Debug print for error
       return null;
     }
   }
