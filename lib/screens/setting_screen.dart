@@ -46,7 +46,7 @@ class _SettingScreenState extends State<SettingScreen> {
               },
             ),
             TextButton(
-              child: Text('Confirm'),
+              child: Text('Confirm', style: TextStyle(color: Colors.redAccent)),
               onPressed: () async {
                 Navigator.of(context).pop(); // Close the dialog
                 await _clearHistory(); // Proceed with clearing history
@@ -95,7 +95,7 @@ class _SettingScreenState extends State<SettingScreen> {
               },
             ),
             TextButton(
-              child: Text('Confirm'),
+              child: Text('Confirm', style: TextStyle(color: Colors.redAccent)),
               onPressed: () async {
                 Navigator.of(context).pop(); // Close the dialog
                 await _deleteAccount(); // Proceed with deleting account
