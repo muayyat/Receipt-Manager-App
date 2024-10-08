@@ -3,7 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import '../components/calendar_filter_widget.dart';
 import '../components/custom_drawer.dart';
+import '../components/date_range_container.dart';
 import '../services/auth_service.dart';
 import '../services/currency_service.dart';
 import '../services/receipt_service.dart';
@@ -42,6 +44,11 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   TimeInterval selectedInterval =
       TimeInterval.day; // Default time interval (day)
 
+  // Set default dates
+  DateTime? _startDate =
+      DateTime(DateTime.now().year, 1, 1); // Start date: first day of the year
+  DateTime? _endDate = DateTime.now(); // End date: today
+
   @override
   void initState() {
     super.initState();
@@ -54,6 +61,28 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
 
   void getCurrentUser() async {
     loggedInUser = await AuthService.getCurrentUser();
+  }
+
+  Future<void> _showCalendarFilterDialog() async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (BuildContext context) {
+        return CalendarFilterWidget(
+          initialStartDate: _startDate!,
+          initialEndDate: _endDate!,
+          onApply: (start, end) {
+            setState(() {
+              _startDate = start;
+              _endDate = end;
+            });
+          },
+        );
+      },
+    );
   }
 
   Future<void> fetchCurrencyCodes() async {
@@ -235,22 +264,6 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     }
   }
 
-  Future<void> _selectDateRange(BuildContext context) async {
-    final DateTimeRange? picked = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-      initialDateRange: selectedDateRange,
-    );
-    if (picked != null && picked != selectedDateRange) {
-      setState(() {
-        selectedDateRange = picked;
-        isLoading = true;
-        fetchExpenseData();
-      });
-    }
-  }
-
   // Method to build the card with gray background
   Widget buildCard(BuildContext context, String title, Widget chart) {
     return Card(
@@ -285,15 +298,17 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
       children: [
         SizedBox(
           height: 300, // Set a fixed height for the pie chart
-          child: PieChart(
-            PieChartData(
-              sections: getPieSections(),
-              centerSpaceRadius: 60,
-              borderData: FlBorderData(show: false),
-              sectionsSpace: 4,
-              startDegreeOffset: -90,
-            ),
-          ),
+          child: categoryTotals.isEmpty
+              ? Center(child: Text('No data available.'))
+              : PieChart(
+                  PieChartData(
+                    sections: getPieSections(),
+                    centerSpaceRadius: 60,
+                    borderData: FlBorderData(show: false),
+                    sectionsSpace: 4,
+                    startDegreeOffset: -90,
+                  ),
+                ),
         ),
         SizedBox(height: 20), // Space between the chart and the legend
         // Custom Legend
@@ -356,82 +371,85 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
       appBar: AppBar(
         title: Text('Your Graphs'),
         backgroundColor: Colors.lightBlueAccent,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.calendar_today),
-            onPressed: () => _selectDateRange(context),
-          ),
-          SizedBox(width: 16),
-          DropdownButton<String>(
-            value: selectedBaseCurrency,
-            icon: Icon(Icons.money),
-            onChanged: (String? newValue) {
-              setState(() {
-                selectedBaseCurrency = newValue!;
-                isLoading = true;
-                fetchExpenseData();
-              });
-            },
-            items: availableCurrencies
-                .map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              );
-            }).toList(),
-          ),
-          DropdownButton<TimeInterval>(
-            value: selectedInterval,
-            icon: Icon(Icons.filter_alt),
-            onChanged: (TimeInterval? newValue) {
-              setState(() {
-                selectedInterval = newValue!;
-                fetchGroupedExpenseData(); // Fetch data for the newly selected interval
-              });
-            },
-            items: TimeInterval.values
-                .map<DropdownMenuItem<TimeInterval>>((TimeInterval value) {
-              return DropdownMenuItem<TimeInterval>(
-                value: value,
-                child: Text(value
-                    .toString()
-                    .split('.')
-                    .last), // Display "day", "week", etc.
-              );
-            }).toList(),
-          ),
-        ],
       ),
       drawer: CustomDrawer(),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : categoryTotals.isEmpty
-              ? Center(child: Text('No data available.'))
-              : Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: SingleChildScrollView(
-                    child: Column(
+          : Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        // Pie Chart Card
-                        buildCard(
-                          context,
-                          'Expenses by Category in $selectedBaseCurrency',
-                          buildPieChart(), // Build the pie chart here
+                        DateRangeContainer(
+                          startDate: _startDate!, // Your startDate
+                          endDate: _endDate!, // Your endDate
+                          onCalendarPressed:
+                              _showCalendarFilterDialog, // Pass the calendar callback
                         ),
-                        SizedBox(
-                            height:
-                                20), // Space between pie chart and bar chart
-
-                        // Bar Chart Card
-                        buildCard(
-                          context,
-                          'Expenses by ${selectedInterval.toString().split('.').last} in $selectedBaseCurrency',
-                          buildBarChart(), // Build the bar chart here
+                        SizedBox(width: 16), // Add some spacing
+                        DropdownButton<String>(
+                          value: selectedBaseCurrency,
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              selectedBaseCurrency = newValue!;
+                              isLoading = true;
+                              fetchExpenseData();
+                            });
+                          },
+                          items: availableCurrencies
+                              .map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
                         ),
                       ],
                     ),
-                  ),
+                    SizedBox(height: 20), // Space between controls and charts
+
+                    // Pie Chart Card
+                    buildCard(
+                      context,
+                      'Expenses by Category in $selectedBaseCurrency',
+                      buildPieChart(), // Build the pie chart here
+                    ),
+                    SizedBox(
+                        height: 20), // Space between pie chart and bar chart
+                    DropdownButton<TimeInterval>(
+                      value: selectedInterval,
+                      icon: Icon(Icons.filter_alt),
+                      onChanged: (TimeInterval? newValue) {
+                        setState(() {
+                          selectedInterval = newValue!;
+                          fetchGroupedExpenseData(); // Fetch data for the newly selected interval
+                        });
+                      },
+                      items: TimeInterval.values
+                          .map<DropdownMenuItem<TimeInterval>>(
+                              (TimeInterval value) {
+                        return DropdownMenuItem<TimeInterval>(
+                          value: value,
+                          child: Text(value
+                              .toString()
+                              .split('.')
+                              .last), // Display "day", "week", etc.
+                        );
+                      }).toList(),
+                    ),
+                    // Bar Chart Card
+                    buildCard(
+                      context,
+                      'Expenses by ${selectedInterval.toString().split('.').last} in $selectedBaseCurrency',
+                      buildBarChart(), // Build the bar chart here
+                    ),
+                  ],
                 ),
+              ),
+            ),
     );
   }
 }
