@@ -11,14 +11,19 @@ import '../services/currency_service.dart';
 import '../services/receipt_service.dart';
 import '../services/storage_service.dart';
 
-class AddReceiptScreen extends StatefulWidget {
+class AddOrUpdateReceiptScreen extends StatefulWidget {
   static const String id = 'add_receipt_screen';
+  final Map<String, dynamic>? existingReceipt; // Store existing receipt data
+  final String? receiptId; // Store the receipt ID when editing
+
+  AddOrUpdateReceiptScreen({this.existingReceipt, this.receiptId});
 
   @override
-  _AddReceiptScreenState createState() => _AddReceiptScreenState();
+  _AddOrUpdateReceiptScreenState createState() =>
+      _AddOrUpdateReceiptScreenState();
 }
 
-class _AddReceiptScreenState extends State<AddReceiptScreen> {
+class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
   User? loggedInUser;
 
   final ReceiptService receiptService = ReceiptService(); // Create an instance
@@ -44,11 +49,26 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
 
   void initState() {
     super.initState();
-    // Set the default date to today
-    dateController.text = DateTime.now()
-        .toLocal()
-        .toString()
-        .split(' ')[0]; // Format to YYYY-MM-DD
+
+    if (widget.existingReceipt != null) {
+      // Populate the fields with existing receipt data
+      merchantController.text = widget.existingReceipt!['merchant'] ?? '';
+      dateController.text = (widget.existingReceipt!['date'] as Timestamp)
+          .toDate()
+          .toLocal()
+          .toString()
+          .split(' ')[0];
+      totalController.text = widget.existingReceipt!['amount'].toString();
+      descriptionController.text = widget.existingReceipt!['description'] ?? '';
+      itemNameController.text = widget.existingReceipt!['itemName'] ?? '';
+      selectedCategory = widget.existingReceipt!['category'] ?? null;
+      selectedCurrency = widget.existingReceipt!['currency'] ?? null;
+      uploadedImageUrl = widget.existingReceipt!['imageUrl'] ?? null;
+    } else {
+      // Set the default date to today
+      dateController.text = DateTime.now().toLocal().toString().split(' ')[0];
+    }
+
     getCurrentUser();
     fetchCurrencies();
   }
@@ -160,16 +180,23 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
       'currency': selectedCurrency,
       'itemName': itemNameController.text,
       'description': descriptionController.text,
-      'imageUrl': uploadedImageUrl ?? '', // Use the uploaded image URL
+      'imageUrl': uploadedImageUrl ?? '',
     };
 
     try {
-      await receiptService.addReceipt(receiptData);
-
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Receipt saved successfully')),
-      );
+      if (widget.receiptId != null) {
+        // If editing, update the existing receipt
+        await receiptService.updateReceipt(widget.receiptId!, receiptData);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Receipt updated successfully')),
+        );
+      } else {
+        // If adding a new receipt
+        await receiptService.addReceipt(receiptData);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Receipt saved successfully')),
+        );
+      }
 
       // Clear form fields and reset dropdown selections
       setState(() {
@@ -180,7 +207,7 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
         itemNameController.clear();
         selectedCategory = null;
         selectedCurrency = null;
-        uploadedImageUrl = null; // Clear the image URL
+        uploadedImageUrl = null;
       });
     } catch (e) {
       // Handle error: show an error message
@@ -194,7 +221,8 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Create New Receipt'),
+        title: Text(
+            widget.receiptId != null ? 'Edit Receipt' : 'Create New Receipt'),
         backgroundColor: Colors.lightBlueAccent,
       ),
       body: SingleChildScrollView(
@@ -354,9 +382,8 @@ class _AddReceiptScreenState extends State<AddReceiptScreen> {
                   Expanded(
                     child: RoundedButton(
                       color: Colors.blueAccent,
-                      title: 'Save',
+                      title: widget.receiptId != null ? 'Update' : 'Save',
                       onPressed: () {
-                        // Handle saving the receipt
                         _saveReceipt();
                       },
                     ),

@@ -7,7 +7,7 @@ import '../components/calendar_filter_widget.dart'; // Import the CalendarFilter
 import '../components/custom_drawer.dart';
 import '../services/auth_service.dart';
 import '../services/receipt_service.dart';
-import 'add_receipt_screen.dart';
+import 'add_update_receipt_screen.dart';
 import 'expense_chart_screen.dart';
 
 class ReceiptListScreen extends StatefulWidget {
@@ -186,7 +186,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
     );
   }
 
-  Card _buildReceiptCard(Map<String, dynamic> receiptData) {
+  GestureDetector _buildReceiptCard(Map<String, dynamic> receiptData) {
     Timestamp timestamp = receiptData['date'] ?? Timestamp.now();
     DateTime dateTime = timestamp.toDate();
     String date = DateFormat('yyyy-MM-dd').format(dateTime);
@@ -198,18 +198,33 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
         : (receiptData['amount'] as double);
     String currency = receiptData['currency'] ?? '';
     String imageUrl = receiptData['imageUrl'] ?? '';
+    String receiptId = receiptData['id'] ?? ''; // Get receipt ID from data
 
-    return Card(
-      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          children: [
-            _buildImageSection(imageUrl),
-            Expanded(
-                child: _buildTextDetails(itemName, merchant, date, category)),
-            _buildAmountSection(currency, amount),
-          ],
+    return GestureDetector(
+      onTap: () {
+        // Navigate to AddReceiptScreen and pass receipt data
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AddOrUpdateReceiptScreen(
+              existingReceipt: receiptData, // Pass the receipt data
+              receiptId: receiptId, // Pass the receipt ID
+            ),
+          ),
+        );
+      },
+      child: Card(
+        margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              _buildImageSection(imageUrl),
+              Expanded(
+                  child: _buildTextDetails(itemName, merchant, date, category)),
+              _buildAmountSection(currency, amount),
+            ],
+          ),
         ),
       ),
     );
@@ -280,7 +295,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
           right: 16,
           child: FloatingActionButton(
             onPressed: () {
-              Navigator.pushNamed(context, AddReceiptScreen.id);
+              Navigator.pushNamed(context, AddOrUpdateReceiptScreen.id);
             },
             child: Icon(Icons.add),
             backgroundColor: Colors.lightBlueAccent,

@@ -32,6 +32,13 @@ class ReceiptService {
       throw Exception('User not logged in');
     }
 
+    // Generate a unique ID for each receipt
+    String receiptId =
+        FirebaseFirestore.instance.collection('receipts').doc().id;
+
+    // Add the receipt ID to the receipt data
+    receiptData['id'] = receiptId;
+
     // Get the user document by userId or email
     DocumentReference userDocRef =
         _firestore.collection('receipts').doc(loggedInUser!.email);
@@ -39,6 +46,41 @@ class ReceiptService {
     await userDocRef.set({
       'receiptlist': FieldValue.arrayUnion([receiptData])
     }, SetOptions(merge: true));
+  }
+
+  // Update an existing receipt
+  Future<void> updateReceipt(
+      String receiptId, Map<String, dynamic> updatedData) async {
+    if (loggedInUser == null) {
+      throw Exception('User not logged in');
+    }
+
+    // Get the user document by userId or email
+    DocumentReference userDocRef =
+        _firestore.collection('receipts').doc(loggedInUser!.email);
+
+    DocumentSnapshot userDoc = await userDocRef.get();
+
+    if (!userDoc.exists) {
+      throw Exception('User document not found');
+    }
+
+    // Get the current receipt list
+    List<dynamic> receiptList = userDoc['receiptlist'] ?? [];
+
+    // Find the index of the receipt to update by its ID
+    int receiptIndex =
+        receiptList.indexWhere((receipt) => receipt['id'] == receiptId);
+
+    if (receiptIndex != -1) {
+      // Replace the old receipt with the updated data
+      receiptList[receiptIndex] = updatedData;
+
+      // Update the receipt list in the document
+      await userDocRef.update({'receiptlist': receiptList});
+    } else {
+      throw Exception('Receipt not found');
+    }
   }
 
   // Delete a receipt by its index (assumes receipts are stored in an array)
