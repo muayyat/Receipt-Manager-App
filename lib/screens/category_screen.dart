@@ -126,6 +126,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Your Categories'),
+        backgroundColor: Colors.lightBlueAccent,
       ),
       drawer: CustomDrawer(),
       body: Padding(
@@ -172,26 +173,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 },
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(top: 20.0),
-              child: InkWell(
-                onTap: _showAddCategoryDialog,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add_circle_outline,
-                        size: 30, color: Colors.grey[600]),
-                    SizedBox(width: 10),
-                    Text(
-                      'Add Category',
-                      style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showAddCategoryDialog,
+        backgroundColor: Colors.lightBlueAccent,
+        elevation: 6,
+        child: Icon(Icons.add),
       ),
     );
   }

@@ -92,31 +92,6 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _buildAppBar(),
-      drawer: CustomDrawer(),
-      body:
-          loggedInUser == null ? _buildLoadingIndicator() : _buildReceiptList(),
-      floatingActionButton: _buildFloatingActionButtons(),
-    );
-  }
-
-  AppBar _buildAppBar() {
-    return AppBar(
-      title: Text('Your Receipts'),
-      backgroundColor: Colors.lightBlueAccent,
-      actions: [
-        IconButton(
-          icon: Icon(Icons.calendar_today, color: Colors.white),
-          onPressed: _showCalendarFilterDialog,
-        ),
-        _buildSortPopup(),
-      ],
-    );
-  }
-
   PopupMenuButton<String> _buildSortPopup() {
     return PopupMenuButton<String>(
       onSelected: (value) {
@@ -338,13 +313,10 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
             onPressed: () {
               Navigator.pushNamed(context, AddOrUpdateReceiptScreen.id);
             },
-            child: Icon(Icons.add),
             backgroundColor: Colors.lightBlueAccent,
             heroTag: 'addReceiptFAB',
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(100),
-            ),
             elevation: 6,
+            child: Icon(Icons.add),
           ),
         ),
         Positioned(
@@ -354,16 +326,34 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
             onPressed: () {
               Navigator.pushNamed(context, ExpenseChartScreen.id);
             },
-            child: Icon(Icons.bar_chart),
             backgroundColor: Colors.lightBlueAccent,
             heroTag: 'expenseChartFAB',
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(100),
-            ),
             elevation: 6,
+            child: Icon(Icons.bar_chart),
           ),
         ),
       ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Your Receipts'),
+        backgroundColor: Colors.lightBlueAccent,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.calendar_today, color: Colors.white),
+            onPressed: _showCalendarFilterDialog,
+          ),
+          _buildSortPopup(),
+        ],
+      ),
+      drawer: CustomDrawer(),
+      body:
+          loggedInUser == null ? _buildLoadingIndicator() : _buildReceiptList(),
+      floatingActionButton: _buildFloatingActionButtons(),
     );
   }
 }
