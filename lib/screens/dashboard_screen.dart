@@ -78,7 +78,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('HOME'),
+        title: Text('Home'),
         backgroundColor: Colors.lightBlueAccent,
         leading: Builder(
           builder: (BuildContext context) {

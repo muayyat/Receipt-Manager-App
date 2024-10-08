@@ -354,7 +354,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Expenses Analysis'),
+        title: Text('Your Summary'),
         backgroundColor: Colors.lightBlueAccent,
         actions: [
           IconButton(
