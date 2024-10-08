@@ -62,4 +62,33 @@ class ReceiptService {
       await userDocRef.update({'receiptlist': receiptList});
     }
   }
+
+  // Set category to null for all receipts that match the given category name
+  Future<void> setReceiptsCategoryToNull(String categoryName) async {
+    if (loggedInUser == null) {
+      throw Exception('User not logged in');
+    }
+
+    DocumentReference userDocRef =
+        _firestore.collection('receipts').doc(loggedInUser!.email);
+
+    // Fetch the user's receipts
+    DocumentSnapshot doc = await userDocRef.get();
+    if (doc.exists) {
+      List<dynamic> receiptList = doc['receiptlist'] ?? [];
+
+      // Iterate over the receipts and set category to null for those with matching category
+      List<dynamic> updatedReceiptList = receiptList.map((receipt) {
+        if (receipt['category'] == categoryName) {
+          receipt['category'] = null; // Set the category to null
+        }
+        return receipt;
+      }).toList();
+
+      // Update the Firestore document with the modified receipts
+      await userDocRef.update({'receiptlist': updatedReceiptList});
+    } else {
+      throw Exception('No receipts found for the current user');
+    }
+  }
 }

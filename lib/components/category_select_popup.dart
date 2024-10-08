@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/category_service.dart';
+import '../services/receipt_service.dart';
 import 'add_category_widget.dart';
 
 class CategorySelectPopup extends StatefulWidget {
@@ -15,6 +16,8 @@ class CategorySelectPopup extends StatefulWidget {
 class _CategorySelectPopupState extends State<CategorySelectPopup> {
   List<Map<String, dynamic>> userCategories = [];
   String? selectedCategory;
+
+  final ReceiptService receiptService = ReceiptService();
 
   // Define default categories
   final List<Map<String, dynamic>> defaultCategories = [
@@ -74,25 +77,61 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
     );
   }
 
-  Future<void> deleteCategory(String name) async {
+  Future<void> deleteCategory(String categoryName) async {
     try {
       // Find the category that matches the name
       var categoryToRemove = userCategories.firstWhere(
-        (category) => category['name'] == name,
+        (category) => category['name'] == categoryName,
         orElse: () => <String, dynamic>{},
       );
 
-      if (categoryToRemove != null) {
-        await _categoryService.deleteCategory(
-            widget.userId, name, categoryToRemove['icon']);
+      if (categoryToRemove.isNotEmpty) {
+        // Show the alert dialog to confirm deletion
+        bool? confirmDelete = await showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Delete Category'),
+              content: Text(
+                  'If you delete this category, the receipts belonging to it will have a null category value. Are you sure you want to delete "$categoryName"?'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(false); // Cancel the deletion
+                  },
+                  child: Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(true); // Confirm deletion
+                  },
+                  child: Text('Delete'),
+                ),
+              ],
+            );
+          },
+        );
 
-        setState(() {
-          userCategories.removeWhere((category) => category['name'] == name);
-        });
+        // If the user confirms the deletion, proceed to delete
+        if (confirmDelete == true) {
+          await _categoryService.deleteCategory(
+              widget.userId, categoryName, categoryToRemove['icon']);
 
-        fetchUserCategories();
+          // Set receipts with this category to null
+          await receiptService.setReceiptsCategoryToNull(categoryName);
+
+          // Remove the category locally from the UI
+          setState(() {
+            userCategories
+                .removeWhere((category) => category['name'] == categoryName);
+          });
+
+          fetchUserCategories(); // Refresh the category list after deletion
+        } else {
+          print("Category deletion canceled: $categoryName");
+        }
       } else {
-        print("Category not found locally: $name");
+        print("Category not found locally: $categoryName");
       }
     } catch (e) {
       print("Error deleting category: $e");

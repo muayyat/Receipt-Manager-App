@@ -19,7 +19,6 @@ class CategoryService {
 
       return categoryList
           .map((category) => {
-                'id': userDoc.id,
                 'name': category['name'] ?? 'Unknown',
                 'icon': category['icon'] ?? '',
               })
