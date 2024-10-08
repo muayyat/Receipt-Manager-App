@@ -9,6 +9,7 @@ import 'package:receipt_manager/screens/profile_screen.dart';
 import 'package:receipt_manager/screens/receipt_list_screen.dart';
 import 'package:receipt_manager/screens/registration_screen.dart';
 import 'package:receipt_manager/screens/scan_screen.dart';
+import 'package:receipt_manager/screens/setting_screen.dart';
 import 'package:receipt_manager/screens/welcome_screen.dart';
 
 import 'firebase_options.dart';
@@ -40,6 +41,7 @@ class MyApp extends StatelessWidget {
         ExpenseChartScreen.id: (context) => ExpenseChartScreen(),
         DashboardScreen.id: (context) => DashboardScreen(),
         ProfileScreen.id: (context) => ProfileScreen(),
+        SettingScreen.id: (context) => SettingScreen(),
       },
     );
   }

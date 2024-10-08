@@ -125,7 +125,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Select Category'),
+        title: Text('Your Categories'),
       ),
       drawer: CustomDrawer(),
       body: Padding(

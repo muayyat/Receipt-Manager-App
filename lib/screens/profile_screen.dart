@@ -224,7 +224,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Manage Account'),
+        title: Text('Your Profile'),
         backgroundColor: Colors.lightBlueAccent,
       ),
       drawer: CustomDrawer(),
@@ -308,30 +308,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       },
                     ),
                   ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: RoundedButton(
-                    color: Colors.orange,
-                    title: 'Clear Receipt History',
-                    onPressed: () {
-                      _confirmClearHistory(context);
-                    },
-                  ),
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: RoundedButton(
-                    color: Colors.red,
-                    title: 'Delete Account',
-                    onPressed: () {
-                      _confirmDeleteAccount(context);
-                    },
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
       ),

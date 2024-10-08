@@ -105,7 +105,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
 
   AppBar _buildAppBar() {
     return AppBar(
-      title: Text('Receipt List'),
+      title: Text('Your Receipts'),
       backgroundColor: Colors.lightBlueAccent,
       actions: [
         IconButton(

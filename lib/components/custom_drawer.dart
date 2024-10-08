@@ -3,12 +3,14 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:receipt_manager/screens/dashboard_screen.dart';
 import 'package:receipt_manager/screens/expense_chart_screen.dart';
 import 'package:receipt_manager/screens/profile_screen.dart';
 import 'package:receipt_manager/screens/welcome_screen.dart';
 
 import '../screens/category_screen.dart';
 import '../screens/receipt_list_screen.dart';
+import '../screens/setting_screen.dart';
 import '../services/user_service.dart';
 
 class CustomDrawer extends StatefulWidget {
@@ -127,7 +129,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   leading: Icon(Icons.home),
                   title: Text('Home'),
                   onTap: () {
-                    Navigator.pop(context);
+                    Navigator.pushNamed(context, DashboardScreen.id);
                   },
                 ),
                 ListTile(
@@ -156,6 +158,13 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   title: Text('Profile'),
                   onTap: () {
                     Navigator.pushNamed(context, ProfileScreen.id);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.settings),
+                  title: Text('Setting'),
+                  onTap: () {
+                    Navigator.pushNamed(context, SettingScreen.id);
                   },
                 ),
                 ListTile(
