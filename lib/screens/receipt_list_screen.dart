@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -101,53 +102,61 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
     );
   }
 
-  void _showSortDialog(BuildContext context) {
-    showDialog(
+  void _showSortBottomSheet(BuildContext context) {
+    showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Sort Options'),
-          content: Column(
+        int selectedSortOption = 0; // Index for the selected option
+        final List<String> sortOptions = [
+          'Date: Oldest First',
+          'Date: Newest First',
+          'Amount: Lowest First',
+          'Amount: Highest First'
+        ];
+
+        return Container(
+          height: 300,
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                title: Text('Date: Oldest First'),
-                onTap: () {
-                  onSortChanged('date', false);
-                  Navigator.of(context).pop(); // Close the dialog
-                },
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text('Sort Options', style: TextStyle(fontSize: 24)),
               ),
-              ListTile(
-                title: Text('Date: Newest First'),
-                onTap: () {
-                  onSortChanged('date', true);
-                  Navigator.of(context).pop(); // Close the dialog
-                },
+              Expanded(
+                child: CupertinoPicker(
+                  itemExtent: 32.0, // Height of each item
+                  onSelectedItemChanged: (int index) {
+                    selectedSortOption = index; // Update the selected option
+                  },
+                  children: sortOptions.map((String option) {
+                    return Center(child: Text(option));
+                  }).toList(),
+                ),
               ),
-              ListTile(
-                title: Text('Amount: Lowest First'),
-                onTap: () {
-                  onSortChanged('amount', false);
-                  Navigator.of(context).pop(); // Close the dialog
+              TextButton(
+                onPressed: () {
+                  // Handle the sorting logic based on selectedSortOption
+                  switch (selectedSortOption) {
+                    case 0:
+                      onSortChanged('date', false); // Date: Oldest First
+                      break;
+                    case 1:
+                      onSortChanged('date', true); // Date: Newest First
+                      break;
+                    case 2:
+                      onSortChanged('amount', false); // Amount: Lowest First
+                      break;
+                    case 3:
+                      onSortChanged('amount', true); // Amount: Highest First
+                      break;
+                  }
+                  Navigator.of(context).pop(); // Close the bottom sheet
                 },
-              ),
-              ListTile(
-                title: Text('Amount: Highest First'),
-                onTap: () {
-                  onSortChanged('amount', true);
-                  Navigator.of(context).pop(); // Close the dialog
-                },
-              ),
+                child: Text('Done', style: TextStyle(fontSize: 20)),
+              )
             ],
           ),
-          actions: [
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-            ),
-          ],
         );
       },
     );
@@ -407,8 +416,8 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
                         icon: Icon(Icons.sort,
                             color: Colors.lightBlue), // Sort button icon
                         onPressed: () {
-                          _showSortDialog(
-                              context); // Trigger the dialog when the button is pressed
+                          _showSortBottomSheet(
+                              context); // Trigger the rolling picker when the button is pressed
                         },
                       ),
                     ],
