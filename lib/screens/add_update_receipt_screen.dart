@@ -196,24 +196,84 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Receipt saved successfully')),
         );
+
+        // Only clear form fields and reset dropdown selections if a new receipt was added
+        setState(() {
+          merchantController.clear();
+          dateController.text =
+              DateTime.now().toLocal().toString().split(' ')[0];
+          totalController.clear();
+          descriptionController.clear();
+          itemNameController.clear();
+          selectedCategory = null;
+          selectedCurrency = null;
+          uploadedImageUrl = null;
+        });
       }
 
-      // Clear form fields and reset dropdown selections
-      setState(() {
-        merchantController.clear();
-        dateController.text = DateTime.now().toLocal().toString().split(' ')[0];
-        totalController.clear();
-        descriptionController.clear();
-        itemNameController.clear();
-        selectedCategory = null;
-        selectedCurrency = null;
-        uploadedImageUrl = null;
-      });
+      // Navigate back to the receipt list screen after saving
+      Navigator.pop(context);
     } catch (e) {
       // Handle error: show an error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to save receipt. Try again.')),
       );
+    }
+  }
+
+  Future<void> _confirmDelete() async {
+    // Show a confirmation dialog before deletion
+    bool? confirm = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete Receipt'),
+          content: Text(
+              'Are you sure you want to delete this receipt? This action cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context)
+                    .pop(false); // Dismiss the dialog without deletion
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true); // Confirm deletion
+              },
+              child: Text('Delete', style: TextStyle(color: Colors.redAccent)),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm == true) {
+      // If the user confirmed, proceed with deletion
+      _deleteReceipt();
+    }
+  }
+
+  Future<void> _deleteReceipt() async {
+    if (widget.receiptId != null) {
+      try {
+        // Call the delete method in ReceiptService
+        await receiptService.deleteReceipt(widget.receiptId!);
+
+        // Show a success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Receipt deleted successfully')),
+        );
+
+        // Navigate back to the previous screen
+        Navigator.pop(context);
+      } catch (e) {
+        // Handle any errors
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete receipt: $e')),
+        );
+      }
     }
   }
 
@@ -390,6 +450,21 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
                   ),
                 ],
               ),
+              // Delete button (only show if editing an existing receipt)
+              if (widget.receiptId != null)
+                Row(
+                  children: [
+                    Expanded(
+                      child: RoundedButton(
+                        color: Colors.redAccent, // Set the delete button color
+                        title: 'Delete',
+                        onPressed: () {
+                          _confirmDelete(); // Call the delete function
+                        },
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
         ),

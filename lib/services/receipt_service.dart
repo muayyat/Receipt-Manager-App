@@ -73,7 +73,10 @@ class ReceiptService {
         receiptList.indexWhere((receipt) => receipt['id'] == receiptId);
 
     if (receiptIndex != -1) {
-      // Replace the old receipt with the updated data
+      // Preserve the original ID
+      updatedData['id'] = receiptId;
+
+      // Replace the old receipt with the updated data (including the ID)
       receiptList[receiptIndex] = updatedData;
 
       // Update the receipt list in the document
