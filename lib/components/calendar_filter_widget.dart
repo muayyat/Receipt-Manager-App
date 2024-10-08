@@ -45,11 +45,20 @@ class _CalendarFilterWidgetState extends State<CalendarFilterWidget> {
 
     await showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (BuildContext builder) {
         return Container(
-          height: 250,
-          color: Colors.white,
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 height: 200,
@@ -88,149 +97,143 @@ class _CalendarFilterWidgetState extends State<CalendarFilterWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.6, // Increased initial size
-      minChildSize: 0.5, // Set a larger minimum size
-      maxChildSize: 0.7, // Limited the maximum size
-      builder: (context, scrollController) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 50,
+              height: 5,
+              margin: EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Text(
+            'Select Date Range',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
             children: [
-              Center(
-                child: Container(
-                  width: 50,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
+              ChoiceChip(
+                label: Text('Wk'),
+                selected: false,
+                onSelected: (_) => _updateRange(7),
               ),
-              SizedBox(height: 16),
-              Text(
-                'Select Date Range',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+              ChoiceChip(
+                label: Text('30D'),
+                selected: false,
+                onSelected: (_) => _updateRange(30),
               ),
-              SizedBox(height: 16),
-              Wrap(
-                spacing: 8,
+              ChoiceChip(
+                label: Text('90D'),
+                selected: false,
+                onSelected: (_) => _updateRange(90),
+              ),
+              ChoiceChip(
+                label: Text('Year'),
+                selected: false,
+                onSelected: (_) => _updateRange(365),
+              ),
+            ],
+          ),
+          SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ChoiceChip(
-                    label: Text('Wk'),
-                    selected: false,
-                    onSelected: (_) => _updateRange(7),
-                  ),
-                  ChoiceChip(
-                    label: Text('30D'),
-                    selected: false,
-                    onSelected: (_) => _updateRange(30),
-                  ),
-                  ChoiceChip(
-                    label: Text('90D'),
-                    selected: false,
-                    onSelected: (_) => _updateRange(90),
-                  ),
-                  ChoiceChip(
-                    label: Text('Year'),
-                    selected: false,
-                    onSelected: (_) => _updateRange(365),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Start Date'),
-                      SizedBox(height: 8),
-                      GestureDetector(
-                        onTap: () => _showRollingDatePicker(context, true),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            _startDate != null
-                                ? DateFormat.yMMMd().format(_startDate!)
-                                : 'Select',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
+                  Text('Start Date'),
+                  SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: () => _showRollingDatePicker(context, true),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                    ],
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('End Date'),
-                      SizedBox(height: 8),
-                      GestureDetector(
-                        onTap: () => _showRollingDatePicker(context, false),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            _endDate != null
-                                ? DateFormat.yMMMd().format(_endDate!)
-                                : 'Select',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
+                      child: Text(
+                        _startDate != null
+                            ? DateFormat.yMMMd().format(_startDate!)
+                            : 'Select',
+                        style: TextStyle(fontSize: 16),
                       ),
-                    ],
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                    child: RoundedButton(
-                      color: Colors.blueAccent,
-                      title: 'Filter',
-                      onPressed: () {
-                        if (_startDate != null && _endDate != null) {
-                          widget.onApply(_startDate!, _endDate!);
-                          Navigator.pop(context);
-                        }
-                      },
                     ),
                   ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: RoundedButton(
-                      color: Colors.grey,
-                      title: 'Cancel',
-                      onPressed: () => Navigator.pop(context),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('End Date'),
+                  SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: () => _showRollingDatePicker(context, false),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        _endDate != null
+                            ? DateFormat.yMMMd().format(_endDate!)
+                            : 'Select',
+                        style: TextStyle(fontSize: 16),
+                      ),
                     ),
                   ),
                 ],
               ),
             ],
           ),
-        );
-      },
+          SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                child: RoundedButton(
+                  color: Colors.blueAccent,
+                  title: 'Filter',
+                  onPressed: () {
+                    if (_startDate != null && _endDate != null) {
+                      widget.onApply(_startDate!, _endDate!);
+                      Navigator.pop(context);
+                    }
+                  },
+                ),
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: RoundedButton(
+                  color: Colors.grey,
+                  title: 'Cancel',
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
