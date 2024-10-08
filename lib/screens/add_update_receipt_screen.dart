@@ -38,7 +38,7 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
 
   // Categories and currencies will be loaded from Firestore
   List<String> categories = [];
-  String? selectedCategory;
+  String? selectedCategoryId;
 
   List<String> currencies = [];
   String? selectedCurrency;
@@ -61,7 +61,7 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       totalController.text = widget.existingReceipt!['amount'].toString();
       descriptionController.text = widget.existingReceipt!['description'] ?? '';
       itemNameController.text = widget.existingReceipt!['itemName'] ?? '';
-      selectedCategory = widget.existingReceipt!['category'] ?? null;
+      selectedCategoryId = widget.existingReceipt!['categoryId'] ?? null;
       selectedCurrency = widget.existingReceipt!['currency'] ?? null;
       uploadedImageUrl = widget.existingReceipt!['imageUrl'] ?? null;
     } else {
@@ -101,16 +101,16 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
   }
 
   void _showCategorySelectPopup() async {
-    final selectedCategory = await showDialog<String>(
+    final selectedCategoryId = await showDialog<String>(
       context: context,
       builder: (context) =>
           CategorySelectPopup(userId: loggedInUser?.email ?? ''),
     );
 
-    if (selectedCategory != null) {
+    if (selectedCategoryId != null) {
       setState(() {
-        this.selectedCategory =
-            selectedCategory; // Update the selected category
+        this.selectedCategoryId =
+            selectedCategoryId; // Update the selected categoryId
       });
     }
   }
@@ -162,7 +162,7 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
   Future<void> _saveReceipt() async {
     if (merchantController.text.isEmpty ||
         totalController.text.isEmpty ||
-        selectedCategory == null ||
+        selectedCategoryId == null ||
         selectedCurrency == null) {
       // Handle error: show a message that fields are required
       ScaffoldMessenger.of(context).showSnackBar(
@@ -176,7 +176,8 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       'merchant': merchantController.text,
       'date': Timestamp.fromDate(DateTime.parse(dateController.text)),
       'amount': double.tryParse(totalController.text) ?? 0.0,
-      'category': selectedCategory,
+      'categoryId':
+          selectedCategoryId, // Store the selected categoryId instead of category name
       'currency': selectedCurrency,
       'itemName': itemNameController.text,
       'description': descriptionController.text,
@@ -205,7 +206,7 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
           totalController.clear();
           descriptionController.clear();
           itemNameController.clear();
-          selectedCategory = null;
+          selectedCategoryId = null;
           selectedCurrency = null;
           uploadedImageUrl = null;
         });
@@ -330,11 +331,12 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
                           child: AbsorbPointer(
                             child: TextField(
                               decoration: InputDecoration(
-                                labelText: selectedCategory?.isNotEmpty == true
-                                    ? selectedCategory
+                                labelText: selectedCategoryId?.isNotEmpty ==
+                                        true
+                                    ? selectedCategoryId
                                     : 'Select Category', // Show selected category or hint
                                 border: OutlineInputBorder(),
-                                hintText: selectedCategory == null
+                                hintText: selectedCategoryId == null
                                     ? 'Select Category'
                                     : null, // Only show hint if no category is selected
                               ),

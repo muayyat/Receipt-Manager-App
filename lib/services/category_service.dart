@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class CategoryService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // Fetch user categories
   Future<List<Map<String, dynamic>>> fetchUserCategories(String userId) async {
     try {
       DocumentSnapshot userDoc =
@@ -19,6 +20,7 @@ class CategoryService {
 
       return categoryList
           .map((category) => {
+                'id': category['id'] ?? '', // Add the random key (id)
                 'name': category['name'] ?? 'Unknown',
                 'icon': category['icon'] ?? '',
               })
@@ -29,12 +31,51 @@ class CategoryService {
     }
   }
 
+  // Fetch category name and icon by category ID
+  Future<Map<String, dynamic>?> fetchCategoryById(
+      String userId, String categoryId) async {
+    try {
+      DocumentSnapshot userDoc =
+          await _firestore.collection('categories').doc(userId).get();
+
+      if (userDoc.exists && userDoc.data() != null) {
+        var data = userDoc.data() as Map<String, dynamic>;
+        List<dynamic> categoryList = data['categorylist'] ?? [];
+
+        // Find the category by its ID
+        var category = categoryList.firstWhere(
+            (category) => category['id'] == categoryId,
+            orElse: () => null);
+
+        if (category != null) {
+          return {
+            'name': category['name'] ?? 'Unknown',
+            'icon': category['icon'] ?? ''
+          };
+        }
+      }
+
+      return null; // Return null if category not found
+    } catch (e) {
+      print("Error fetching category by ID: $e");
+      return null;
+    }
+  }
+
+  // Add a new category with a random key
   Future<void> addCategoryToFirestore(
       String userId, String name, String icon) async {
     try {
+      // Generate a unique random key for the category
+      String categoryId = _firestore.collection('categories').doc().id;
+
       await _firestore.collection('categories').doc(userId).update({
         'categorylist': FieldValue.arrayUnion([
-          {'name': name, 'icon': icon}
+          {
+            'id': categoryId,
+            'name': name,
+            'icon': icon
+          } // Store id along with name and icon
         ]),
       });
     } catch (e) {
@@ -42,18 +83,34 @@ class CategoryService {
     }
   }
 
-  Future<void> deleteCategory(String userId, String name, String icon) async {
+  // Delete category by its random key (id)
+  Future<void> deleteCategory(String userId, String categoryId) async {
     try {
-      await _firestore.collection('categories').doc(userId).update({
-        'categorylist': FieldValue.arrayRemove([
-          {'name': name, 'icon': icon}
-        ]),
-      });
+      DocumentSnapshot userDoc =
+          await _firestore.collection('categories').doc(userId).get();
+
+      if (userDoc.exists && userDoc.data() != null) {
+        var data = userDoc.data() as Map<String, dynamic>;
+        List<dynamic> categoryList = data['categorylist'] ?? [];
+
+        // Find the category by its ID
+        var categoryToDelete = categoryList.firstWhere(
+            (category) => category['id'] == categoryId,
+            orElse: () => null);
+
+        if (categoryToDelete != null) {
+          // Remove the category using FieldValue.arrayRemove
+          await _firestore.collection('categories').doc(userId).update({
+            'categorylist': FieldValue.arrayRemove([categoryToDelete])
+          });
+        }
+      }
     } catch (e) {
       print("Error deleting category: $e");
     }
   }
 
+  // Check if a category exists (by name) in the Firestore
   Future<bool> categoryExists(String userId, String categoryName) async {
     try {
       DocumentSnapshot userDoc =
@@ -75,7 +132,7 @@ class CategoryService {
     }
   }
 
-  // New function to fetch icon by category name
+  // Fetch the icon by category name
   Future<String?> fetchIconByCategoryName(
       String userId, String categoryName) async {
     try {

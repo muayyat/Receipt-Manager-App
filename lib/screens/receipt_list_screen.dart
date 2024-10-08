@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../components/calendar_filter_widget.dart'; // Import the CalendarFilterWidget
 import '../components/custom_drawer.dart';
 import '../services/auth_service.dart';
+import '../services/category_service.dart'; // Import CategoryService
 import '../services/receipt_service.dart';
 import 'add_update_receipt_screen.dart';
 import 'expense_chart_screen.dart';
@@ -20,6 +21,8 @@ class ReceiptListScreen extends StatefulWidget {
 class _ReceiptListScreenState extends State<ReceiptListScreen> {
   User? loggedInUser;
   final ReceiptService receiptService = ReceiptService();
+  final CategoryService categoryService =
+      CategoryService(); // Add CategoryService
 
   Stream<DocumentSnapshot>? receiptsStream;
   String currentSortField = 'date';
@@ -192,7 +195,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
     String date = DateFormat('yyyy-MM-dd').format(dateTime);
     String itemName = receiptData['itemName'] ?? '';
     String merchant = receiptData['merchant'] ?? '';
-    String category = receiptData['category'] ?? '';
+    String? categoryId = receiptData['categoryId']; // Nullable categoryId
     double amount = (receiptData['amount'] is int)
         ? (receiptData['amount'] as int).toDouble()
         : (receiptData['amount'] as double);
@@ -213,18 +216,54 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
           ),
         );
       },
-      child: Card(
-        margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            children: [
-              _buildImageSection(imageUrl),
-              Expanded(
-                  child: _buildTextDetails(itemName, merchant, date, category)),
-              _buildAmountSection(currency, amount),
-            ],
-          ),
+      child: (loggedInUser?.email != null && categoryId != null)
+          ? FutureBuilder<Map<String, dynamic>?>(
+              future: categoryService.fetchCategoryById(
+                  loggedInUser!.email!, categoryId),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                String categoryName = snapshot.data?['name'] ?? 'Uncategorized';
+                String categoryIcon = snapshot.data?['icon'] ??
+                    '📦'; // Default icon for uncategorized
+
+                return _buildReceiptCardContent(imageUrl, itemName, merchant,
+                    date, categoryName, currency, amount);
+              },
+            )
+          : _buildReceiptCardContent(
+              imageUrl,
+              itemName,
+              merchant,
+              date,
+              'Uncategorized',
+              currency,
+              amount), // Handle case where categoryId is null
+    );
+  }
+
+  Widget _buildReceiptCardContent(
+      String imageUrl,
+      String itemName,
+      String merchant,
+      String date,
+      String categoryName,
+      String currency,
+      double amount) {
+    return Card(
+      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            _buildImageSection(imageUrl),
+            Expanded(
+              child: _buildTextDetails(itemName, merchant, date, categoryName),
+            ),
+            _buildAmountSection(currency, amount),
+          ],
         ),
       ),
     );
@@ -273,7 +312,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
         Text(itemName, style: TextStyle(fontWeight: FontWeight.bold)),
         Text('Merchant: $merchant'),
         Text('Date: $date'),
-        Text('Category: $category'),
+        Text('Category: $category'), // Display the fetched category name
       ],
     );
   }

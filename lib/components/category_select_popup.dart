@@ -15,7 +15,7 @@ class CategorySelectPopup extends StatefulWidget {
 
 class _CategorySelectPopupState extends State<CategorySelectPopup> {
   List<Map<String, dynamic>> userCategories = [];
-  String? selectedCategory;
+  String? selectedCategoryId;
 
   final ReceiptService receiptService = ReceiptService();
 
@@ -43,10 +43,6 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
     try {
       List<Map<String, dynamic>> categories =
           await _categoryService.fetchUserCategories(widget.userId);
-
-      if (categories.isEmpty) {
-        // Default categories can be handled here if needed
-      }
 
       setState(() {
         userCategories = categories;
@@ -77,11 +73,11 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
     );
   }
 
-  Future<void> deleteCategory(String categoryName) async {
+  Future<void> deleteCategory(String categoryId, String categoryName) async {
     try {
-      // Find the category that matches the name
+      // Find the category that matches the id
       var categoryToRemove = userCategories.firstWhere(
-        (category) => category['name'] == categoryName,
+        (category) => category['id'] == categoryId,
         orElse: () => <String, dynamic>{},
       );
 
@@ -114,8 +110,11 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
 
         // If the user confirms the deletion, proceed to delete
         if (confirmDelete == true) {
-          await _categoryService.deleteCategory(
-              widget.userId, categoryName, categoryToRemove['icon']);
+          // Ensure that 'categoryToRemove' contains the 'id' of the category
+          final categoryId = categoryToRemove['id'];
+
+          // Delete the category using its unique id
+          await _categoryService.deleteCategory(widget.userId, categoryId);
 
           // Set receipts with this category to null
           await receiptService.setReceiptsCategoryToNull(categoryName);
@@ -123,7 +122,7 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
           // Remove the category locally from the UI
           setState(() {
             userCategories
-                .removeWhere((category) => category['name'] == categoryName);
+                .removeWhere((category) => category['id'] == categoryId);
           });
 
           fetchUserCategories(); // Refresh the category list after deletion
@@ -131,7 +130,7 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
           print("Category deletion canceled: $categoryName");
         }
       } else {
-        print("Category not found locally: $categoryName");
+        print("Category not found locally: $categoryId");
       }
     } catch (e) {
       print("Error deleting category: $e");
@@ -220,17 +219,11 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
                   child: ListView.builder(
                     itemCount: userCategories.length,
                     itemBuilder: (context, index) {
+                      String categoryId = userCategories[index]['id'] ?? '';
                       String categoryName =
-                          userCategories[index]['name']?.trim() ??
-                              ''; // Safely get and trim category name
+                          userCategories[index]['name']?.trim() ?? '';
 
-                      // Debugging print statement
-                      print(
-                          'Category: $categoryName, Selected: ${selectedCategory?.trim() ?? ''}');
-
-                      bool isSelected = categoryName ==
-                          (selectedCategory?.trim() ??
-                              ''); // Compare trimmed values
+                      bool isSelected = categoryId == selectedCategoryId;
 
                       return Container(
                         color: isSelected
@@ -251,16 +244,16 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
                           trailing: IconButton(
                             icon: Icon(Icons.delete_outline, color: Colors.red),
                             onPressed: () {
-                              deleteCategory(userCategories[index]['name']);
+                              deleteCategory(categoryId, categoryName);
                             },
                           ),
                           onTap: () {
                             setState(() {
-                              selectedCategory =
-                                  categoryName; // Update selected category
+                              selectedCategoryId =
+                                  categoryId; // Update selected category id
                             });
                             Navigator.pop(context,
-                                selectedCategory); // Return selected category
+                                selectedCategoryId); // Return selected category id
                           },
                         ),
                       );
