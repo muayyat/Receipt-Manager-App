@@ -354,7 +354,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
             onPressed: () {
               Navigator.pushNamed(context, ExpenseChartScreen.id);
             },
-            child: Icon(Icons.pie_chart),
+            child: Icon(Icons.bar_chart),
             backgroundColor: Colors.lightBlueAccent,
             heroTag: 'expenseChartFAB',
             shape: RoundedRectangleBorder(

@@ -83,7 +83,7 @@ class _SettingScreenState extends State<SettingScreen> {
             child: ListBody(
               children: <Widget>[
                 Text(
-                    'Are you sure you want to delete your account? This action cannot be undone and you will lose all your data.'),
+                    'Are you sure you want to close your account? This action cannot be undone and you will lose all your data.'),
               ],
             ),
           ),
@@ -139,7 +139,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 Expanded(
                   child: RoundedButton(
                     color: Colors.orange,
-                    title: 'Clear Receipt History',
+                    title: 'Clear Receipts',
                     onPressed: () {
                       _confirmClearHistory(context);
                     },

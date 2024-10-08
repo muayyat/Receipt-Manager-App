@@ -313,8 +313,8 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-            widget.receiptId != null ? 'Edit Receipt' : 'Create New Receipt'),
+        title:
+            Text(widget.receiptId != null ? 'Update Receipt' : 'New Receipt'),
         backgroundColor: Colors.lightBlueAccent,
       ),
       body: SingleChildScrollView(
