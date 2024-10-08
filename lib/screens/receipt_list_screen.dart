@@ -115,17 +115,19 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
         ];
 
         return Container(
-          height: 300,
+          height: 260,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Text('Sort Options', style: TextStyle(fontSize: 24)),
+                child: Text('Sort Options',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
               Expanded(
                 child: CupertinoPicker(
-                  itemExtent: 32.0, // Height of each item
+                  itemExtent: 36.0, // Height of each item
                   onSelectedItemChanged: (int index) {
                     selectedSortOption = index; // Update the selected option
                   },
