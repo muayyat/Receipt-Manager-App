@@ -22,7 +22,6 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   User? loggedInUser;
 
   final ReceiptService receiptService = ReceiptService();
-
   final CategoryService categoryService = CategoryService();
 
   bool isLoading = true;
@@ -45,8 +44,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     Color(0xFF8D6E63), // Soft Brown
   ];
   Map<String, Color> categoryColors = {};
-  Map<String, String> categoryIcons = {}; // CategoryId to Icon
-  Map<String, String> categoryNames = {}; // CategoryId to Name
+  List<Map<String, dynamic>> userCategories = [];
   Map<String, double> categoryGroupedTotals = {};
 
   TimeInterval selectedInterval =
@@ -57,14 +55,38 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   @override
   void initState() {
     super.initState();
-    getCurrentUser();
-    fetchCurrencyCodes();
-    fetchCategoryGroupedExpenseData(); // Fetch expense data after getting the user
-    fetchIntervalGroupedExpenseData(); // Fetch data for the default interval (day)
+    initializeData(); // Initialize the data properly
   }
 
-  void getCurrentUser() async {
+  Future<void> initializeData() async {
+    await getCurrentUser(); // Ensure the user is fetched first
+    await fetchCategories(); // Fetch categories after getting the user
+    fetchCurrencyCodes(); // These can run in parallel or after the user fetch
+    fetchCategoryGroupedExpenseData(); // Fetch expense data
+    fetchIntervalGroupedExpenseData(); // Fetch interval data
+  }
+
+  Future<void> getCurrentUser() async {
     loggedInUser = await AuthService.getCurrentUser();
+  }
+
+  // Method to fetch and store the categories
+  Future<void> fetchCategories() async {
+    try {
+      List<Map<String, dynamic>> fetchedCategories =
+          await categoryService.fetchUserCategories(loggedInUser!.email!);
+
+      setState(() {
+        userCategories = fetchedCategories; // Store categories in state
+        isLoading = false; // Stop loading spinner
+      });
+      print('0id' + userCategories[0]['id']);
+    } catch (e) {
+      print('Error fetching categories: $e');
+      setState(() {
+        isLoading = false; // Stop loading even if there's an error
+      });
+    }
   }
 
   Future<void> _showCalendarFilterDialog() async {
@@ -169,14 +191,19 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     }
   }
 
-  // Fetch category display data (icon and name)
-  Future<Map<String, dynamic>?> fetchCategoryIconName(String categoryId) async {
-    // Fetch the category data using the existing fetchCategoryById method
-    Map<String, dynamic>? categoryData = await categoryService
-        .fetchCategoryById(loggedInUser!.email!, categoryId);
+  // Method to get category name by ID
+  String getCategoryIconNameById(String categoryId) {
+    final category = userCategories.firstWhere(
+      (category) => category['id'] == categoryId,
+      orElse: () => {
+        'icon': '❓',
+        'name': 'Uncategorized'
+      }, // Return a default if not found
+    );
 
-    // Return the category data (which may include icon and name)
-    return categoryData;
+    String categoryDisplay = category['icon'] + category['name'];
+
+    return categoryDisplay;
   }
 
   void generateColorMapping(Set<String> categories) {
@@ -191,15 +218,12 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   }
 
   List<PieChartSectionData> getPieSections() {
-    double totalAmount =
-        categoryGroupedTotals.values.fold(0, (sum, item) => sum + item);
-
     return categoryGroupedTotals.entries.map((entry) {
-      final category = entry.key;
+      final categoryId = entry.key;
       final total = entry.value;
 
       return PieChartSectionData(
-        color: categoryColors[category],
+        color: categoryColors[categoryId],
         value: total,
         title: '', // Set the title to empty
         radius: 70,
@@ -237,6 +261,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                     categoryGroupedTotals.values
                         .fold(0, (sum, item) => sum + item)) *
                 100;
+            final categoryDisplay = getCategoryIconNameById(entry.key);
 
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -251,7 +276,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                   ),
                   SizedBox(width: 8), // Space between color box and text
                   Text(
-                    '${entry.key}\n: ${total.toStringAsFixed(2)} $selectedBaseCurrency (${percentage.toStringAsFixed(1)}%)',
+                    '$categoryDisplay: ${total.toStringAsFixed(2)} $selectedBaseCurrency (${percentage.toStringAsFixed(1)}%)',
                     style: TextStyle(fontSize: 16),
                     textAlign: TextAlign.left,
                   ),
