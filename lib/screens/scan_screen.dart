@@ -190,16 +190,7 @@ class _ScanScreenState extends State<ScanScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: null,
-        actions: <Widget>[
-          IconButton(
-              icon: Icon(Icons.close),
-              onPressed: () {
-                AuthService.signOut();
-                Navigator.pop(context);
-              }),
-        ],
-        title: Text('⚡️Capture Receipt'),
+        title: Text('Scan Receipt'),
         backgroundColor: Colors.lightBlueAccent,
       ),
       body: SingleChildScrollView(
