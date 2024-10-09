@@ -4,6 +4,8 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:http/http.dart' as http;
 
 class CurrencyService {
+  Map<String, double>? conversionRates;
+
   // Method to get the API key from Firebase Remote Config
   static Future<String> getApiKey() async {
     final remoteConfig = FirebaseRemoteConfig.instance;
@@ -56,7 +58,7 @@ class CurrencyService {
   }
 
   // Fetch conversion rates using the API key from Remote Config
-  static Future<Map<String, double>> fetchConversionRates() async {
+  Future<void> fetchConversionRates() async {
     final String apiKey =
         await getApiKey(); // Get the API key from Remote Config
     const String apiUrl = 'https://openexchangerates.org/api/latest.json';
@@ -69,7 +71,7 @@ class CurrencyService {
         final Map<String, dynamic> rates = data['rates'];
 
         // Convert the rates to a Map<String, double>
-        Map<String, double> conversionRates = rates.map((key, value) {
+        conversionRates = rates.map((key, value) {
           if (value is int) {
             return MapEntry(key, value.toDouble());
           } else if (value is double) {
@@ -79,32 +81,44 @@ class CurrencyService {
           }
         });
 
-        return conversionRates; // Return the fetched conversion rates
+        print('Fetched conversion rates: $conversionRates');
       } else {
         throw Exception('Failed to load conversion rates');
       }
     } catch (e) {
-      throw Exception('Error fetching conversion rates: $e');
+      print('Error fetching conversion rates: $e');
+      conversionRates = {};
     }
   }
 
   // Method to convert amount to the base currency
-  static double convertToBaseCurrency(double amount, String currency,
-      String selectedBaseCurrency, Map<String, double> conversionRates) {
+  Future<double> convertToBaseCurrency(
+      double amount, String currency, String selectedBaseCurrency) async {
+    // Ensure conversion rates are fetched
+    if (conversionRates == null || conversionRates!.isEmpty) {
+      await fetchConversionRates();
+    }
+
+    // If the amount is already in the base currency, return it as is
     if (currency == selectedBaseCurrency) {
       return amount;
     }
 
     double amountInUSD;
+
+    // Convert from the original currency to USD first
     if (currency != 'USD') {
-      double rateToUSD = conversionRates[currency] ?? 1.0;
+      double rateToUSD =
+          conversionRates![currency] ?? 1.0; // Default to 1.0 if rate not found
       amountInUSD = amount / rateToUSD;
     } else {
       amountInUSD = amount;
     }
 
+    // Convert from USD to the base currency
     if (selectedBaseCurrency != 'USD') {
-      double rateToBaseCurrency = conversionRates[selectedBaseCurrency] ?? 1.0;
+      double rateToBaseCurrency = conversionRates![selectedBaseCurrency] ??
+          1.0; // Default to 1.0 if rate not found
       return amountInUSD * rateToBaseCurrency;
     } else {
       return amountInUSD;

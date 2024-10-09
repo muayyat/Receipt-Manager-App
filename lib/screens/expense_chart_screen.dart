@@ -26,7 +26,6 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   bool isLoading = true;
   String selectedBaseCurrency = 'EUR';
   late List<String> availableCurrencies = [];
-  Map<String, double> conversionRates = {};
 
   // Set default dates
   DateTime? _startDate =
@@ -135,17 +134,6 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
       setState(() {}); // Update the UI after fetching currency codes
     } catch (e) {
       print('Failed to fetch available currencies: $e');
-    }
-  }
-
-  Future<void> fetchConversionRates() async {
-    try {
-      final rates = await CurrencyService.fetchConversionRates();
-      setState(() {
-        conversionRates = rates;
-      });
-    } catch (e) {
-      print('Failed to fetch conversion rates: $e');
     }
   }
 
@@ -294,8 +282,8 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
 
     try {
       // Call the groupReceiptsByInterval method based on the selected interval
-      groupedExpenses =
-          await receiptService.groupReceiptsByInterval(selectedInterval);
+      groupedExpenses = await receiptService.groupReceiptsByInterval(
+          selectedInterval, selectedBaseCurrency);
       setState(() {
         isLoading = false; // Data has been loaded
       });

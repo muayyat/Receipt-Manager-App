@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
+import 'currency_service.dart';
+
 final _firestore = FirebaseFirestore.instance;
 
 enum TimeInterval { day, week, month, year }
@@ -153,7 +155,7 @@ class ReceiptService {
 
   // Group receipts by day, week, month, or year
   Future<Map<String, double>> groupReceiptsByInterval(
-      TimeInterval interval) async {
+      TimeInterval interval, String selectedBaseCurrency) async {
     if (loggedInUser == null) {
       throw Exception('User not logged in');
     }
@@ -177,6 +179,7 @@ class ReceiptService {
 
     for (var receipt in receiptList) {
       Map<String, dynamic> receiptData = receipt as Map<String, dynamic>;
+      String currency = receiptData['currency'];
       double amount = (receiptData['amount'] as num).toDouble();
       Timestamp timestamp = receiptData['date'];
       DateTime receiptDate = timestamp.toDate();
@@ -208,17 +211,23 @@ class ReceiptService {
       // Debugging: Print the group key and amount
       print('Group Key: $groupKey, Amount: $amount');
 
+      CurrencyService currencyService = CurrencyService();
+
       // Aggregate the expenses
       if (groupedExpenses.containsKey(groupKey)) {
-        groupedExpenses[groupKey] = groupedExpenses[groupKey]! + amount;
+        groupedExpenses[groupKey] = groupedExpenses[groupKey]! +
+            await currencyService.convertToBaseCurrency(
+                amount, currency, selectedBaseCurrency);
       } else {
-        groupedExpenses[groupKey] = amount;
+        groupedExpenses[groupKey] = await currencyService.convertToBaseCurrency(
+            amount, currency, selectedBaseCurrency);
       }
+
+      // Debugging: Print the grouped expenses map
+      print('Grouped Expenses: $groupedExpenses');
     }
 
-    // Debugging: Print the grouped expenses map
-    print('Grouped Expenses: $groupedExpenses');
-
+    // Return the grouped expenses map after processing all receipts
     return groupedExpenses;
   }
 
