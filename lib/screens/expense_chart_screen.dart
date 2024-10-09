@@ -21,11 +21,18 @@ class ExpenseChartScreen extends StatefulWidget {
 class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   User? loggedInUser;
 
-  Map<String, double> categoryTotals = {};
-  Map<String, Color> categoryColors = {};
+  final ReceiptService receiptService = ReceiptService();
+
   bool isLoading = true;
   String selectedBaseCurrency = 'EUR';
   late List<String> availableCurrencies = [];
+  Map<String, double> conversionRates = {};
+
+  // Set default dates
+  DateTime? _startDate =
+      DateTime(DateTime.now().year, 1, 1); // Start date: first day of the year
+  DateTime? _endDate = DateTime.now(); // End date: today
+
   final List<Color> availableColors = [
     Color(0xFF42A5F5), // Soft Blue
     Color(0xFF66BB6A), // Soft Green
@@ -36,27 +43,21 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     Color(0xFF26C6DA), // Soft Cyan
     Color(0xFF8D6E63), // Soft Brown
   ];
+  Map<String, Color> categoryColors = {};
+  Map<String, double> categoryTotals = {};
 
-  DateTimeRange? selectedDateRange;
-  final ReceiptService receiptService = ReceiptService();
-
-  Map<String, double> groupedExpenses =
-      {}; // Stores grouped expenses based on interval
   TimeInterval selectedInterval =
       TimeInterval.day; // Default time interval (day)
-
-  // Set default dates
-  DateTime? _startDate =
-      DateTime(DateTime.now().year, 1, 1); // Start date: first day of the year
-  DateTime? _endDate = DateTime.now(); // End date: today
+  Map<String, double> groupedExpenses =
+      {}; // Stores grouped expenses based on interval
 
   @override
   void initState() {
     super.initState();
     getCurrentUser();
-    fetchExpenseData(); // Fetch expense data after getting the user
-    fetchConversionRates();
     fetchCurrencyCodes();
+    fetchConversionRates();
+    fetchExpenseData(); // Fetch expense data after getting the user
     fetchGroupedExpenseData(); // Fetch data for the default interval (day)
   }
 
@@ -86,6 +87,48 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     );
   }
 
+  Future<void> _showCurrencyPicker(BuildContext context) async {
+    int initialIndex = availableCurrencies.indexOf(selectedBaseCurrency);
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16),
+          height: 300, // Set an appropriate height for the picker
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Select Currency',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              Expanded(
+                child: CupertinoPicker(
+                  scrollController:
+                      FixedExtentScrollController(initialItem: initialIndex),
+                  itemExtent: 32.0, // Height of each item
+                  onSelectedItemChanged: (int index) {
+                    setState(() {
+                      selectedBaseCurrency = availableCurrencies[index];
+                    });
+                  },
+                  children: availableCurrencies
+                      .map((currency) => Center(child: Text(currency)))
+                      .toList(),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> fetchCurrencyCodes() async {
     try {
       availableCurrencies = await CurrencyService.fetchCurrencyCodes();
@@ -94,12 +137,6 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
       print('Failed to fetch available currencies: $e');
     }
   }
-
-  Map<String, double> conversionRates = {
-    'USD': 0.85,
-    'EUR': 1.0,
-    'GBP': 1.17,
-  };
 
   Future<void> fetchConversionRates() async {
     try {
@@ -131,11 +168,11 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
           double amount = (receiptData['amount'] as num).toDouble();
           String currency = receiptData['currency'];
 
-          if (selectedDateRange != null) {
+          if (_startDate != null && _endDate != null) {
             DateTime receiptDate = date.toDate();
-            if (receiptDate.isBefore(selectedDateRange!.start) ||
-                receiptDate.isAfter(selectedDateRange!.end)) {
-              continue; // Skip this receipt if it's outside the date range
+            if (receiptDate.isBefore(_startDate!) ||
+                receiptDate.isAfter(_endDate!)) {
+              continue; // Skip this receipt if it's outside the default date range
             }
           }
 
@@ -166,94 +203,6 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     }
   }
 
-  void fetchGroupedExpenseData() async {
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      // Call the groupReceiptsByInterval method based on the selected interval
-      groupedExpenses =
-          await receiptService.groupReceiptsByInterval(selectedInterval);
-      setState(() {
-        isLoading = false; // Data has been loaded
-      });
-    } catch (e) {
-      print('Error fetching grouped expense data: $e');
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  Widget buildBarChart() {
-    if (groupedExpenses.isEmpty) {
-      return Center(
-          child: Text('No data available for the selected interval.'));
-    }
-
-    return SizedBox(
-      height: 300, // Set a fixed height for the bar chart
-      child: BarChart(
-        BarChartData(
-          alignment: BarChartAlignment.spaceEvenly,
-          borderData: FlBorderData(show: false),
-          titlesData: FlTitlesData(
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (double value, TitleMeta meta) {
-                  // Display the interval (day, week, month, or year) as the title
-                  final key = groupedExpenses.keys.elementAt(value.toInt());
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      key, // Display the grouped interval as the label
-                      style: TextStyle(fontSize: 12),
-                    ),
-                  );
-                },
-                reservedSize: 42,
-              ),
-            ),
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                interval: 20,
-                getTitlesWidget: (double value, TitleMeta meta) {
-                  return Text(
-                    value.toString(),
-                    style: TextStyle(fontSize: 10),
-                  );
-                },
-                reservedSize: 30,
-              ),
-            ),
-          ),
-          barGroups: getBarChartGroups(),
-        ),
-      ),
-    );
-  }
-
-  List<BarChartGroupData> getBarChartGroups() {
-    return groupedExpenses.entries.map((entry) {
-      final index = groupedExpenses.keys.toList().indexOf(entry.key);
-      final total = entry.value;
-      return BarChartGroupData(
-        x: index,
-        barRods: [
-          BarChartRodData(
-            toY: total,
-            color: availableColors[
-                index % availableColors.length], // Use available colors
-            width: 22,
-          ),
-        ],
-      );
-    }).toList();
-  }
-
   void generateColorMapping(Set<String> categories) {
     categoryColors.clear();
     int colorIndex = 0;
@@ -265,32 +214,23 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     }
   }
 
-  // Method to build the card with gray background
-  Widget buildCard(BuildContext context, String title, Widget chart) {
-    return Card(
-      color: Colors.grey[200], // Set the background color to light grey
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10), // Optional: rounded corners
-      ),
-      elevation: 4, // Optional: give the card a shadow
-      child: Padding(
-        padding: const EdgeInsets.all(10.0), // Add padding inside the card
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 16),
-            chart, // The chart will define the card size
-          ],
-        ),
-      ),
-    );
+  List<PieChartSectionData> getPieSections() {
+    double totalAmount =
+        categoryTotals.values.fold(0, (sum, item) => sum + item);
+
+    return categoryTotals.entries.map((entry) {
+      final category = entry.key;
+      final total = entry.value;
+
+      return PieChartSectionData(
+        color: categoryColors[category],
+        value: total,
+        title: '', // Set the title to empty
+        radius: 70,
+        titleStyle:
+            TextStyle(fontSize: 0), // Set title style font size to 0 to hide it
+      );
+    }).toList();
   }
 
   // Method to build the pie chart
@@ -347,64 +287,119 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     );
   }
 
-  List<PieChartSectionData> getPieSections() {
-    double totalAmount =
-        categoryTotals.values.fold(0, (sum, item) => sum + item);
+  void fetchGroupedExpenseData() async {
+    setState(() {
+      isLoading = true;
+    });
 
-    return categoryTotals.entries.map((entry) {
-      final category = entry.key;
+    try {
+      // Call the groupReceiptsByInterval method based on the selected interval
+      groupedExpenses =
+          await receiptService.groupReceiptsByInterval(selectedInterval);
+      setState(() {
+        isLoading = false; // Data has been loaded
+      });
+    } catch (e) {
+      print('Error fetching grouped expense data: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  List<BarChartGroupData> getBarChartGroups() {
+    return groupedExpenses.entries.map((entry) {
+      final index = groupedExpenses.keys.toList().indexOf(entry.key);
       final total = entry.value;
-
-      return PieChartSectionData(
-        color: categoryColors[category],
-        value: total,
-        title: '', // Set the title to empty
-        radius: 70,
-        titleStyle:
-            TextStyle(fontSize: 0), // Set title style font size to 0 to hide it
+      return BarChartGroupData(
+        x: index,
+        barRods: [
+          BarChartRodData(
+            toY: total,
+            color: availableColors[
+                index % availableColors.length], // Use available colors
+            width: 22,
+          ),
+        ],
       );
     }).toList();
   }
 
-  Future<void> _showCurrencyPicker(BuildContext context) async {
-    int initialIndex = availableCurrencies.indexOf(selectedBaseCurrency);
+  Widget buildBarChart() {
+    if (groupedExpenses.isEmpty) {
+      return Center(
+          child: Text('No data available for the selected interval.'));
+    }
 
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(16),
-          height: 300, // Set an appropriate height for the picker
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Select Currency',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    return SizedBox(
+      height: 300, // Set a fixed height for the bar chart
+      child: BarChart(
+        BarChartData(
+          alignment: BarChartAlignment.spaceEvenly,
+          borderData: FlBorderData(show: false),
+          titlesData: FlTitlesData(
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (double value, TitleMeta meta) {
+                  // Display the interval (day, week, month, or year) as the title
+                  final key = groupedExpenses.keys.elementAt(value.toInt());
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      key, // Display the grouped interval as the label
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  );
+                },
+                reservedSize: 42,
               ),
-              Expanded(
-                child: CupertinoPicker(
-                  scrollController:
-                      FixedExtentScrollController(initialItem: initialIndex),
-                  itemExtent: 32.0, // Height of each item
-                  onSelectedItemChanged: (int index) {
-                    setState(() {
-                      selectedBaseCurrency = availableCurrencies[index];
-                    });
-                  },
-                  children: availableCurrencies
-                      .map((currency) => Center(child: Text(currency)))
-                      .toList(),
-                ),
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                interval: 20,
+                getTitlesWidget: (double value, TitleMeta meta) {
+                  return Text(
+                    value.toString(),
+                    style: TextStyle(fontSize: 10),
+                  );
+                },
+                reservedSize: 30,
               ),
-            ],
+            ),
           ),
-        );
-      },
+          barGroups: getBarChartGroups(),
+        ),
+      ),
+    );
+  }
+
+  // Method to build the card with gray background
+  Widget buildCard(BuildContext context, String title, Widget chart) {
+    return Card(
+      color: Colors.grey[200], // Set the background color to light grey
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10), // Optional: rounded corners
+      ),
+      elevation: 4, // Optional: give the card a shadow
+      child: Padding(
+        padding: const EdgeInsets.all(10.0), // Add padding inside the card
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 16),
+            chart, // The chart will define the card size
+          ],
+        ),
+      ),
     );
   }
 
