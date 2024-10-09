@@ -382,26 +382,29 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                 showTitles: false, // Hide the left axis values
               ),
             ),
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true, // Show right axis values
-                interval: 200, // Adjust the interval according to your data
-                getTitlesWidget: (double value, TitleMeta meta) {
-                  return Padding(
-                    padding: const EdgeInsets.only(
-                        right: 8.0), // Move closer to the chart
-                    child: Text(
-                      value.toStringAsFixed(
-                          0), // Display the value without decimals
-                      style: TextStyle(fontSize: 10),
-                    ),
-                  );
-                },
-                reservedSize: 30, // Adjust this size if needed
-              ),
-            ),
           ),
           barGroups: getBarChartGroups(),
+          barTouchData: BarTouchData(
+            // enabled: false,
+            touchTooltipData: BarTouchTooltipData(
+              getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                // Customize the tooltip text
+                return BarTooltipItem(
+                  '${rod.toY.toStringAsFixed(1)}', // Format the value displayed
+                  const TextStyle(
+                    color: Colors.black, // Tooltip text color
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                );
+              },
+              getTooltipColor: (group) =>
+                  Colors.transparent, // Set background color
+              tooltipPadding:
+                  const EdgeInsets.all(0), // Padding inside the tooltip
+              tooltipMargin: 0, // Margin from the bar
+            ),
+          ),
         ),
       ),
     );
@@ -427,7 +430,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 32),
             chart, // The chart will define the card size
           ],
         ),
