@@ -142,6 +142,51 @@ class ReceiptService {
     }
   }
 
+  // Group receipts by category
+  Future<Map<String, double>> groupReceiptsByCategory(
+      String selectedBaseCurrency) async {
+    if (loggedInUser == null) {
+      throw Exception('User not logged in');
+    }
+
+    DocumentReference userDocRef =
+        _firestore.collection('receipts').doc(loggedInUser!.email);
+
+    DocumentSnapshot userDoc = await userDocRef.get();
+
+    if (!userDoc.exists) {
+      throw Exception('User document not found');
+    }
+
+    // Get the receipt list
+    List<dynamic> receiptList = userDoc['receiptlist'] ?? [];
+
+    Map<String, double> groupedExpenses = {};
+
+    for (var receipt in receiptList) {
+      Map<String, dynamic> receiptData = receipt as Map<String, dynamic>;
+      String category = receiptData['category'];
+      String currency = receiptData['currency'];
+      double amount = (receiptData['amount'] as num).toDouble();
+
+      CurrencyService currencyService = CurrencyService();
+
+      // Convert the amount to the base currency
+      double convertedAmount = await currencyService.convertToBaseCurrency(
+          amount, currency, selectedBaseCurrency);
+
+      // Aggregate the expenses by category
+      if (groupedExpenses.containsKey(category)) {
+        groupedExpenses[category] =
+            groupedExpenses[category]! + convertedAmount;
+      } else {
+        groupedExpenses[category] = convertedAmount;
+      }
+    }
+
+    return groupedExpenses;
+  }
+
   int getWeekNumber(DateTime date) {
     // Get the first day of the year
     final firstDayOfYear = DateTime(date.year, 1, 1);

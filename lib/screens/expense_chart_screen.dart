@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
@@ -55,9 +54,8 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     super.initState();
     getCurrentUser();
     fetchCurrencyCodes();
-    fetchConversionRates();
-    fetchExpenseData(); // Fetch expense data after getting the user
-    fetchGroupedExpenseData(); // Fetch data for the default interval (day)
+    fetchCategoryGroupedExpenseData(); // Fetch expense data after getting the user
+    fetchIntervalGroupedExpenseData(); // Fetch data for the default interval (day)
   }
 
   void getCurrentUser() async {
@@ -137,57 +135,24 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     }
   }
 
-  // Fetch expense data using ReceiptService
-  void fetchExpenseData() async {
+  // Method to fetch and set categoryTotals using the groupReceiptsByCategory
+  Future<void> fetchCategoryGroupedExpenseData() async {
     try {
-      // Listen to the receipts stream
-      receiptService.fetchReceipts().listen((userDoc) {
-        if (!userDoc.exists) return;
+      // Use the receipt service to get the category totals
+      String selectedBaseCurrency = 'USD'; // Example base currency
 
-        List<dynamic> receiptList =
-            userDoc.get('receiptlist') as List<dynamic>? ?? [];
+      Map<String, double> groupedExpenses =
+          await receiptService.groupReceiptsByCategory(selectedBaseCurrency);
 
-        Map<String, double> tempCategoryTotals = {};
-        Set<String> categories = {};
-
-        for (var receipt in receiptList) {
-          Map<String, dynamic> receiptData = receipt as Map<String, dynamic>;
-          Timestamp date = receiptData['date'];
-          double amount = (receiptData['amount'] as num).toDouble();
-          String currency = receiptData['currency'];
-
-          if (_startDate != null && _endDate != null) {
-            DateTime receiptDate = date.toDate();
-            if (receiptDate.isBefore(_startDate!) ||
-                receiptDate.isAfter(_endDate!)) {
-              continue; // Skip this receipt if it's outside the default date range
-            }
-          }
-
-          double convertedAmount = CurrencyService.convertToBaseCurrency(
-              amount, currency, selectedBaseCurrency, conversionRates);
-
-          String category = receiptData['category'];
-
-          categories.add(category);
-
-          if (tempCategoryTotals.containsKey(category)) {
-            tempCategoryTotals[category] =
-                tempCategoryTotals[category]! + convertedAmount;
-          } else {
-            tempCategoryTotals[category] = convertedAmount;
-          }
-        }
-
-        generateColorMapping(categories);
-
-        setState(() {
-          categoryTotals = tempCategoryTotals;
-          isLoading = false;
-        });
+      // Update the categoryTotals and refresh the UI
+      setState(() {
+        categoryTotals = groupedExpenses;
       });
+
+      // Debugging: Print the category totals
+      print('Category Totals: $categoryTotals');
     } catch (e) {
-      print("Error fetching data: $e");
+      print('Error fetching category totals: $e');
     }
   }
 
@@ -275,7 +240,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     );
   }
 
-  void fetchGroupedExpenseData() async {
+  void fetchIntervalGroupedExpenseData() async {
     setState(() {
       isLoading = true;
     });
@@ -299,7 +264,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   void onIntervalSelected(TimeInterval interval) {
     setState(() {
       selectedInterval = interval;
-      fetchGroupedExpenseData(); // Call your method when interval changes
+      fetchIntervalGroupedExpenseData(); // Call your method when interval changes
     });
   }
 
