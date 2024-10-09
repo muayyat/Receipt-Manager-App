@@ -7,6 +7,7 @@ import '../components/calendar_filter_widget.dart';
 import '../components/custom_drawer.dart';
 import '../components/date_range_container.dart';
 import '../services/auth_service.dart';
+import '../services/category_service.dart';
 import '../services/currency_service.dart';
 import '../services/receipt_service.dart';
 
@@ -21,6 +22,8 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   User? loggedInUser;
 
   final ReceiptService receiptService = ReceiptService();
+
+  final CategoryService categoryService = CategoryService();
 
   bool isLoading = true;
   String selectedBaseCurrency = 'EUR';
@@ -42,11 +45,13 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     Color(0xFF8D6E63), // Soft Brown
   ];
   Map<String, Color> categoryColors = {};
-  Map<String, double> categoryTotals = {};
+  Map<String, String> categoryIcons = {}; // CategoryId to Icon
+  Map<String, String> categoryNames = {}; // CategoryId to Name
+  Map<String, double> categoryGroupedTotals = {};
 
   TimeInterval selectedInterval =
       TimeInterval.day; // Default time interval (day)
-  Map<String, double> groupedExpenses =
+  Map<String, double> intervalGroupedTotals =
       {}; // Stores grouped expenses based on interval
 
   @override
@@ -144,16 +149,29 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
       Map<String, double> groupedExpenses =
           await receiptService.groupReceiptsByCategory(selectedBaseCurrency);
 
+      // Generate the color mapping for the categories
+      generateColorMapping(groupedExpenses.keys.toSet());
+
       // Update the categoryTotals and refresh the UI
       setState(() {
-        categoryTotals = groupedExpenses;
+        categoryGroupedTotals = groupedExpenses;
       });
 
       // Debugging: Print the category totals
-      print('Category Totals: $categoryTotals');
+      print('Category Totals: $categoryGroupedTotals');
     } catch (e) {
       print('Error fetching category totals: $e');
     }
+  }
+
+  // Fetch category display data (icon and name)
+  Future<Map<String, dynamic>?> fetchCategoryIconName(String categoryId) async {
+    // Fetch the category data using the existing fetchCategoryById method
+    Map<String, dynamic>? categoryData = await categoryService
+        .fetchCategoryById(loggedInUser!.email!, categoryId);
+
+    // Return the category data (which may include icon and name)
+    return categoryData;
   }
 
   void generateColorMapping(Set<String> categories) {
@@ -169,9 +187,9 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
 
   List<PieChartSectionData> getPieSections() {
     double totalAmount =
-        categoryTotals.values.fold(0, (sum, item) => sum + item);
+        categoryGroupedTotals.values.fold(0, (sum, item) => sum + item);
 
-    return categoryTotals.entries.map((entry) {
+    return categoryGroupedTotals.entries.map((entry) {
       final category = entry.key;
       final total = entry.value;
 
@@ -192,7 +210,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
       children: [
         SizedBox(
           height: 300, // Set a fixed height for the pie chart
-          child: categoryTotals.isEmpty
+          child: categoryGroupedTotals.isEmpty
               ? Center(child: Text('No data available.'))
               : PieChart(
                   PieChartData(
@@ -208,10 +226,11 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
         // Custom Legend
         Wrap(
           spacing: 10,
-          children: categoryTotals.entries.map((entry) {
+          children: categoryGroupedTotals.entries.map((entry) {
             final total = entry.value;
             final percentage = (total /
-                    categoryTotals.values.fold(0, (sum, item) => sum + item)) *
+                    categoryGroupedTotals.values
+                        .fold(0, (sum, item) => sum + item)) *
                 100;
 
             return Padding(
@@ -227,7 +246,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                   ),
                   SizedBox(width: 8), // Space between color box and text
                   Text(
-                    '${entry.key}: ${total.toStringAsFixed(2)} $selectedBaseCurrency (${percentage.toStringAsFixed(1)}%)',
+                    '${entry.key}\n: ${total.toStringAsFixed(2)} $selectedBaseCurrency (${percentage.toStringAsFixed(1)}%)',
                     style: TextStyle(fontSize: 16),
                     textAlign: TextAlign.left,
                   ),
@@ -247,7 +266,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
 
     try {
       // Call the groupReceiptsByInterval method based on the selected interval
-      groupedExpenses = await receiptService.groupReceiptsByInterval(
+      intervalGroupedTotals = await receiptService.groupReceiptsByInterval(
           selectedInterval, selectedBaseCurrency);
       setState(() {
         isLoading = false; // Data has been loaded
@@ -269,8 +288,8 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   }
 
   List<BarChartGroupData> getBarChartGroups() {
-    return groupedExpenses.entries.map((entry) {
-      final index = groupedExpenses.keys.toList().indexOf(entry.key);
+    return intervalGroupedTotals.entries.map((entry) {
+      final index = intervalGroupedTotals.keys.toList().indexOf(entry.key);
       final total = entry.value;
 
       return BarChartGroupData(
@@ -296,7 +315,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   }
 
   Widget buildBarChart() {
-    if (groupedExpenses.isEmpty) {
+    if (intervalGroupedTotals.isEmpty) {
       return Center(
           child: Text('No data available for the selected interval.'));
     }
@@ -318,7 +337,8 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                 showTitles: true,
                 getTitlesWidget: (double value, TitleMeta meta) {
                   // Display the interval (day, week, month, or year) as the title
-                  final key = groupedExpenses.keys.elementAt(value.toInt());
+                  final key =
+                      intervalGroupedTotals.keys.elementAt(value.toInt());
                   return Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text(

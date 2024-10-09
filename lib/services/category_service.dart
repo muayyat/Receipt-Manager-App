@@ -57,6 +57,7 @@ class CategoryService {
         if (category != null) {
           print('Category found: ${category['name']}'); // Debug print
           return {
+            'id': userDoc.id,
             'name': category['name'] ?? 'Unknown',
             'icon': category['icon'] ?? ''
           };
@@ -154,32 +155,6 @@ class CategoryService {
     } catch (e) {
       print("Error checking if category exists: $e");
       return false;
-    }
-  }
-
-  // Fetch the icon by category name
-  Future<String?> fetchIconByCategoryName(
-      String userId, String categoryName) async {
-    try {
-      DocumentSnapshot userDoc =
-          await _firestore.collection('categories').doc(userId).get();
-
-      if (userDoc.exists && userDoc.data() != null) {
-        var data = userDoc.data() as Map<String, dynamic>;
-        List<dynamic> categoryList = data['categorylist'] ?? [];
-
-        for (var category in categoryList) {
-          if (category['name'].toString().toLowerCase() ==
-              categoryName.toLowerCase()) {
-            return category['icon'] ?? null;
-          }
-        }
-      }
-
-      return null; // Return null if category not found
-    } catch (e) {
-      print("Error fetching icon by category name: $e");
-      return null;
     }
   }
 }

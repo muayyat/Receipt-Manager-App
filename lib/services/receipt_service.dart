@@ -161,15 +161,18 @@ class ReceiptService {
     // Get the receipt list
     List<dynamic> receiptList = userDoc['receiptlist'] ?? [];
 
+    // Initialize the map to group expenses by category
     Map<String, double> groupedExpenses = {};
+
+    // Move CurrencyService initialization outside the loop
+    CurrencyService currencyService = CurrencyService();
 
     for (var receipt in receiptList) {
       Map<String, dynamic> receiptData = receipt as Map<String, dynamic>;
-      String category = receiptData['category'];
+      String category = receiptData['categoryId'] ??
+          'Uncategorized'; // Handle missing category
       String currency = receiptData['currency'];
       double amount = (receiptData['amount'] as num).toDouble();
-
-      CurrencyService currencyService = CurrencyService();
 
       // Convert the amount to the base currency
       double convertedAmount = await currencyService.convertToBaseCurrency(
