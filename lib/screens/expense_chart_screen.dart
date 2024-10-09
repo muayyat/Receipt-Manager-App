@@ -416,6 +416,10 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     );
   }
 
+  // Function to capitalize the first letter of a string
+  String capitalize(String s) =>
+      s[0].toUpperCase() + s.substring(1).toLowerCase();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -487,7 +491,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                     // Bar Chart Card
                     buildCard(
                       context,
-                      'Expenses by ${selectedInterval.toString().split('.').last} in $selectedBaseCurrency',
+                      'Expenses by ${capitalize(selectedInterval.toString().split('.').last)} in $selectedBaseCurrency',
                       buildBarChart(), // Build the bar chart here
                     ),
                   ],
