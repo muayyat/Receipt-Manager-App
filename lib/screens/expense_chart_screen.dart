@@ -83,6 +83,9 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
               _startDate = start;
               _endDate = end;
             });
+            // Call the methods to refresh the data and charts
+            fetchCategoryGroupedExpenseData(); // Refresh pie chart data
+            fetchIntervalGroupedExpenseData(); // Refresh bar chart data
           },
         );
       },
@@ -148,8 +151,8 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     try {
       // Use the receipt service to get the category totals with the selected base currency
       Map<String, double> groupedExpenses =
-          await receiptService.groupReceiptsByCategory(
-              selectedBaseCurrency); // Use selectedBaseCurrency from state
+          await receiptService.groupReceiptsByCategory(selectedBaseCurrency,
+              _startDate!, _endDate!); // Use selectedBaseCurrency from state
 
       // Generate the color mapping for the categories
       generateColorMapping(groupedExpenses.keys.toSet());
@@ -269,7 +272,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     try {
       // Call the groupReceiptsByInterval method based on the selected interval
       intervalGroupedTotals = await receiptService.groupReceiptsByInterval(
-          selectedInterval, selectedBaseCurrency);
+          selectedInterval, selectedBaseCurrency, _startDate!, _endDate!);
       setState(() {
         isLoading = false; // Data has been loaded
       });

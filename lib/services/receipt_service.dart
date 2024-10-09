@@ -113,7 +113,7 @@ class ReceiptService {
     }
   }
 
-// Set categoryId to null for all receipts that match the given categoryId
+  // Set categoryId to null for all receipts that match the given categoryId
   Future<void> setReceiptsCategoryToNull(String categoryId) async {
     if (loggedInUser == null) {
       throw Exception('User not logged in');
@@ -142,9 +142,9 @@ class ReceiptService {
     }
   }
 
-  // Group receipts by category
+  // Group receipts by category with date filtering
   Future<Map<String, double>> groupReceiptsByCategory(
-      String selectedBaseCurrency) async {
+      String selectedBaseCurrency, DateTime startDate, DateTime endDate) async {
     if (loggedInUser == null) {
       throw Exception('User not logged in');
     }
@@ -173,6 +173,13 @@ class ReceiptService {
           'Uncategorized'; // Handle missing category
       String currency = receiptData['currency'];
       double amount = (receiptData['amount'] as num).toDouble();
+      Timestamp timestamp = receiptData['date'];
+      DateTime receiptDate = timestamp.toDate();
+
+      // Check if the receipt date falls within the specified date range
+      if (receiptDate.isBefore(startDate) || receiptDate.isAfter(endDate)) {
+        continue; // Skip this receipt if it's outside the date range
+      }
 
       // Convert the amount to the base currency
       double convertedAmount = await currencyService.convertToBaseCurrency(
@@ -202,8 +209,8 @@ class ReceiptService {
   }
 
   // Group receipts by day, week, month, or year
-  Future<Map<String, double>> groupReceiptsByInterval(
-      TimeInterval interval, String selectedBaseCurrency) async {
+  Future<Map<String, double>> groupReceiptsByInterval(TimeInterval interval,
+      String selectedBaseCurrency, DateTime startDate, DateTime endDate) async {
     if (loggedInUser == null) {
       throw Exception('User not logged in');
     }
@@ -233,6 +240,11 @@ class ReceiptService {
       double amount = (receiptData['amount'] as num).toDouble();
       Timestamp timestamp = receiptData['date'];
       DateTime receiptDate = timestamp.toDate();
+
+      // Filter receipts based on the date range
+      if (receiptDate.isBefore(startDate) || receiptDate.isAfter(endDate)) {
+        continue; // Skip receipts that are outside the date range
+      }
 
       // Debugging: Print the receipt data before grouping
       print('Receipt Date: $receiptDate, Amount: $amount');
