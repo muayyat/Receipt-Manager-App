@@ -225,6 +225,8 @@ class ReceiptService {
 
     Map<String, double> groupedExpenses = {};
 
+    CurrencyService currencyService = CurrencyService();
+
     for (var receipt in receiptList) {
       Map<String, dynamic> receiptData = receipt as Map<String, dynamic>;
       String currency = receiptData['currency'];
@@ -258,8 +260,6 @@ class ReceiptService {
 
       // Debugging: Print the group key and amount
       print('Group Key: $groupKey, Amount: $amount');
-
-      CurrencyService currencyService = CurrencyService();
 
       // Aggregate the expenses
       if (groupedExpenses.containsKey(groupKey)) {
