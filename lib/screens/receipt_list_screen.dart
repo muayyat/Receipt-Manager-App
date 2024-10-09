@@ -22,20 +22,21 @@ class ReceiptListScreen extends StatefulWidget {
 
 class _ReceiptListScreenState extends State<ReceiptListScreen> {
   User? loggedInUser;
+
   final ReceiptService receiptService = ReceiptService();
   final CategoryService categoryService =
       CategoryService(); // Add CategoryService
 
   Stream<DocumentSnapshot>? receiptsStream;
-  String currentSortField = 'date';
-  bool isDescending = false;
+  List<Map<String, dynamic>> sortedReceiptList = [];
 
   // Set default dates
   DateTime? _startDate =
       DateTime(DateTime.now().year, 1, 1); // Start date: first day of the year
   DateTime? _endDate = DateTime.now(); // End date: today
 
-  List<Map<String, dynamic>> sortedReceiptList = [];
+  String currentSortField = 'date';
+  bool isDescending = false;
 
   @override
   void initState() {
@@ -53,30 +54,6 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
         // You can handle the case where the user is not logged in if needed.
         print('No user is logged in.');
       }
-    });
-  }
-
-  void onSortChanged(String newSortField, bool descending) {
-    setState(() {
-      currentSortField = newSortField;
-      isDescending = descending;
-    });
-    _sortReceiptList();
-  }
-
-  void _sortReceiptList() {
-    sortedReceiptList.sort((a, b) {
-      var aValue, bValue;
-
-      if (currentSortField == 'date') {
-        aValue = (a['date'] as Timestamp).toDate();
-        bValue = (b['date'] as Timestamp).toDate();
-      } else if (currentSortField == 'amount') {
-        aValue = (a['amount'] as num).toDouble();
-        bValue = (b['amount'] as num).toDouble();
-      }
-
-      return isDescending ? bValue.compareTo(aValue) : aValue.compareTo(bValue);
     });
   }
 
@@ -164,51 +141,113 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
     );
   }
 
+  void onSortChanged(String newSortField, bool descending) {
+    setState(() {
+      currentSortField = newSortField;
+      isDescending = descending;
+    });
+    _sortReceiptList();
+  }
+
+  void _sortReceiptList() {
+    sortedReceiptList.sort((a, b) {
+      var aValue, bValue;
+
+      if (currentSortField == 'date') {
+        aValue = (a['date'] as Timestamp).toDate();
+        bValue = (b['date'] as Timestamp).toDate();
+      } else if (currentSortField == 'amount') {
+        aValue = (a['amount'] as num).toDouble();
+        bValue = (b['amount'] as num).toDouble();
+      }
+
+      return isDescending ? bValue.compareTo(aValue) : aValue.compareTo(bValue);
+    });
+  }
+
   Center _buildLoadingIndicator() {
     return Center(child: CircularProgressIndicator());
   }
 
-  StreamBuilder<DocumentSnapshot> _buildReceiptList() {
-    return StreamBuilder<DocumentSnapshot>(
-      stream: receiptsStream,
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
+  Widget _buildImageSection(String imageUrl) {
+    return Container(
+      height: 60,
+      width: 60,
+      margin: EdgeInsets.only(right: 10),
+      decoration: BoxDecoration(
+        color: Colors.grey[300],
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: imageUrl.isNotEmpty
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              (loadingProgress.expectedTotalBytes ?? 1)
+                          : null,
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return Text('Image failed to load');
+                },
+              ),
+            )
+          : Container(),
+    );
+  }
 
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        }
+  Widget _buildTextDetails(
+      String itemName, String merchant, String date, String categoryName) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(itemName, style: TextStyle(fontWeight: FontWeight.bold)),
+        Text('Merchant: $merchant'),
+        Text('Date: $date'),
+        Text('Category: $categoryName'), // Display the fetched category name
+      ],
+    );
+  }
 
-        if (!snapshot.hasData ||
-            snapshot.data == null ||
-            snapshot.data!.data() == null) {
-          return Center(child: Text('No receipts found.'));
-        }
+  Widget _buildAmountSection(String currency, double amount) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text('$currency $amount'),
+      ],
+    );
+  }
 
-        final receiptList =
-            snapshot.data!.get('receiptlist') as List<dynamic>? ?? [];
-        sortedReceiptList = receiptList.cast<Map<String, dynamic>>();
-
-        if (_startDate != null && _endDate != null) {
-          sortedReceiptList = sortedReceiptList.where((receipt) {
-            final receiptDate = (receipt['date'] as Timestamp).toDate();
-            return receiptDate.isAfter(_startDate!) &&
-                receiptDate.isBefore(_endDate!);
-          }).toList();
-        }
-
-        _sortReceiptList();
-
-        return ListView.builder(
-          padding: EdgeInsets.only(bottom: 80),
-          itemCount: sortedReceiptList.length,
-          itemBuilder: (context, index) {
-            final receipt = sortedReceiptList[index];
-            return _buildReceiptCard(receipt);
-          },
-        );
-      },
+  Widget _buildReceiptCardContent(
+      String imageUrl,
+      String itemName,
+      String merchant,
+      String date,
+      String categoryName,
+      String currency,
+      double amount) {
+    return Card(
+      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            _buildImageSection(imageUrl),
+            Expanded(
+              child: _buildTextDetails(itemName, merchant, date, categoryName),
+            ),
+            _buildAmountSection(currency, amount),
+          ],
+        ),
+      ),
     );
   }
 
@@ -269,85 +308,47 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
     );
   }
 
-  Widget _buildReceiptCardContent(
-      String imageUrl,
-      String itemName,
-      String merchant,
-      String date,
-      String categoryName,
-      String currency,
-      double amount) {
-    return Card(
-      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          children: [
-            _buildImageSection(imageUrl),
-            Expanded(
-              child: _buildTextDetails(itemName, merchant, date, categoryName),
-            ),
-            _buildAmountSection(currency, amount),
-          ],
-        ),
-      ),
-    );
-  }
+  StreamBuilder<DocumentSnapshot> _buildReceiptList() {
+    return StreamBuilder<DocumentSnapshot>(
+      stream: receiptsStream,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
 
-  Widget _buildImageSection(String imageUrl) {
-    return Container(
-      height: 60,
-      width: 60,
-      margin: EdgeInsets.only(right: 10),
-      decoration: BoxDecoration(
-        color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: imageUrl.isNotEmpty
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                              (loadingProgress.expectedTotalBytes ?? 1)
-                          : null,
-                    ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return Text('Image failed to load');
-                },
-              ),
-            )
-          : Container(),
-    );
-  }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
 
-  Widget _buildTextDetails(
-      String itemName, String merchant, String date, String categoryName) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(itemName, style: TextStyle(fontWeight: FontWeight.bold)),
-        Text('Merchant: $merchant'),
-        Text('Date: $date'),
-        Text('Category: $categoryName'), // Display the fetched category name
-      ],
-    );
-  }
+        if (!snapshot.hasData ||
+            snapshot.data == null ||
+            snapshot.data!.data() == null) {
+          return Center(child: Text('No receipts found.'));
+        }
 
-  Widget _buildAmountSection(String currency, double amount) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text('$currency $amount'),
-      ],
+        final receiptList =
+            snapshot.data!.get('receiptlist') as List<dynamic>? ?? [];
+        sortedReceiptList = receiptList.cast<Map<String, dynamic>>();
+
+        if (_startDate != null && _endDate != null) {
+          sortedReceiptList = sortedReceiptList.where((receipt) {
+            final receiptDate = (receipt['date'] as Timestamp).toDate();
+            return receiptDate.isAfter(_startDate!) &&
+                receiptDate.isBefore(_endDate!);
+          }).toList();
+        }
+
+        _sortReceiptList();
+
+        return ListView.builder(
+          padding: EdgeInsets.only(bottom: 80),
+          itemCount: sortedReceiptList.length,
+          itemBuilder: (context, index) {
+            final receipt = sortedReceiptList[index];
+            return _buildReceiptCard(receipt);
+          },
+        );
+      },
     );
   }
 
