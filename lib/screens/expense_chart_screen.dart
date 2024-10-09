@@ -118,6 +118,9 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                     setState(() {
                       selectedBaseCurrency = availableCurrencies[index];
                     });
+                    // Call the methods to refresh the data and charts
+                    fetchCategoryGroupedExpenseData(); // Refresh pie chart data
+                    fetchIntervalGroupedExpenseData(); // Refresh bar chart data
                   },
                   children: availableCurrencies
                       .map((currency) => Center(child: Text(currency)))
@@ -143,11 +146,10 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
   // Method to fetch and set categoryTotals using the groupReceiptsByCategory
   Future<void> fetchCategoryGroupedExpenseData() async {
     try {
-      // Use the receipt service to get the category totals
-      String selectedBaseCurrency = 'USD'; // Example base currency
-
+      // Use the receipt service to get the category totals with the selected base currency
       Map<String, double> groupedExpenses =
-          await receiptService.groupReceiptsByCategory(selectedBaseCurrency);
+          await receiptService.groupReceiptsByCategory(
+              selectedBaseCurrency); // Use selectedBaseCurrency from state
 
       // Generate the color mapping for the categories
       generateColorMapping(groupedExpenses.keys.toSet());
