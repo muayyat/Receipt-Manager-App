@@ -221,4 +221,51 @@ class ReceiptService {
 
     return groupedExpenses;
   }
+
+  // Method to get the oldest and newest receipt dates
+  Future<Map<String, DateTime>> getOldestAndNewestDates() async {
+    if (loggedInUser == null) {
+      throw Exception('User not logged in');
+    }
+
+    DocumentReference userDocRef =
+        _firestore.collection('receipts').doc(loggedInUser!.email);
+
+    DocumentSnapshot userDoc = await userDocRef.get();
+
+    if (!userDoc.exists) {
+      throw Exception('User document not found');
+    }
+
+    // Get the receipt list
+    List<dynamic> receiptList = userDoc['receiptlist'] ?? [];
+
+    if (receiptList.isEmpty) {
+      throw Exception('No receipts found');
+    }
+
+    // Initialize variables to store the oldest and newest dates
+    DateTime? oldestDate;
+    DateTime? newestDate;
+
+    for (var receipt in receiptList) {
+      Map<String, dynamic> receiptData = receipt as Map<String, dynamic>;
+      Timestamp timestamp = receiptData['date'];
+      DateTime receiptDate = timestamp.toDate();
+
+      // Initialize the oldest and newest dates if null
+      if (oldestDate == null || receiptDate.isBefore(oldestDate)) {
+        oldestDate = receiptDate;
+      }
+      if (newestDate == null || receiptDate.isAfter(newestDate)) {
+        newestDate = receiptDate;
+      }
+    }
+
+    // Return the oldest and newest dates as a map
+    return {
+      'oldest': oldestDate!,
+      'newest': newestDate!,
+    };
+  }
 }
