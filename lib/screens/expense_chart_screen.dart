@@ -307,10 +307,19 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
     }
   }
 
+  // Function to handle the button click and update the selected interval
+  void onIntervalSelected(TimeInterval interval) {
+    setState(() {
+      selectedInterval = interval;
+      fetchGroupedExpenseData(); // Call your method when interval changes
+    });
+  }
+
   List<BarChartGroupData> getBarChartGroups() {
     return groupedExpenses.entries.map((entry) {
       final index = groupedExpenses.keys.toList().indexOf(entry.key);
       final total = entry.value;
+
       return BarChartGroupData(
         x: index,
         barRods: [
@@ -319,8 +328,16 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
             color: availableColors[
                 index % availableColors.length], // Use available colors
             width: 22,
+            borderRadius: BorderRadius.circular(1),
+            // Add a label for the value above the bar
+            rodStackItems: [
+              BarChartRodStackItem(
+                  0, total, availableColors[index % availableColors.length])
+            ],
           ),
         ],
+        // Show tooltip or indicator with value above the bar
+        showingTooltipIndicators: [0],
       );
     }).toList();
   }
@@ -338,6 +355,11 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
           alignment: BarChartAlignment.spaceEvenly,
           borderData: FlBorderData(show: false),
           titlesData: FlTitlesData(
+            topTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: false, // Hide the top axis titles
+              ),
+            ),
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
@@ -355,17 +377,27 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                 reservedSize: 42,
               ),
             ),
+            rightTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: false, // Hide the left axis values
+              ),
+            ),
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
-                showTitles: true,
-                interval: 20,
+                showTitles: true, // Show right axis values
+                interval: 200, // Adjust the interval according to your data
                 getTitlesWidget: (double value, TitleMeta meta) {
-                  return Text(
-                    value.toString(),
-                    style: TextStyle(fontSize: 10),
+                  return Padding(
+                    padding: const EdgeInsets.only(
+                        right: 8.0), // Move closer to the chart
+                    child: Text(
+                      value.toStringAsFixed(
+                          0), // Display the value without decimals
+                      style: TextStyle(fontSize: 10),
+                    ),
                   );
                 },
-                reservedSize: 30,
+                reservedSize: 30, // Adjust this size if needed
               ),
             ),
           ),
@@ -447,24 +479,27 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                     ),
                     SizedBox(
                         height: 20), // Space between pie chart and bar chart
-                    DropdownButton<TimeInterval>(
-                      value: selectedInterval,
-                      icon: Icon(Icons.filter_alt),
-                      onChanged: (TimeInterval? newValue) {
-                        setState(() {
-                          selectedInterval = newValue!;
-                          fetchGroupedExpenseData(); // Fetch data for the newly selected interval
-                        });
-                      },
-                      items: TimeInterval.values
-                          .map<DropdownMenuItem<TimeInterval>>(
-                              (TimeInterval value) {
-                        return DropdownMenuItem<TimeInterval>(
-                          value: value,
-                          child: Text(value
-                              .toString()
-                              .split('.')
-                              .last), // Display "day", "week", etc.
+                    // Row of buttons
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: TimeInterval.values.map((interval) {
+                        return ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: selectedInterval == interval
+                                ? Colors.blueAccent
+                                : Colors.grey, // Highlight selected interval
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
+                          ),
+                          onPressed: () => onIntervalSelected(interval),
+                          child: Text(
+                            interval
+                                .toString()
+                                .split('.')
+                                .last
+                                .toUpperCase(), // Show interval text
+                            style: TextStyle(color: Colors.white),
+                          ),
                         );
                       }).toList(),
                     ),
