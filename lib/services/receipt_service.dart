@@ -32,6 +32,26 @@ class ReceiptService {
         .snapshots();
   }
 
+  Future<int> getReceiptCount() async {
+    try {
+      // Assuming each user has their own receipt document
+      DocumentReference userDocRef =
+          _firestore.collection('receipts').doc(loggedInUser!.email);
+
+      DocumentSnapshot userDoc = await userDocRef.get();
+
+      if (!userDoc.exists) {
+        return 0; // Return 0 if no document is found
+      }
+
+      // Get the receipt list from Firestore
+      List<dynamic> receiptList = userDoc['receiptlist'] ?? [];
+      return receiptList.length;
+    } catch (e) {
+      throw Exception('Failed to fetch receipt count: $e');
+    }
+  }
+
   // Add a new receipt
   Future<void> addReceipt(Map<String, dynamic> receiptData) async {
     if (loggedInUser == null) {

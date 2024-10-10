@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -24,14 +22,11 @@ class DashboardScreenState extends State<DashboardScreen> {
   User? loggedInUser;
 
   String? userName = '';
-  String? phoneNumber = '';
-  String? city = '';
-  String? country = '';
-  File? profileImage;
 
   // Variables to store receipt date range
   DateTime? _oldestDate;
   DateTime? _newestDate;
+  int _receiptCount = 0;
 
   UserService userService = UserService();
   ReceiptService receiptService = ReceiptService();
@@ -48,6 +43,7 @@ class DashboardScreenState extends State<DashboardScreen> {
       if (loggedInUser != null) {
         loadProfileData();
         fetchReceiptDates(); // Fetch receipt date range
+        fetchReceiptCount(); // Fetch receipt count
       }
     } catch (e) {
       logger.e(e);
@@ -67,18 +63,22 @@ class DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Future<void> fetchReceiptCount() async {
+    try {
+      int count = await receiptService.getReceiptCount();
+      setState(() {
+        _receiptCount = count;
+      });
+    } catch (e) {
+      logger.e('Error fetching receipt count: $e');
+    }
+  }
+
   Future<void> loadProfileData() async {
     userService.fetchUserProfile().listen((snapshot) {
       if (snapshot.exists) {
         setState(() {
           userName = snapshot.data()?['userName'] ?? 'No Name';
-          phoneNumber = snapshot.data()?['phoneNumber'] ?? '';
-          city = snapshot.data()?['city'] ?? '';
-          country = snapshot.data()?['country'] ?? '';
-          String? profileImagePath = snapshot.data()?['profileImagePath'];
-          if (profileImagePath != null) {
-            profileImage = File(profileImagePath);
-          }
         });
       }
     });
@@ -113,9 +113,14 @@ class DashboardScreenState extends State<DashboardScreen> {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 20),
+            Text(
+              'You have $_receiptCount receipts.',
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 20),
             _oldestDate != null && _newestDate != null
                 ? Text(
-                    'Your receipts span from ${DateFormat('yyyy-MM-dd').format(_oldestDate!)} to ${DateFormat('yyyy-MM-dd').format(_newestDate!)}.',
+                    'Your receipts span from\n ${DateFormat('yyyy-MM-dd').format(_oldestDate!)} to ${DateFormat('yyyy-MM-dd').format(_newestDate!)}.',
                     style: TextStyle(fontSize: 16),
                   )
                 : CircularProgressIndicator(), // Show loading while fetching dates
