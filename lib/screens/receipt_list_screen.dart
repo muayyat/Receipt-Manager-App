@@ -137,7 +137,7 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
                   }
                   Navigator.of(context).pop(); // Close the bottom sheet
                 },
-                child: Text('Done', style: TextStyle(fontSize: 20)),
+                child: Text('DONE', style: TextStyle(fontSize: 20)),
               )
             ],
           ),

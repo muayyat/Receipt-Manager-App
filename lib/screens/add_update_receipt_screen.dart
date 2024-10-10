@@ -178,7 +178,7 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
                   });
                   Navigator.pop(context); // Close the bottom sheet
                 },
-                child: Text('Done'),
+                child: Text('DONE'),
               ),
             ],
           ),

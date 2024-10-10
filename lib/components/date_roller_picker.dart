@@ -91,15 +91,9 @@ class CalendarFilterWidgetState extends State<CalendarFilterWidget> {
                   },
                 ),
               ),
-              ElevatedButton(
+              TextButton(
                 onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.lightBlueAccent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: Text('Done'),
+                child: Text('DONE'),
               ),
             ],
           ),
