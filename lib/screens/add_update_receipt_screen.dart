@@ -7,6 +7,7 @@ import 'package:receipt_manager/screens/scan_screen.dart';
 
 import '../components//rounded_button.dart';
 import '../components/add_category_widget.dart';
+import '../components/currency_picker.dart';
 import '../logger.dart';
 import '../services/auth_service.dart';
 import '../services/category_service.dart';
@@ -295,10 +296,6 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
   }
 
   Future<void> _showCurrencyPicker(BuildContext context) async {
-    // Check if selectedCurrency is null, and handle it by defaulting to the first currency
-    int initialIndex =
-        selectedCurrency != null ? currencies.indexOf(selectedCurrency!) : 0;
-
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -306,33 +303,15 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(16),
-          height: 300, // Set an appropriate height for the picker
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Select Currency',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              Expanded(
-                child: CupertinoPicker(
-                  scrollController:
-                      FixedExtentScrollController(initialItem: initialIndex),
-                  itemExtent: 32.0, // Height of each item
-                  onSelectedItemChanged: (int index) {
-                    setState(() {
-                      selectedCurrency = currencies[index];
-                    });
-                  },
-                  children: currencies
-                      .map((currency) => Center(child: Text(currency)))
-                      .toList(),
-                ),
-              ),
-            ],
-          ),
+        return CurrencyPicker(
+          availableCurrencies: currencies,
+          selectedCurrency:
+              selectedCurrency ?? currencies.first, // Provide a default,
+          onCurrencySelected: (String newCurrency) {
+            setState(() {
+              selectedCurrency = newCurrency;
+            });
+          },
         );
       },
     );

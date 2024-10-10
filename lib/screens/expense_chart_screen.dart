@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../components/calendar_filter_widget.dart';
+import '../components/currency_picker.dart';
 import '../components/custom_drawer.dart';
 import '../components/date_range_container.dart';
 import '../components/rounded_button.dart';
@@ -119,8 +119,6 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
   }
 
   Future<void> _showCurrencyPicker(BuildContext context) async {
-    int initialIndex = availableCurrencies.indexOf(selectedBaseCurrency);
-
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -128,36 +126,18 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(16),
-          height: 300, // Set an appropriate height for the picker
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Select Currency',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              Expanded(
-                child: CupertinoPicker(
-                  scrollController:
-                      FixedExtentScrollController(initialItem: initialIndex),
-                  itemExtent: 32.0, // Height of each item
-                  onSelectedItemChanged: (int index) {
-                    setState(() {
-                      selectedBaseCurrency = availableCurrencies[index];
-                    });
-                    // Call the methods to refresh the data and charts
-                    fetchCategoryGroupedExpenseData(); // Refresh pie chart data
-                    fetchIntervalGroupedExpenseData(); // Refresh bar chart data
-                  },
-                  children: availableCurrencies
-                      .map((currency) => Center(child: Text(currency)))
-                      .toList(),
-                ),
-              ),
-            ],
-          ),
+        return CurrencyPicker(
+          availableCurrencies: availableCurrencies,
+          selectedCurrency: selectedBaseCurrency,
+          onCurrencySelected: (String newCurrency) {
+            setState(() {
+              selectedBaseCurrency = newCurrency;
+            });
+
+            // Refresh your data after selection
+            fetchCategoryGroupedExpenseData();
+            fetchIntervalGroupedExpenseData();
+          },
         );
       },
     );
