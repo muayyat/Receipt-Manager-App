@@ -281,11 +281,18 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
                     ),
                   ),
                   SizedBox(width: 8), // Space between color box and text
-                  Text(
-                    '$categoryDisplay: ${total.toStringAsFixed(2)} $selectedBaseCurrency (${percentage.toStringAsFixed(1)}%)',
-                    style: TextStyle(fontSize: 16),
-                    textAlign: TextAlign.left,
-                  ),
+                  SizedBox(
+                    width: 300, // Set a fixed width for the text container
+                    child: Text(
+                      '$categoryDisplay: ${total.toStringAsFixed(2)} $selectedBaseCurrency (${percentage.toStringAsFixed(1)}%)',
+                      style: TextStyle(fontSize: 16),
+                      textAlign: TextAlign.left,
+                      softWrap:
+                          true, // Ensures text wraps if it exceeds the width
+                      overflow: TextOverflow
+                          .visible, // Allows overflow or wrap depending on the content
+                    ),
+                  )
                 ],
               ),
             );
@@ -457,7 +464,7 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
             SizedBox(height: 32),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal, // Enable horizontal scrolling
-              child: Container(
+              child: SizedBox(
                 width: MediaQuery.of(context).size.width *
                     1.5, // Adjust width as needed
                 child: chart, // The chart will define the card size
