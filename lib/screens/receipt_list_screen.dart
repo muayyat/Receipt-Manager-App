@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../components/calendar_filter_widget.dart'; // Import the CalendarFilterWidget
 import '../components/custom_drawer.dart';
 import '../components/date_range_container.dart';
+import '../logger.dart';
 import '../services/auth_service.dart';
 import '../services/category_service.dart'; // Import CategoryService
 import '../services/receipt_service.dart';
@@ -16,11 +17,13 @@ import 'expense_chart_screen.dart';
 class ReceiptListScreen extends StatefulWidget {
   static const String id = 'receipt_list_screen';
 
+  const ReceiptListScreen({super.key});
+
   @override
-  _ReceiptListScreenState createState() => _ReceiptListScreenState();
+  ReceiptListScreenState createState() => ReceiptListScreenState();
 }
 
-class _ReceiptListScreenState extends State<ReceiptListScreen> {
+class ReceiptListScreenState extends State<ReceiptListScreen> {
   User? loggedInUser;
 
   final ReceiptService receiptService = ReceiptService();
@@ -46,13 +49,13 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
 
   void getCurrentUser() async {
     loggedInUser = await AuthService.getCurrentUser();
-    print('Logged in user: $loggedInUser'); // Log user details for debugging
+    logger.i('Logged in user: $loggedInUser'); // Log user details for debugging
     setState(() {
       if (loggedInUser != null) {
         receiptsStream = receiptService.fetchReceipts();
       } else {
         // You can handle the case where the user is not logged in if needed.
-        print('No user is logged in.');
+        logger.w('No user is logged in.');
       }
     });
   }
@@ -91,7 +94,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
           'Amount: Highest First'
         ];
 
-        return Container(
+        return SizedBox(
           height: 260,
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -151,7 +154,7 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
 
   void _sortReceiptList() {
     sortedReceiptList.sort((a, b) {
-      var aValue, bValue;
+      dynamic aValue, bValue;
 
       if (currentSortField == 'date') {
         aValue = (a['date'] as Timestamp).toDate();
@@ -267,8 +270,6 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
 
     return GestureDetector(
       onTap: () {
-        print(
-            'Navigating to Edit Screen with Receipt ID: ${receiptData['id']}');
         // Navigate to AddReceiptScreen and pass receipt data
         Navigator.push(
           context,
@@ -290,8 +291,6 @@ class _ReceiptListScreenState extends State<ReceiptListScreen> {
                 }
 
                 String categoryName = snapshot.data?['name'] ?? 'Uncategorized';
-                String categoryIcon = snapshot.data?['icon'] ??
-                    '📦'; // Default icon for uncategorized
 
                 return _buildReceiptCardContent(imageUrl, itemName, merchant,
                     date, categoryName, currency, amount);

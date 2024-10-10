@@ -14,11 +14,13 @@ import '../screens/setting_screen.dart';
 import '../services/user_service.dart';
 
 class CustomDrawer extends StatefulWidget {
+  const CustomDrawer({super.key});
+
   @override
-  _CustomDrawerState createState() => _CustomDrawerState();
+  CustomDrawerState createState() => CustomDrawerState();
 }
 
-class _CustomDrawerState extends State<CustomDrawer> {
+class CustomDrawerState extends State<CustomDrawer> {
   final UserService _userService = UserService();
   String? userName;
   String? city;

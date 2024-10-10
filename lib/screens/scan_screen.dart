@@ -137,8 +137,8 @@ class ScanScreenState extends State<ScanScreen> {
         _extractReceiptInfo(text);
       });
     } catch (e, stackTrace) {
-      print('Error during text recognition: $e');
-      print('Stack trace: $stackTrace');
+      logger.e('Error during text recognition: $e');
+      logger.i('Stack trace: $stackTrace');
       setState(() {
         _extractedText = "Error extracting text: $e";
       });
@@ -146,16 +146,16 @@ class ScanScreenState extends State<ScanScreen> {
   }
 
   void _extractReceiptInfo(String text) {
-    print('Extracting receipt info from:\n$text'); // Debugging line
+    logger.i('Extracting receipt info from:\n$text'); // Debugging line
 
     // Extract date
     RegExp dateRegex = RegExp(r'\b\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\b');
     Match? dateMatch = dateRegex.firstMatch(text);
     if (dateMatch != null) {
       _date = dateMatch.group(0)!;
-      print('Date found: $_date'); // Debugging line
+      logger.i('Date found: $_date'); // Debugging line
     } else {
-      print('No date found'); // Debugging line
+      logger.w('No date found'); // Debugging line
     }
 
     // Extract total price
@@ -164,16 +164,16 @@ class ScanScreenState extends State<ScanScreen> {
     Match? totalMatch = totalRegex.firstMatch(text);
     if (totalMatch != null) {
       _totalPrice = totalMatch.group(1)!;
-      print('Total price found: $_totalPrice'); // Debugging line
+      logger.i('Total price found: $_totalPrice'); // Debugging line
     } else {
-      print('No total price found'); // Debugging line
+      logger.w('No total price found'); // Debugging line
       // Fallback: try to find the last price in the text
       RegExp priceRegex = RegExp(r'\b\d+[.,]\d{2}\b');
       final prices =
           priceRegex.allMatches(text).map((m) => m.group(0)!).toList();
       if (prices.isNotEmpty) {
         _totalPrice = prices.last;
-        print('Fallback total price found: $_totalPrice'); // Debugging line
+        logger.i('Fallback total price found: $_totalPrice'); // Debugging line
       }
     }
 
@@ -186,7 +186,7 @@ class ScanScreenState extends State<ScanScreen> {
         _items.add(line.trim());
       }
     }
-    print('Items found: ${_items.length}'); // Debugging line
+    logger.i('Items found: ${_items.length}'); // Debugging line
   }
 
   @override

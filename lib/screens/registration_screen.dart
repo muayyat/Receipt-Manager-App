@@ -11,10 +11,10 @@ class RegistrationScreen extends StatefulWidget {
 
   const RegistrationScreen({super.key});
   @override
-  _RegistrationScreenState createState() => _RegistrationScreenState();
+  RegistrationScreenState createState() => RegistrationScreenState();
 }
 
-class _RegistrationScreenState extends State<RegistrationScreen> {
+class RegistrationScreenState extends State<RegistrationScreen> {
   late String email;
   late String password;
   bool showPassword = false; // State to toggle password visibility
@@ -31,7 +31,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Container(
+              SizedBox(
                 height: 200.0,
                 child: Image.asset('images/logo.png'),
               ),

@@ -126,13 +126,13 @@ class CategorySelectPopupState extends State<CategorySelectPopup> {
 
           fetchUserCategories(); // Refresh the category list after deletion
         } else {
-          print("Category deletion canceled.");
+          logger.i("Category deletion canceled.");
         }
       } else {
-        print("Category not found locally: $categoryId");
+        logger.w("Category not found locally: $categoryId");
       }
     } catch (e) {
-      print("Error deleting category: $e");
+      logger.e("Error deleting category: $e");
     }
   }
 
