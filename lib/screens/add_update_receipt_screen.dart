@@ -7,6 +7,7 @@ import 'package:receipt_manager/screens/scan_screen.dart';
 
 import '../components//rounded_button.dart';
 import '../components/add_category_widget.dart';
+import '../logger.dart';
 import '../services/auth_service.dart';
 import '../services/category_service.dart';
 import '../services/currency_service.dart';
@@ -18,14 +19,15 @@ class AddOrUpdateReceiptScreen extends StatefulWidget {
   final Map<String, dynamic>? existingReceipt; // Store existing receipt data
   final String? receiptId; // Store the receipt ID when editing
 
-  AddOrUpdateReceiptScreen({this.existingReceipt, this.receiptId});
+  const AddOrUpdateReceiptScreen(
+      {super.key, this.existingReceipt, this.receiptId});
 
   @override
-  _AddOrUpdateReceiptScreenState createState() =>
-      _AddOrUpdateReceiptScreenState();
+  AddOrUpdateReceiptScreenState createState() =>
+      AddOrUpdateReceiptScreenState();
 }
 
-class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
+class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
   User? loggedInUser;
 
   final ReceiptService receiptService = ReceiptService(); // Create an instance
@@ -77,8 +79,8 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
           _fetchCategoryDetails(selectedCategoryId!);
         }
 
-        selectedCurrency = widget.existingReceipt!['currency'] ?? null;
-        uploadedImageUrl = widget.existingReceipt!['imageUrl'] ?? null;
+        selectedCurrency = widget.existingReceipt!['currency'];
+        uploadedImageUrl = widget.existingReceipt!['imageUrl'];
       } else {
         // Set the default date to today for new receipts
         dateController.text = DateTime.now().toLocal().toString().split(' ')[0];
@@ -105,7 +107,7 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
             fetchedCategories; // Set the fetched categories in the state
       });
     } catch (e) {
-      print("Error fetching user categories: $e");
+      logger.e("Error fetching user categories: $e");
     }
   }
 
@@ -118,8 +120,7 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       selectedCategoryIcon = categoryData?['icon'] ?? ''; // Get category icon
       selectedCategoryName = categoryData?['name'] ?? ''; // Get category name
     });
-
-    print('selectedCategoryName: ' + selectedCategoryName!);
+    logger.e('selectedCategoryName: ${selectedCategoryName!}');
   }
 
   Future<void> fetchCurrencies() async {
@@ -128,7 +129,7 @@ class _AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
           await CurrencyService.fetchCurrencyCodes(); // Fetch currency codes
       setState(() {}); // Update the UI after fetching currencies
     } catch (e) {
-      print('Error fetching currencies: $e');
+      logger.e('Error fetching currencies: $e');
     }
   }
 

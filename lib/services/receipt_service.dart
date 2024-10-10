@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
+import '../logger.dart';
 import 'currency_service.dart';
 
 final _firestore = FirebaseFirestore.instance;
@@ -228,7 +229,7 @@ class ReceiptService {
     List<dynamic> receiptList = userDoc['receiptlist'] ?? [];
 
     // Debugging: Print the number of receipts found
-    print('Number of receipts: ${receiptList.length}');
+    logger.i('Number of receipts: ${receiptList.length}');
 
     Map<String, double> groupedExpenses = {};
 

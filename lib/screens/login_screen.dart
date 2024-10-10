@@ -9,11 +9,13 @@ import '../constants.dart';
 class LoginScreen extends StatefulWidget {
   static const String id = 'login_screen';
 
+  const LoginScreen({super.key});
+
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  LoginScreenState createState() => LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class LoginScreenState extends State<LoginScreen> {
   late String email;
   late String password;
   bool showPassword = false;
@@ -45,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Container(
+              SizedBox(
                 height: 200.0,
                 child: Image.asset('images/logo.png'),
               ),

@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:receipt_manager/screens/login_screen.dart';
 
 import '../components/custom_drawer.dart';
 import '../components/rounded_button.dart'; // Import the RoundedButton widget
@@ -14,10 +13,10 @@ class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  _ProfileScreenState createState() => _ProfileScreenState();
+  ProfileScreenState createState() => ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class ProfileScreenState extends State<ProfileScreen> {
   String? userName = '';
   String? phoneNumber = '';
   String? city = '';
@@ -118,105 +117,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         profileImage = File(pickedFile.path);
       });
-    }
-  }
-
-  Future<void> _confirmClearHistory(BuildContext context) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible:
-          false, // Prevents closing the dialog by clicking outside
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Clear All History'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text(
-                    'Are you sure you want to clear all history? This action cannot be undone.'),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Dismiss the dialog
-              },
-            ),
-            TextButton(
-              child: Text('Confirm'),
-              onPressed: () async {
-                Navigator.of(context).pop(); // Close the dialog
-                await _clearHistory(); // Proceed with clearing history
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _clearHistory() async {
-    try {
-      await _userService.clearAllHistory();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('All history cleared successfully!')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error clearing history: $e')),
-      );
-    }
-  }
-
-  Future<void> _confirmDeleteAccount(BuildContext context) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible:
-          false, // Prevents closing the dialog by clicking outside
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Delete Account'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text(
-                    'Are you sure you want to delete your account? This action cannot be undone and you will lose all your data.'),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Dismiss the dialog
-              },
-            ),
-            TextButton(
-              child: Text('Confirm'),
-              onPressed: () async {
-                Navigator.of(context).pop(); // Close the dialog
-                await _deleteAccount(); // Proceed with deleting account
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _deleteAccount() async {
-    try {
-      await _userService.deleteUser();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Account deleted successfully!')),
-      );
-      Navigator.pushReplacementNamed(context, LoginScreen.id);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error deleting account: $e')),
-      );
     }
   }
 

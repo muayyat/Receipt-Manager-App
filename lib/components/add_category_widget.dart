@@ -10,13 +10,14 @@ class AddCategoryWidget extends StatefulWidget {
   final VoidCallback
       onCategoryAdded; // Callback to trigger after adding category
 
-  AddCategoryWidget({required this.userId, required this.onCategoryAdded});
+  const AddCategoryWidget(
+      {super.key, required this.userId, required this.onCategoryAdded});
 
   @override
-  _AddCategoryWidgetState createState() => _AddCategoryWidgetState();
+  AddCategoryWidgetState createState() => AddCategoryWidgetState();
 }
 
-class _AddCategoryWidgetState extends State<AddCategoryWidget> {
+class AddCategoryWidgetState extends State<AddCategoryWidget> {
   String categoryName = '';
   String selectedIcon = '😊'; // Default icon
   bool showEmojiPicker = false; // Track whether to show emoji picker
@@ -114,6 +115,11 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
             color: Colors.blueAccent,
             title: 'Add Category',
             onPressed: () async {
+              // Move Navigator.pop(context) before any async operation
+              if (mounted) {
+                Navigator.pop(context); // Close the dialog immediately
+              }
+
               if (categoryName.isNotEmpty) {
                 // Check if the category exists
                 bool categoryExists = await _categoryService.categoryExists(
@@ -129,12 +135,8 @@ class _AddCategoryWidgetState extends State<AddCategoryWidget> {
                   await _categoryService.addCategoryToFirestore(
                       widget.userId, categoryName, selectedIcon);
 
-                  widget.onCategoryAdded();
                   // Call the callback after adding category
                   widget.onCategoryAdded();
-
-                  // Close the dialog
-                  Navigator.pop(context);
                 }
               }
             },

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../logger.dart';
 import 'auth_service.dart';
 
 final _firestore = FirebaseFirestore.instance;
@@ -106,12 +107,12 @@ class UserService {
         // Call the deleteAccount method from AuthService to remove the user's auth record
         await AuthService.deleteAccount();
 
-        print('User profile and account deleted successfully');
+        logger.e('User profile and account deleted successfully');
       } catch (e) {
-        print("Error deleting user: $e");
+        logger.e("Error deleting user: $e");
       }
     } else {
-      print("No user is currently signed in.");
+      logger.i("No user is currently signed in.");
     }
   }
 }

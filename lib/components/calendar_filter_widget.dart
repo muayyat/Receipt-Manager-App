@@ -1,6 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter/cupertino.dart';
+
 import '../components/rounded_button.dart';
 
 class CalendarFilterWidget extends StatefulWidget {
@@ -9,17 +10,17 @@ class CalendarFilterWidget extends StatefulWidget {
   final Function(DateTime, DateTime) onApply;
 
   const CalendarFilterWidget({
-    Key? key,
+    super.key,
     required this.initialStartDate,
     required this.initialEndDate,
     required this.onApply,
-  }) : super(key: key);
+  });
 
   @override
-  _CalendarFilterWidgetState createState() => _CalendarFilterWidgetState();
+  CalendarFilterWidgetState createState() => CalendarFilterWidgetState();
 }
 
-class _CalendarFilterWidgetState extends State<CalendarFilterWidget> {
+class CalendarFilterWidgetState extends State<CalendarFilterWidget> {
   DateTime? _startDate;
   DateTime? _endDate;
 
@@ -40,8 +41,11 @@ class _CalendarFilterWidgetState extends State<CalendarFilterWidget> {
     });
   }
 
-  Future<void> _showRollingDatePicker(BuildContext context, bool isStartDate) async {
-    DateTime initialDate = isStartDate ? (_startDate ?? DateTime.now()) : (_endDate ?? DateTime.now());
+  Future<void> _showRollingDatePicker(
+      BuildContext context, bool isStartDate) async {
+    DateTime initialDate = isStartDate
+        ? (_startDate ?? DateTime.now())
+        : (_endDate ?? DateTime.now());
     DateTime maximumDate = DateTime.now();
 
     // Ensure initialDate does not exceed maximumDate
@@ -66,13 +70,16 @@ class _CalendarFilterWidgetState extends State<CalendarFilterWidget> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
+              SizedBox(
                 height: 200,
                 child: CupertinoDatePicker(
                   mode: CupertinoDatePickerMode.date,
                   initialDateTime: initialDate,
-                  minimumDate: isStartDate ? DateTime(2000) : (_startDate ?? DateTime(2000)),
-                  maximumDate: isStartDate ? _endDate ?? maximumDate : maximumDate,
+                  minimumDate: isStartDate
+                      ? DateTime(2000)
+                      : (_startDate ?? DateTime(2000)),
+                  maximumDate:
+                      isStartDate ? _endDate ?? maximumDate : maximumDate,
                   onDateTimeChanged: (DateTime newDate) {
                     setState(() {
                       if (isStartDate) {
@@ -86,13 +93,13 @@ class _CalendarFilterWidgetState extends State<CalendarFilterWidget> {
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('Done'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.lightBlueAccent,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
+                child: Text('Done'),
               ),
             ],
           ),
@@ -172,7 +179,8 @@ class _CalendarFilterWidgetState extends State<CalendarFilterWidget> {
                   GestureDetector(
                     onTap: () => _showRollingDatePicker(context, true),
                     child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                       decoration: BoxDecoration(
                         color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(8),
@@ -195,7 +203,8 @@ class _CalendarFilterWidgetState extends State<CalendarFilterWidget> {
                   GestureDetector(
                     onTap: () => _showRollingDatePicker(context, false),
                     child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                       decoration: BoxDecoration(
                         color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(8),

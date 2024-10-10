@@ -7,6 +7,7 @@ import '../components/calendar_filter_widget.dart';
 import '../components/custom_drawer.dart';
 import '../components/date_range_container.dart';
 import '../components/rounded_button.dart';
+import '../logger.dart';
 import '../services/auth_service.dart';
 import '../services/category_service.dart';
 import '../services/currency_service.dart';
@@ -83,9 +84,9 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
         userCategories = fetchedCategories; // Store categories in state
         isLoading = false; // Stop loading spinner
       });
-      print('0id' + userCategories[0]['id']);
     } catch (e) {
-      print('Error fetching categories: $e');
+      logger.e('Error fetching categories: $e');
+
       setState(() {
         isLoading = false; // Stop loading even if there's an error
       });
@@ -167,7 +168,7 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
       availableCurrencies = await CurrencyService.fetchCurrencyCodes();
       setState(() {}); // Update the UI after fetching currency codes
     } catch (e) {
-      print('Failed to fetch available currencies: $e');
+      logger.e('Failed to fetch available currencies: $e');
     }
   }
 
@@ -186,11 +187,8 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
       setState(() {
         categoryGroupedTotals = groupedExpenses;
       });
-
-      // Debugging: Print the category totals
-      print('Category Totals: $categoryGroupedTotals');
     } catch (e) {
-      print('Error fetching category totals: $e');
+      logger.e('Error fetching category totals: $e');
     }
   }
 
@@ -310,7 +308,7 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
         isLoading = false; // Data has been loaded
       });
     } catch (e) {
-      print('Error fetching grouped expense data: $e');
+      logger.e('Error fetching grouped expense data: $e');
       setState(() {
         isLoading = false;
       });

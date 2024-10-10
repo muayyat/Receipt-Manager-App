@@ -5,20 +5,22 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../components/custom_drawer.dart';
+import '../logger.dart';
 import '../services/auth_service.dart';
 import '../services/receipt_service.dart';
 import '../services/user_service.dart';
-import 'profile_screen.dart';
 import 'scan_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   static const String id = 'dashboard_screen';
 
+  const DashboardScreen({super.key});
+
   @override
-  _DashboardScreenState createState() => _DashboardScreenState();
+  DashboardScreenState createState() => DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class DashboardScreenState extends State<DashboardScreen> {
   User? loggedInUser;
 
   String? userName = '';
@@ -48,7 +50,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         fetchReceiptDates(); // Fetch receipt date range
       }
     } catch (e) {
-      print(e);
+      logger.e(e);
     }
   }
 
@@ -61,7 +63,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _newestDate = dateRange['newest'];
       });
     } catch (e) {
-      print('Error fetching oldest and newest dates: $e');
+      logger.e('Error fetching oldest and newest dates: $e');
     }
   }
 
@@ -80,13 +82,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         });
       }
     });
-  }
-
-  Future<void> _navigateAndReloadSettings(BuildContext context) async {
-    final result = await Navigator.pushNamed(context, ProfileScreen.id);
-    if (result == true) {
-      loadProfileData();
-    }
   }
 
   @override
@@ -131,8 +126,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onPressed: () {
           Navigator.pushNamed(context, ScanScreen.id);
         },
-        child: Icon(Icons.camera_alt),
         backgroundColor: Colors.lightBlueAccent,
+        child: Icon(Icons.camera_alt),
       ),
     );
   }

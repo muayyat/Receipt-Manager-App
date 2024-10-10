@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../logger.dart';
 import '../services/category_service.dart';
 import '../services/receipt_service.dart';
 import 'add_category_widget.dart';
@@ -7,13 +8,13 @@ import 'add_category_widget.dart';
 class CategorySelectPopup extends StatefulWidget {
   final String userId;
 
-  CategorySelectPopup({required this.userId});
+  const CategorySelectPopup({super.key, required this.userId});
 
   @override
-  _CategorySelectPopupState createState() => _CategorySelectPopupState();
+  CategorySelectPopupState createState() => CategorySelectPopupState();
 }
 
-class _CategorySelectPopupState extends State<CategorySelectPopup> {
+class CategorySelectPopupState extends State<CategorySelectPopup> {
   List<Map<String, dynamic>> userCategories = [];
   String? selectedCategoryId;
 
@@ -48,7 +49,7 @@ class _CategorySelectPopupState extends State<CategorySelectPopup> {
         userCategories = categories;
       });
     } catch (e) {
-      print("Error fetching user categories: $e");
+      logger.e("Error fetching user categories: $e");
     }
   }
 

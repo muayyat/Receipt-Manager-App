@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../components/add_category_widget.dart';
 import '../components/custom_drawer.dart';
+import '../logger.dart';
 import '../services/auth_service.dart';
 import '../services/category_service.dart';
 import '../services/receipt_service.dart';
@@ -10,11 +11,13 @@ import '../services/receipt_service.dart';
 class CategoryScreen extends StatefulWidget {
   static const String id = 'category_screen';
 
+  const CategoryScreen({super.key});
+
   @override
-  _CategoryScreenState createState() => _CategoryScreenState();
+  CategoryScreenState createState() => CategoryScreenState();
 }
 
-class _CategoryScreenState extends State<CategoryScreen> {
+class CategoryScreenState extends State<CategoryScreen> {
   User? loggedInUser;
 
   List<Map<String, dynamic>> userCategories = [];
@@ -46,7 +49,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
         userCategories = categories;
       });
     } catch (e) {
-      print("Error fetching user categories: $e");
+      logger.e("Error fetching user categories: $e");
     }
   }
 
@@ -117,7 +120,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
         }
       }
     } catch (e) {
-      print("Error deleting category: $e");
+      logger.e("Error deleting category: $e");
     }
   }
 
