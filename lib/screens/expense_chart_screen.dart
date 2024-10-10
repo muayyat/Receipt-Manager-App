@@ -228,20 +228,17 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
   Widget buildPieChart() {
     return Column(
       children: [
-        SizedBox(
-          height: 300, // Set a fixed height for the pie chart
-          child: categoryGroupedTotals.isEmpty
-              ? Center(child: Text('No data available.'))
-              : PieChart(
-                  PieChartData(
-                    sections: getPieSections(),
-                    centerSpaceRadius: 60,
-                    borderData: FlBorderData(show: false),
-                    sectionsSpace: 4,
-                    startDegreeOffset: -90,
-                  ),
+        categoryGroupedTotals.isEmpty
+            ? Center(child: Text('No data available.'))
+            : PieChart(
+                PieChartData(
+                  sections: getPieSections(),
+                  centerSpaceRadius: 60,
+                  borderData: FlBorderData(show: false),
+                  sectionsSpace: 4,
+                  startDegreeOffset: -90,
                 ),
-        ),
+              ),
         SizedBox(height: 20), // Space between the chart and the legend
         // Custom Legend
         Wrap(
@@ -386,8 +383,7 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
 
   Widget buildBarChart() {
     if (intervalGroupedTotals.isEmpty) {
-      return Center(
-          child: Text('No data available for the selected interval.'));
+      return Center(child: Text('No data available.'));
     }
 
     // Calculate the width dynamically based on the number of bar groups

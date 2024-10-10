@@ -89,11 +89,15 @@ class UserService {
       throw Exception('User not logged in');
     }
 
-    // Delete receipts
-    await _firestore.collection('receipts').doc(loggedInUser!.email).delete();
+    // Clear receipts
+    await _firestore.collection('receipts').doc(loggedInUser!.email).update({
+      'receiptlist': [], // Clear the array
+    });
 
-    // Delete categories
-    await _firestore.collection('categories').doc(loggedInUser!.email).delete();
+    // Clear categories
+    await _firestore.collection('categories').doc(loggedInUser!.email).update({
+      'categorylist': [], // Clear the array
+    });
   }
 
   // Delete the Firebase Authentication account and Firestore profile
@@ -104,8 +108,17 @@ class UserService {
         // Delete user profile in Firestore
         await _firestore.collection('users').doc(user.email).delete();
 
-        // Call the deleteAccount method from AuthService to remove the user's auth record
-        await AuthService.deleteAccount();
+        // Delete receipts
+        await _firestore
+            .collection('receipts')
+            .doc(loggedInUser!.email)
+            .delete();
+
+        // Delete categories
+        await _firestore
+            .collection('categories')
+            .doc(loggedInUser!.email)
+            .delete();
 
         logger.e('User profile and account deleted successfully');
       } catch (e) {

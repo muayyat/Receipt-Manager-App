@@ -22,6 +22,7 @@ class DashboardScreenState extends State<DashboardScreen> {
   User? loggedInUser;
 
   String? userName = '';
+  bool _isLoading = true; // Add this variable
 
   // Variables to store receipt date range
   DateTime? _oldestDate;
@@ -42,11 +43,15 @@ class DashboardScreenState extends State<DashboardScreen> {
       loggedInUser = await AuthService.getCurrentUser();
       if (loggedInUser != null) {
         loadProfileData();
-        fetchReceiptDates(); // Fetch receipt date range
-        fetchReceiptCount(); // Fetch receipt count
+        await fetchReceiptCount(); // Fetch receipt count first
+        await fetchReceiptDates(); // Fetch receipt date range
       }
     } catch (e) {
       logger.e(e);
+    } finally {
+      setState(() {
+        _isLoading = false; // Set loading to false after the operations
+      });
     }
   }
 
@@ -60,6 +65,7 @@ class DashboardScreenState extends State<DashboardScreen> {
       });
     } catch (e) {
       logger.e('Error fetching oldest and newest dates: $e');
+      // You might want to set _oldestDate and _newestDate to null or handle UI here
     }
   }
 
@@ -85,6 +91,7 @@ class DashboardScreenState extends State<DashboardScreen> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -103,29 +110,33 @@ class DashboardScreenState extends State<DashboardScreen> {
       ),
       drawer: CustomDrawer(),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              userName != null && userName!.isNotEmpty
-                  ? 'Welcome 🥳, $userName!'
-                  : 'Welcome 🥳',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            Text(
-              'You have $_receiptCount receipts.',
-              style: TextStyle(fontSize: 16),
-            ),
-            SizedBox(height: 20),
-            _oldestDate != null && _newestDate != null
-                ? Text(
-                    'Your receipts span from\n ${DateFormat('yyyy-MM-dd').format(_oldestDate!)} to ${DateFormat('yyyy-MM-dd').format(_newestDate!)}.',
+        child: _isLoading
+            ? CircularProgressIndicator() // Show loading indicator
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    userName != null && userName!.isNotEmpty
+                        ? 'Welcome 🥳, $userName!'
+                        : 'Welcome 🥳',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    'You have $_receiptCount receipts.',
                     style: TextStyle(fontSize: 16),
-                  )
-                : CircularProgressIndicator(), // Show loading while fetching dates
-          ],
-        ),
+                  ),
+                  SizedBox(height: 20),
+                  _oldestDate != null &&
+                          _newestDate != null &&
+                          _receiptCount != 0
+                      ? Text(
+                          'Your receipts span from\n ${DateFormat('yyyy-MM-dd').format(_oldestDate!)} to ${DateFormat('yyyy-MM-dd').format(_newestDate!)}.',
+                          style: TextStyle(fontSize: 16),
+                        )
+                      : Text(''), // Handle empty receipt dates
+                ],
+              ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
