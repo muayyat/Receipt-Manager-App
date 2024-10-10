@@ -7,7 +7,7 @@ import 'package:receipt_manager/screens/scan_screen.dart';
 
 import '../components//rounded_button.dart';
 import '../components/add_category_widget.dart';
-import '../components/currency_picker.dart';
+import '../components/currency_roller_picker.dart';
 import '../logger.dart';
 import '../services/auth_service.dart';
 import '../services/category_service.dart';
