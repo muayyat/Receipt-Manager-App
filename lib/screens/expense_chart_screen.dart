@@ -276,28 +276,29 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
                     decoration: BoxDecoration(
                       color:
                           categoryColors[entry.key], // Set the background color
-                      borderRadius: BorderRadius.circular(
-                          5), // Rounded corners (8 is just an example)
+                      borderRadius: BorderRadius.circular(5), // Rounded corners
                     ),
                   ),
                   SizedBox(width: 8), // Space between color box and text
-                  SizedBox(
-                    width: 300, // Set a fixed width for the text container
-                    child: Text(
-                      '$categoryDisplay: ${total.toStringAsFixed(2)} $selectedBaseCurrency (${percentage.toStringAsFixed(1)}%)',
-                      style: TextStyle(fontSize: 16),
-                      textAlign: TextAlign.left,
-                      softWrap:
-                          true, // Ensures text wraps if it exceeds the width
-                      overflow: TextOverflow
-                          .visible, // Allows overflow or wrap depending on the content
+                  // Make the description scroll horizontally if it exceeds the width
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Text(
+                        '$categoryDisplay: ${total.toStringAsFixed(2)} $selectedBaseCurrency (${percentage.toStringAsFixed(1)}%)',
+                        style: TextStyle(fontSize: 16),
+                        textAlign: TextAlign.left,
+                        softWrap: false, // Prevent wrapping to the next line
+                        overflow: TextOverflow
+                            .ellipsis, // Show ellipsis if text is too long
+                      ),
                     ),
-                  )
+                  ),
                 ],
               ),
             );
           }).toList(),
-        ),
+        )
       ],
     );
   }
@@ -378,62 +379,69 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
           child: Text('No data available for the selected interval.'));
     }
 
-    return SizedBox(
-      height: 300, // Set a fixed height for the bar chart
-      child: BarChart(
-        BarChartData(
-          alignment: BarChartAlignment.spaceEvenly,
-          borderData: FlBorderData(show: false),
-          titlesData: FlTitlesData(
-            topTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: false, // Hide the top axis titles
+    // Calculate the width dynamically based on the number of bar groups
+    double chartWidth = intervalGroupedTotals.length *
+        100.0; // Adjust 50.0 as per your bar width
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal, // Enable horizontal scrolling
+      child: SizedBox(
+        width: chartWidth, // Set dynamic width for scrolling
+        height: 300, // Set a fixed height for the bar chart
+        child: BarChart(
+          BarChartData(
+            alignment: BarChartAlignment.spaceEvenly,
+            borderData: FlBorderData(show: false),
+            titlesData: FlTitlesData(
+              topTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: false, // Hide the top axis titles
+                ),
+              ),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  getTitlesWidget: (double value, TitleMeta meta) {
+                    // Display the interval (day, week, month, or year) as the title
+                    final key =
+                        intervalGroupedTotals.keys.elementAt(value.toInt());
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        key, // Display the grouped interval as the label
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    );
+                  },
+                  reservedSize: 42,
+                ),
+              ),
+              rightTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: false, // Hide the left axis values
+                ),
               ),
             ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (double value, TitleMeta meta) {
-                  // Display the interval (day, week, month, or year) as the title
-                  final key =
-                      intervalGroupedTotals.keys.elementAt(value.toInt());
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      key, // Display the grouped interval as the label
-                      style: TextStyle(fontSize: 12),
+            barGroups: getBarChartGroups(),
+            barTouchData: BarTouchData(
+              touchTooltipData: BarTouchTooltipData(
+                getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                  // Customize the tooltip text
+                  return BarTooltipItem(
+                    rod.toY.toStringAsFixed(1), // Format the value displayed
+                    const TextStyle(
+                      color: Colors.black, // Tooltip text color
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
                     ),
                   );
                 },
-                reservedSize: 42,
+                getTooltipColor: (group) =>
+                    Colors.transparent, // Set background color
+                tooltipPadding:
+                    const EdgeInsets.all(0), // Padding inside the tooltip
+                tooltipMargin: 0, // Margin from the bar
               ),
-            ),
-            rightTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: false, // Hide the left axis values
-              ),
-            ),
-          ),
-          barGroups: getBarChartGroups(),
-          barTouchData: BarTouchData(
-            // enabled: false,
-            touchTooltipData: BarTouchTooltipData(
-              getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                // Customize the tooltip text
-                return BarTooltipItem(
-                  rod.toY.toStringAsFixed(1), // Format the value displayed
-                  const TextStyle(
-                    color: Colors.black, // Tooltip text color
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                );
-              },
-              getTooltipColor: (group) =>
-                  Colors.transparent, // Set background color
-              tooltipPadding:
-                  const EdgeInsets.all(0), // Padding inside the tooltip
-              tooltipMargin: 0, // Margin from the bar
             ),
           ),
         ),
@@ -462,14 +470,7 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
               ),
             ),
             SizedBox(height: 32),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal, // Enable horizontal scrolling
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width *
-                    1.5, // Adjust width as needed
-                child: chart, // The chart will define the card size
-              ),
-            ),
+            chart, // The chart will define the card size
           ],
         ),
       ),
