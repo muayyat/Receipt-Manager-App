@@ -64,14 +64,14 @@ class CategoryService {
           };
         }
       } else {
-        print('User document does not exist or has no data'); // Debug print
+        logger.w('User document does not exist or has no data'); // Debug print
       }
 
-      print(
+      logger.w(
           'Returning null, no category found for ID: $categoryId'); // Debug print
       return null; // Return null if category not found
     } catch (e) {
-      print("Error fetching category by ID: $e"); // Debug print for error
+      logger.e("Error fetching category by ID: $e"); // Debug print for error
       return null;
     }
   }
@@ -106,7 +106,7 @@ class CategoryService {
         });
       }
     } catch (e) {
-      print("Error adding category: $e");
+      logger.e("Error adding category: $e");
     }
   }
 
@@ -133,7 +133,7 @@ class CategoryService {
         }
       }
     } catch (e) {
-      print("Error deleting category: $e");
+      logger.e("Error deleting category: $e");
     }
   }
 
@@ -154,7 +154,7 @@ class CategoryService {
 
       return false;
     } catch (e) {
-      print("Error checking if category exists: $e");
+      logger.e("Error checking if category exists: $e");
       return false;
     }
   }

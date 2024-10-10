@@ -22,6 +22,9 @@ class RegistrationScreenState extends State<RegistrationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Capture the ScaffoldMessenger and Navigator context before async operations
+    final messenger = ScaffoldMessenger.of(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -90,7 +93,7 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                     if (newUser != null) {
                       // Send verification email
                       await newUser.sendEmailVerification();
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      messenger.showSnackBar(
                         SnackBar(
                           content: Text(
                               'Verification email sent! Please check your inbox.'),

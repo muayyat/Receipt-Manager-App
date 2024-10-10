@@ -76,6 +76,14 @@ class ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> saveProfileData() async {
+    // Capture the ScaffoldMessenger and Navigator context before async operations
+    final messenger = ScaffoldMessenger.of(context);
+
+    // Move Navigator.pop(context) before any async operation
+    if (mounted) {
+      Navigator.pop(context, true); // Close the dialog immediately
+    }
+
     setState(() {
       isSaving = true;
     });
@@ -91,23 +99,28 @@ class ProfileScreenState extends State<ProfileScreen> {
 
       await Future.delayed(Duration(seconds: 1));
 
-      setState(() {
-        isSaving = false;
-        isEditing = false;
-      });
+      if (mounted) {
+        setState(() {
+          isSaving = false;
+          isEditing = false;
+        });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Profile updated successfully!')),
-      );
-
-      Navigator.pop(context, true);
+        // Show the success message using the captured messenger
+        messenger.showSnackBar(
+          SnackBar(content: Text('Profile updated successfully!')),
+        );
+      }
     } catch (e) {
-      setState(() {
-        isSaving = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving profile: $e')),
-      );
+      if (mounted) {
+        setState(() {
+          isSaving = false;
+        });
+
+        // Show the error message using the captured messenger
+        messenger.showSnackBar(
+          SnackBar(content: Text('Error saving profile: $e')),
+        );
+      }
     }
   }
 
