@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../logger.dart';
+
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -8,7 +10,7 @@ class AuthService {
     try {
       return _auth.currentUser;
     } catch (e) {
-      print("Error fetching user: $e");
+      logger.e("Error fetching user: $e");
       return null;
     }
   }
@@ -22,7 +24,7 @@ class AuthService {
       );
       return userCredential.user;
     } catch (e) {
-      print("Error signing in: $e");
+      logger.e("Error signing in: $e");
       return null;
     }
   }
@@ -37,7 +39,7 @@ class AuthService {
       );
       return userCredential.user;
     } catch (e) {
-      print("Error registering: $e");
+      logger.e("Error registering: $e");
       return null;
     }
   }
@@ -47,7 +49,7 @@ class AuthService {
     try {
       await _auth.signOut();
     } catch (e) {
-      print("Error signing out: $e");
+      logger.e("Error signing out: $e");
     }
   }
 
@@ -62,10 +64,10 @@ class AuthService {
         );
         await user.reauthenticateWithCredential(credential);
       } else {
-        print("No user is currently signed in.");
+        logger.w("No user is currently signed in.");
       }
     } catch (e) {
-      print("Error re-authenticating user: $e");
+      logger.e("Error re-authenticating user: $e");
     }
   }
 
@@ -76,10 +78,10 @@ class AuthService {
       if (user != null) {
         await user.delete();
       } else {
-        print("No user is currently signed in.");
+        logger.w("No user is currently signed in.");
       }
     } catch (e) {
-      print("Error deleting account: $e");
+      logger.e("Error deleting account: $e");
     }
   }
 
@@ -87,9 +89,9 @@ class AuthService {
   static Future<void> sendPasswordResetEmail({required String email}) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
-      print("Password reset email sent to $email");
+      logger.i("Password reset email sent to $email");
     } catch (e) {
-      print("Error sending password reset email: $e");
+      logger.e("Error sending password reset email: $e");
     }
   }
 }

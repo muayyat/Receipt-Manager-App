@@ -8,15 +8,18 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../logger.dart';
 import '../services/auth_service.dart';
 
 class ScanScreen extends StatefulWidget {
   static const String id = 'scan_screen';
+
+  const ScanScreen({super.key});
   @override
-  _ScanScreenState createState() => _ScanScreenState();
+  ScanScreenState createState() => ScanScreenState();
 }
 
-class _ScanScreenState extends State<ScanScreen> {
+class ScanScreenState extends State<ScanScreen> {
   User? loggedInUser;
 
   File? _imageFile;
@@ -31,9 +34,9 @@ class _ScanScreenState extends State<ScanScreen> {
     super.initState();
     getCurrentUser();
     copyTessdataToDocuments().then((_) {
-      print('Tessdata files copied successfully');
+      logger.i('Tessdata files copied successfully');
     }).catchError((error) {
-      print('Error copying tessdata files: $error');
+      logger.e('Error copying tessdata files: $error');
     });
   }
 
@@ -61,7 +64,7 @@ class _ScanScreenState extends State<ScanScreen> {
         await File(traineddataDestPath).writeAsBytes(bytes);
       }
     }
-    print('Tessdata files copied to: $tessdataPath');
+    logger.i('Tessdata files copied to: $tessdataPath');
   }
 
   Future<void> _captureFromCamera() async {
@@ -73,11 +76,11 @@ class _ScanScreenState extends State<ScanScreen> {
         setState(() {
           _imageFile = File(pickedFile.path);
         });
-        print('Image path: ${pickedFile.path}');
+        logger.i('Image path: ${pickedFile.path}');
         _performTextRecognition(_imageFile!);
       }
     } else {
-      print("Camera permission denied");
+      logger.w("Camera permission denied");
     }
   }
 
@@ -96,11 +99,11 @@ class _ScanScreenState extends State<ScanScreen> {
         setState(() {
           _imageFile = File(pickedFile.path);
         });
-        print('Image path: ${pickedFile.path}');
+        logger.i('Image path: ${pickedFile.path}');
         _performTextRecognition(_imageFile!);
       }
     } else {
-      print("Gallery permission denied");
+      logger.w("Gallery permission denied");
     }
   }
 
@@ -120,7 +123,7 @@ class _ScanScreenState extends State<ScanScreen> {
       } else if (Platform.isAndroid) {
         tessdataPath = 'assets/tessdata';
       }
-      print('Using tessdata path: $tessdataPath');
+      logger.i('Using tessdata path: $tessdataPath');
 
       String text = await FlutterTesseractOcr.extractText(image.path,
           language: 'fin+eng',

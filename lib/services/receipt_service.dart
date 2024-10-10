@@ -247,9 +247,6 @@ class ReceiptService {
         continue; // Skip receipts that are outside the date range
       }
 
-      // Debugging: Print the receipt data before grouping
-      print('Receipt Date: $receiptDate, Amount: $amount');
-
       // Generate a grouping key based on the selected interval
       String groupKey;
       switch (interval) {
@@ -271,9 +268,6 @@ class ReceiptService {
           break;
       }
 
-      // Debugging: Print the group key and amount
-      print('Group Key: $groupKey, Amount: $amount');
-
       // Aggregate the expenses
       if (groupedExpenses.containsKey(groupKey)) {
         groupedExpenses[groupKey] = groupedExpenses[groupKey]! +
@@ -283,9 +277,6 @@ class ReceiptService {
         groupedExpenses[groupKey] = await currencyService.convertToBaseCurrency(
             amount, currency, selectedBaseCurrency);
       }
-
-      // Debugging: Print the grouped expenses map
-      print('Grouped Expenses: $groupedExpenses');
     }
 
     // Return the grouped expenses map after processing all receipts

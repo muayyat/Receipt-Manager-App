@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../logger.dart';
+
 class CategoryService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -26,7 +28,7 @@ class CategoryService {
               })
           .toList();
     } catch (e) {
-      print("Error fetching user categories: $e");
+      logger.e("Error fetching user categories: $e");
       return [];
     }
   }
@@ -35,27 +37,26 @@ class CategoryService {
   Future<Map<String, dynamic>?> fetchCategoryById(
       String userId, String categoryId) async {
     try {
-      print('Fetching categories for user: $userId'); // Debug print
-
       DocumentSnapshot userDoc =
           await _firestore.collection('categories').doc(userId).get();
 
       if (userDoc.exists && userDoc.data() != null) {
-        print('User document exists. Fetching category list...'); // Debug print
+        logger.w(
+            'User document exists. Fetching category list...'); // Debug print
 
         var data = userDoc.data() as Map<String, dynamic>;
         List<dynamic> categoryList = data['categorylist'] ?? [];
-        print('Category list fetched: $categoryList'); // Debug print
+        logger.i('Category list fetched: $categoryList'); // Debug print
 
         // Find the category by its ID
         var category = categoryList
             .firstWhere((category) => category['id'] == categoryId, orElse: () {
-          print('Category with ID $categoryId not found.'); // Debug print
+          logger.w('Category with ID $categoryId not found.'); // Debug print
           return null;
         });
 
         if (category != null) {
-          print('Category found: ${category['name']}'); // Debug print
+          logger.i('Category found: ${category['name']}'); // Debug print
           return {
             'id': userDoc.id,
             'name': category['name'] ?? 'Unknown',

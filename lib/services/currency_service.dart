@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:http/http.dart' as http;
 
+import '../logger.dart';
+
 class CurrencyService {
   Map<String, double>? conversionRates;
 
@@ -23,13 +25,12 @@ class CurrencyService {
       ));
       await remoteConfig.fetchAndActivate();
     } catch (e) {
-      print('Failed to fetch remote config: $e');
+      logger.e('Failed to fetch remote config: $e');
       // Optionally return a default or error message if needed
     }
 
     // Retrieve the API key from the Remote Config
     String apiKey = remoteConfig.getString('API_KEY');
-    print("apiKey: " + apiKey);
     // Ensure we have a valid API key (fallback to default if not set)
     if (apiKey == 'default_api_key' || apiKey.isEmpty) {
       throw Exception('API key is not set in Remote Config');
@@ -80,13 +81,11 @@ class CurrencyService {
             throw Exception("Unexpected type for rate value");
           }
         });
-
-        print('Fetched conversion rates: $conversionRates');
       } else {
         throw Exception('Failed to load conversion rates');
       }
     } catch (e) {
-      print('Error fetching conversion rates: $e');
+      logger.e('Error fetching conversion rates: $e');
       conversionRates = {};
     }
   }
