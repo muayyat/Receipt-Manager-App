@@ -7,6 +7,7 @@ import 'package:flutter_tesseract_ocr/flutter_tesseract_ocr.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:receipt_manager/components/rounded_button.dart';
 
 import '../logger.dart';
 import '../services/auth_service.dart';
@@ -210,21 +211,14 @@ class ScanScreenState extends State<ScanScreen> {
               )
             else
               Text("No image selected or captured"),
-            SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: _captureFromCamera,
-                  child: Text('Capture from Camera'),
-                ),
-                ElevatedButton(
-                  onPressed: _pickFromGallery,
-                  child: Text('Pick from Gallery'),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
+            RoundedButton(
+                color: Colors.lightBlueAccent,
+                title: 'Capture from Camera',
+                onPressed: _captureFromCamera),
+            RoundedButton(
+                color: Colors.lightBlue,
+                title: 'Pick from Gallery',
+                onPressed: _pickFromGallery),
             Text('Date: $_date',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Text('Total Price: $_totalPrice',
