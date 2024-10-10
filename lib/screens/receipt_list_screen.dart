@@ -10,6 +10,7 @@ import '../components/date_range_container.dart';
 import '../logger.dart';
 import '../services/auth_service.dart';
 import '../services/category_service.dart'; // Import CategoryService
+import '../services/currency_service.dart';
 import '../services/receipt_service.dart';
 import 'add_update_receipt_screen.dart';
 import 'expense_chart_screen.dart';
@@ -29,6 +30,7 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
   final ReceiptService receiptService = ReceiptService();
   final CategoryService categoryService =
       CategoryService(); // Add CategoryService
+  CurrencyService currencyService = CurrencyService();
 
   Stream<DocumentSnapshot>? receiptsStream;
   List<Map<String, dynamic>> sortedReceiptList = [];
@@ -152,20 +154,54 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
     _sortReceiptList();
   }
 
-  void _sortReceiptList() {
-    sortedReceiptList.sort((a, b) {
-      dynamic aValue, bValue;
+  Future<void> _sortReceiptList() async {
+    // If sorting by amount, start with the original amounts and update asynchronously
+    if (currentSortField == 'amount') {
+      // Display initial list while processing the conversions
+      setState(() {
+        // Sort the list by original amounts while the conversion happens
+        sortedReceiptList.sort((a, b) {
+          var aValue = (a['amount'] as num).toDouble();
+          var bValue = (b['amount'] as num).toDouble();
+          return isDescending
+              ? bValue.compareTo(aValue)
+              : aValue.compareTo(bValue);
+        });
+      });
 
-      if (currentSortField == 'date') {
-        aValue = (a['date'] as Timestamp).toDate();
-        bValue = (b['date'] as Timestamp).toDate();
-      } else if (currentSortField == 'amount') {
-        aValue = (a['amount'] as num).toDouble();
-        bValue = (b['amount'] as num).toDouble();
+      // Process currency conversion asynchronously
+      for (var receipt in sortedReceiptList) {
+        double amount = (receipt['amount'] as num).toDouble();
+        double convertedAmount = await currencyService.convertToBaseCurrency(
+          amount,
+          receipt['currency'],
+          'USD',
+        );
+        receipt['convertedAmount'] = convertedAmount;
       }
 
-      return isDescending ? bValue.compareTo(aValue) : aValue.compareTo(bValue);
-    });
+      // Update the list after all conversions are done
+      setState(() {
+        sortedReceiptList.sort((a, b) {
+          var aValue = a['convertedAmount'];
+          var bValue = b['convertedAmount'];
+          return isDescending
+              ? bValue.compareTo(aValue)
+              : aValue.compareTo(bValue);
+        });
+      });
+    } else {
+      // Sort by date immediately
+      setState(() {
+        sortedReceiptList.sort((a, b) {
+          var aValue = (a['date'] as Timestamp).toDate();
+          var bValue = (b['date'] as Timestamp).toDate();
+          return isDescending
+              ? bValue.compareTo(aValue)
+              : aValue.compareTo(bValue);
+        });
+      });
+    }
   }
 
   Center _buildLoadingIndicator() {
