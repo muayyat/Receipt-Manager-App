@@ -373,6 +373,13 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
     }).toList();
   }
 
+  double getMaxYValue() {
+    // Find the maximum value in the dataset and add some margin (e.g., 10%)
+    double maxY = intervalGroupedTotals.values
+        .fold(0, (prev, next) => prev > next ? prev : next);
+    return maxY * 1.1; // Increase the maxY by 10%
+  }
+
   Widget buildBarChart() {
     if (intervalGroupedTotals.isEmpty) {
       return Center(
@@ -385,62 +392,70 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal, // Enable horizontal scrolling
-      child: SizedBox(
-        width: chartWidth, // Set dynamic width for scrolling
-        height: 300, // Set a fixed height for the bar chart
-        child: BarChart(
-          BarChartData(
-            alignment: BarChartAlignment.spaceEvenly,
-            borderData: FlBorderData(show: false),
-            titlesData: FlTitlesData(
-              topTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: false, // Hide the top axis titles
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: 320, // Set the minimum width
+          maxWidth: double.infinity, // You can set the maximum width as needed
+        ),
+        child: SizedBox(
+          width: chartWidth, // Set dynamic width for scrolling
+          height: 300, // Set a fixed height for the bar chart
+          child: BarChart(
+            BarChartData(
+              maxY:
+                  getMaxYValue(), // Set maxY to a value slightly more than the largest data point
+              alignment: BarChartAlignment.spaceEvenly,
+              borderData: FlBorderData(show: false),
+              titlesData: FlTitlesData(
+                topTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: false, // Hide the top axis titles
+                  ),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (double value, TitleMeta meta) {
+                      // Display the interval (day, week, month, or year) as the title
+                      final key =
+                          intervalGroupedTotals.keys.elementAt(value.toInt());
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          key, // Display the grouped interval as the label
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      );
+                    },
+                    reservedSize: 42,
+                  ),
+                ),
+                rightTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: false, // Hide the left axis values
+                  ),
                 ),
               ),
-              bottomTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  getTitlesWidget: (double value, TitleMeta meta) {
-                    // Display the interval (day, week, month, or year) as the title
-                    final key =
-                        intervalGroupedTotals.keys.elementAt(value.toInt());
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        key, // Display the grouped interval as the label
-                        style: TextStyle(fontSize: 12),
+              barGroups: getBarChartGroups(),
+              barTouchData: BarTouchData(
+                touchTooltipData: BarTouchTooltipData(
+                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                    // Customize the tooltip text
+                    return BarTooltipItem(
+                      rod.toY.toStringAsFixed(1), // Format the value displayed
+                      const TextStyle(
+                        color: Colors.black, // Tooltip text color
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
                       ),
                     );
                   },
-                  reservedSize: 42,
+                  getTooltipColor: (group) =>
+                      Colors.transparent, // Set background color
+                  tooltipPadding:
+                      const EdgeInsets.all(0), // Padding inside the tooltip
+                  tooltipMargin: 0, // Margin from the bar
                 ),
-              ),
-              rightTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: false, // Hide the left axis values
-                ),
-              ),
-            ),
-            barGroups: getBarChartGroups(),
-            barTouchData: BarTouchData(
-              touchTooltipData: BarTouchTooltipData(
-                getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                  // Customize the tooltip text
-                  return BarTooltipItem(
-                    rod.toY.toStringAsFixed(1), // Format the value displayed
-                    const TextStyle(
-                      color: Colors.black, // Tooltip text color
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  );
-                },
-                getTooltipColor: (group) =>
-                    Colors.transparent, // Set background color
-                tooltipPadding:
-                    const EdgeInsets.all(0), // Padding inside the tooltip
-                tooltipMargin: 0, // Margin from the bar
               ),
             ),
           ),
