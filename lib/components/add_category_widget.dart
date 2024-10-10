@@ -25,6 +25,31 @@ class AddCategoryWidgetState extends State<AddCategoryWidget> {
 
   final CategoryService _categoryService = CategoryService();
 
+  final FocusNode _textFieldFocusNode =
+      FocusNode(); // FocusNode for the text field
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Add listener to hide emoji picker when text field is focused
+    _textFieldFocusNode.addListener(() {
+      if (_textFieldFocusNode.hasFocus) {
+        setState(() {
+          showEmojiPicker =
+              false; // Hide emoji picker when text field is focused
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _textFieldFocusNode
+        .dispose(); // Clean up the focus node when the widget is disposed
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -48,6 +73,10 @@ class AddCategoryWidgetState extends State<AddCategoryWidget> {
             onTap: () {
               setState(() {
                 showEmojiPicker = !showEmojiPicker; // Toggle emoji picker
+                // Remove focus from the text field if emoji picker is opened
+                if (showEmojiPicker) {
+                  _textFieldFocusNode.unfocus();
+                }
               });
             },
             child: CircleAvatar(
@@ -59,24 +88,7 @@ class AddCategoryWidgetState extends State<AddCategoryWidget> {
               ),
             ),
           ),
-          SizedBox(height: 20),
-          // Category name input field
-          TextField(
-            onChanged: (value) {
-              setState(() {
-                categoryName = value;
-                _errorMessage = null; // Reset error when input changes
-              });
-            },
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'Category name',
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-          ),
+
           // Display error message below the text field if exists
           if (_errorMessage != null)
             Padding(
@@ -86,7 +98,7 @@ class AddCategoryWidgetState extends State<AddCategoryWidget> {
                 style: TextStyle(color: Colors.red),
               ),
             ),
-          SizedBox(height: 20),
+          SizedBox(height: 10),
           // Show emoji picker if toggled
           if (showEmojiPicker)
             SizedBox(
@@ -110,6 +122,26 @@ class AddCategoryWidgetState extends State<AddCategoryWidget> {
                 ),
               ),
             ),
+          SizedBox(height: 10),
+          // Category name input field
+          TextField(
+            focusNode:
+                _textFieldFocusNode, // Attach FocusNode to the text field
+            onChanged: (value) {
+              setState(() {
+                categoryName = value;
+                _errorMessage = null; // Reset error when input changes
+              });
+            },
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              hintText: 'Category name',
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+          ),
           // Add button
           RoundedButton(
             color: Colors.blueAccent,
