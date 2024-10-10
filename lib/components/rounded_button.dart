@@ -4,9 +4,14 @@ class RoundedButton extends StatelessWidget {
   final Color color;
   final String title;
   final Function onPressed;
+  final double width; // Add a width parameter
 
-  RoundedButton(
-      {required this.color, required this.title, required this.onPressed});
+  RoundedButton({
+    required this.color,
+    required this.title,
+    required this.onPressed,
+    this.width = 200.0, // Default width is 200.0
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +23,12 @@ class RoundedButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(30.0),
         child: MaterialButton(
           onPressed: () => onPressed(),
-          minWidth: 200.0,
+          minWidth: width, // Apply the custom width
           height: 42.0,
-          child: Text(title),
+          child: Text(
+            title,
+            style: TextStyle(color: Colors.white), // Ensure text is visible
+          ),
         ),
       ),
     );

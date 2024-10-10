@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../components/calendar_filter_widget.dart';
 import '../components/custom_drawer.dart';
 import '../components/date_range_container.dart';
+import '../components/rounded_button.dart';
 import '../services/auth_service.dart';
 import '../services/category_service.dart';
 import '../services/currency_service.dart';
@@ -14,11 +15,13 @@ import '../services/receipt_service.dart';
 class ExpenseChartScreen extends StatefulWidget {
   static const String id = 'expense_chart_screen';
 
+  const ExpenseChartScreen({super.key});
+
   @override
-  _ExpenseChartScreenState createState() => _ExpenseChartScreenState();
+  ExpenseChartScreenState createState() => ExpenseChartScreenState();
 }
 
-class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
+class ExpenseChartScreenState extends State<ExpenseChartScreen> {
   User? loggedInUser;
 
   final ReceiptService receiptService = ReceiptService();
@@ -272,7 +275,12 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                   Container(
                     width: 16,
                     height: 16,
-                    color: categoryColors[entry.key],
+                    decoration: BoxDecoration(
+                      color:
+                          categoryColors[entry.key], // Set the background color
+                      borderRadius: BorderRadius.circular(
+                          5), // Rounded corners (8 is just an example)
+                    ),
                   ),
                   SizedBox(width: 8), // Space between color box and text
                   Text(
@@ -315,6 +323,21 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
       selectedInterval = interval;
       fetchIntervalGroupedExpenseData(); // Call your method when interval changes
     });
+  }
+
+  String getIntervalLabel(TimeInterval interval) {
+    switch (interval) {
+      case TimeInterval.day:
+        return 'Daily';
+      case TimeInterval.week:
+        return 'Weekly';
+      case TimeInterval.month:
+        return 'Monthly';
+      case TimeInterval.year:
+        return 'Yearly';
+      default:
+        return '';
+    }
   }
 
   List<BarChartGroupData> getBarChartGroups() {
@@ -393,7 +416,7 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 // Customize the tooltip text
                 return BarTooltipItem(
-                  '${rod.toY.toStringAsFixed(1)}', // Format the value displayed
+                  rod.toY.toStringAsFixed(1), // Format the value displayed
                   const TextStyle(
                     color: Colors.black, // Tooltip text color
                     fontWeight: FontWeight.bold,
@@ -470,12 +493,15 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                               _showCalendarFilterDialog, // Pass the calendar callback
                         ),
                         SizedBox(width: 16),
-                        ElevatedButton(
+                        RoundedButton(
+                          width: 80,
+                          color: Colors.lightBlueAccent,
+                          title:
+                              selectedBaseCurrency, // Use the function to display descriptive text
                           onPressed: () {
                             _showCurrencyPicker(
                                 context); // Show the picker when button is pressed
                           },
-                          child: Text(selectedBaseCurrency),
                         ),
                       ],
                     ),
@@ -491,25 +517,16 @@ class _ExpenseChartScreenState extends State<ExpenseChartScreen> {
                         height: 20), // Space between pie chart and bar chart
                     // Row of buttons
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: TimeInterval.values.map((interval) {
-                        return ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: selectedInterval == interval
-                                ? Colors.blueAccent
-                                : Colors.grey, // Highlight selected interval
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
-                          ),
+                        return RoundedButton(
+                          width: 60,
+                          color: selectedInterval == interval
+                              ? Colors.blueAccent
+                              : Colors.grey,
+                          title: getIntervalLabel(
+                              interval), // Use the function to display descriptive text
                           onPressed: () => onIntervalSelected(interval),
-                          child: Text(
-                            interval
-                                .toString()
-                                .split('.')
-                                .last
-                                .toUpperCase(), // Show interval text
-                            style: TextStyle(color: Colors.white),
-                          ),
                         );
                       }).toList(),
                     ),

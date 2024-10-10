@@ -11,10 +11,10 @@ class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
 
   @override
-  _SettingScreenState createState() => _SettingScreenState();
+  SettingScreenState createState() => SettingScreenState();
 }
 
-class _SettingScreenState extends State<SettingScreen> {
+class SettingScreenState extends State<SettingScreen> {
   final UserService _userService = UserService();
 
   @override
