@@ -103,8 +103,10 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                       // Sign out the user after registration
                       await AuthService.signOut();
 
-                      // Navigate to the welcome screen
-                      Navigator.pushNamed(context, WelcomeScreen.id);
+                      // Navigate to the welcome screen after registration
+                      if (mounted) {
+                        Navigator.pushNamed(context, WelcomeScreen.id);
+                      }
                     }
                   } on FirebaseAuthException catch (e) {
                     setState(() {

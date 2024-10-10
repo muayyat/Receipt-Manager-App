@@ -339,6 +339,9 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
   }
 
   Future<void> _saveReceipt() async {
+    // Capture the ScaffoldMessenger before async operations
+    final messenger = ScaffoldMessenger.of(context);
+
     if (merchantController.text.isEmpty ||
         totalController.text.isEmpty ||
         selectedCategoryId == null ||
@@ -367,13 +370,13 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       if (widget.receiptId != null) {
         // If editing, update the existing receipt
         await receiptService.updateReceipt(widget.receiptId!, receiptData);
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(content: Text('Receipt updated successfully')),
         );
       } else {
         // If adding a new receipt
         await receiptService.addReceipt(receiptData);
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(content: Text('Receipt saved successfully')),
         );
 
@@ -392,10 +395,12 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       }
 
       // Navigate back to the receipt list screen after saving
-      Navigator.pop(context);
+      if (mounted) {
+        Navigator.pop(context);
+      }
     } catch (e) {
       // Handle error: show an error message
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(content: Text('Failed to save receipt. Try again.')),
       );
     }
@@ -436,21 +441,26 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
   }
 
   Future<void> _deleteReceipt() async {
+    // Capture the ScaffoldMessenger before async operations
+    final messenger = ScaffoldMessenger.of(context);
+
     if (widget.receiptId != null) {
       try {
         // Call the delete method in ReceiptService
         await receiptService.deleteReceipt(widget.receiptId!);
 
-        // Show a success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Receipt deleted successfully')),
-        );
+        if (mounted) {
+          // Show a success message
+          messenger.showSnackBar(
+            SnackBar(content: Text('Receipt deleted successfully')),
+          );
 
-        // Navigate back to the previous screen
-        Navigator.pop(context);
+          // Navigate back to the previous screen
+          Navigator.pop(context);
+        }
       } catch (e) {
         // Handle any errors
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(content: Text('Failed to delete receipt: $e')),
         );
       }
