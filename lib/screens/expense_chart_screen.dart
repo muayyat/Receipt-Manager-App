@@ -180,12 +180,22 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
           await receiptService.groupReceiptsByCategory(selectedBaseCurrency,
               _startDate!, _endDate!); // Use selectedBaseCurrency from state
 
-      // Generate the color mapping for the categories
-      generateColorMapping(groupedExpenses.keys.toSet());
+      // Sort the entries based on value in descending order
+      List<MapEntry<String, double>> sortedEntries = groupedExpenses.entries
+          .toList()
+        ..sort((a, b) =>
+            b.value.compareTo(a.value)); // Sort by value in descending order
+
+      // Convert the sorted list of entries back into a map
+      Map<String, double> sortedGroupedExpenses =
+          Map.fromEntries(sortedEntries);
+
+      // Generate the color mapping for the sorted categories
+      generateColorMapping(sortedGroupedExpenses.keys.toSet());
 
       // Update the categoryTotals and refresh the UI
       setState(() {
-        categoryGroupedTotals = groupedExpenses;
+        categoryGroupedTotals = sortedGroupedExpenses;
       });
     } catch (e) {
       logger.e('Error fetching category totals: $e');
@@ -312,6 +322,20 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
       // Call the groupReceiptsByInterval method based on the selected interval
       intervalGroupedTotals = await receiptService.groupReceiptsByInterval(
           selectedInterval, selectedBaseCurrency, _startDate!, _endDate!);
+
+      // Sort the intervalGroupedTotals by date (assuming the keys are date strings)
+      List<MapEntry<String, double>> sortedEntries =
+          intervalGroupedTotals.entries.toList()
+            ..sort((a, b) {
+              DateTime aDate =
+                  DateTime.parse(a.key); // Assuming keys are date strings
+              DateTime bDate = DateTime.parse(b.key);
+              return aDate.compareTo(bDate);
+            });
+
+      // Convert sorted list back to a map
+      intervalGroupedTotals = Map.fromEntries(sortedEntries);
+
       setState(() {
         isLoading = false; // Data has been loaded
       });
