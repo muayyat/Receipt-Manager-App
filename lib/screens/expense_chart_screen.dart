@@ -455,7 +455,14 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
               ),
             ),
             SizedBox(height: 32),
-            chart, // The chart will define the card size
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal, // Enable horizontal scrolling
+              child: Container(
+                width: MediaQuery.of(context).size.width *
+                    1.5, // Adjust width as needed
+                child: chart, // The chart will define the card size
+              ),
+            ),
           ],
         ),
       ),
