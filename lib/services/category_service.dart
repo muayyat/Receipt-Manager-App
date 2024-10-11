@@ -5,6 +5,18 @@ import '../logger.dart';
 class CategoryService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // Define default categories
+  final List<Map<String, dynamic>> defaultCategories = [
+    {'name': 'Food', 'icon': '🍔'},
+    {'name': 'Gym', 'icon': '🏋️‍♂️'},
+    {'name': 'Internet', 'icon': '📞'},
+    {'name': 'Rent', 'icon': '🏡'},
+    {'name': 'Subscriptions', 'icon': '🔄'},
+    {'name': 'Transport', 'icon': '🚗'},
+    {'name': 'Utilities', 'icon': '💡'},
+    {'name': 'iPhone', 'icon': '📱'},
+  ];
+
   // Fetch user categories
   Future<List<Map<String, dynamic>>> fetchUserCategories(String userId) async {
     try {
@@ -12,8 +24,29 @@ class CategoryService {
           await _firestore.collection('categories').doc(userId).get();
 
       if (!userDoc.exists || userDoc.data() == null) {
-        // If the document does not exist, return an empty list
-        return [];
+        // If the document does not exist, create it with default categories
+        await _firestore.collection('categories').doc(userId).set({
+          'categorylist': defaultCategories
+              .map((category) => {
+                    'id': DateTime.now()
+                        .millisecondsSinceEpoch
+                        .toString(), // Generate a unique ID
+                    'name': category['name'],
+                    'icon': category['icon'],
+                  })
+              .toList(),
+        });
+
+        // Return the default categories
+        return defaultCategories
+            .map((category) => {
+                  'id': DateTime.now()
+                      .millisecondsSinceEpoch
+                      .toString(), // Generate a unique ID
+                  'name': category['name'],
+                  'icon': category['icon'],
+                })
+            .toList();
       }
 
       var data = userDoc.data() as Map<String, dynamic>?;

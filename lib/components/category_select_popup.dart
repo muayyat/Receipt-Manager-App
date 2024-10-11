@@ -20,18 +20,6 @@ class CategorySelectPopupState extends State<CategorySelectPopup> {
 
   final ReceiptService receiptService = ReceiptService();
 
-  // Define default categories
-  final List<Map<String, dynamic>> defaultCategories = [
-    {'name': 'Food', 'icon': '🍔'},
-    {'name': 'Gym', 'icon': '🏋️‍♂️'},
-    {'name': 'Internet', 'icon': '📞'},
-    {'name': 'Rent', 'icon': '🏡'},
-    {'name': 'Subscriptions', 'icon': '🔄'},
-    {'name': 'Transport', 'icon': '🚗'},
-    {'name': 'Utilities', 'icon': '💡'},
-    {'name': 'iPhone', 'icon': '📱'},
-  ];
-
   final CategoryService _categoryService = CategoryService();
 
   @override
