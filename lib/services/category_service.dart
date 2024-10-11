@@ -28,21 +28,23 @@ class CategoryService {
         await _firestore.collection('categories').doc(userId).set({
           'categorylist': defaultCategories
               .map((category) => {
-                    'id': DateTime.now()
-                        .millisecondsSinceEpoch
-                        .toString(), // Generate a unique ID
+                    'id': _firestore
+                        .collection('categories')
+                        .doc()
+                        .id, // Generate a unique ID for each default category
                     'name': category['name'],
                     'icon': category['icon'],
                   })
               .toList(),
         });
 
-        // Return the default categories
+        // Return the default categories with unique IDs
         return defaultCategories
             .map((category) => {
-                  'id': DateTime.now()
-                      .millisecondsSinceEpoch
-                      .toString(), // Generate a unique ID
+                  'id': _firestore
+                      .collection('categories')
+                      .doc()
+                      .id, // Generate a unique ID for each default category
                   'name': category['name'],
                   'icon': category['icon'],
                 })
@@ -55,7 +57,7 @@ class CategoryService {
 
       return categoryList
           .map((category) => {
-                'id': category['id'] ?? '', // Add the random key (id)
+                'id': category['id'] ?? '', // Keep the existing ID
                 'name': category['name'] ?? 'Unknown',
                 'icon': category['icon'] ?? '',
               })
