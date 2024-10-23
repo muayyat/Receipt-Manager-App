@@ -192,7 +192,7 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
       }, // Return a default if not found
     );
 
-    String categoryDisplay = category['icon'] + category['name'];
+    String categoryDisplay = category['icon'] + ' ' + category['name'];
 
     return categoryDisplay;
   }
@@ -230,13 +230,16 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
       children: [
         categoryGroupedTotals.isEmpty
             ? Center(child: Text('No data available.'))
-            : PieChart(
-                PieChartData(
-                  sections: getPieSections(),
-                  centerSpaceRadius: 60,
-                  borderData: FlBorderData(show: false),
-                  sectionsSpace: 4,
-                  startDegreeOffset: -90,
+            : SizedBox(
+                height: 300, // Set a fixed height for the pie chart
+                child: PieChart(
+                  PieChartData(
+                    sections: getPieSections(),
+                    centerSpaceRadius: 60,
+                    borderData: FlBorderData(show: false),
+                    sectionsSpace: 0, // Set to 0 to remove the white gap
+                    startDegreeOffset: -90,
+                  ),
                 ),
               ),
         SizedBox(height: 20), // Space between the chart and the legend
@@ -252,7 +255,8 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
             final categoryDisplay = getCategoryIconNameById(entry.key);
 
             return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 4.0, horizontal: 10),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -394,7 +398,7 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
       scrollDirection: Axis.horizontal, // Enable horizontal scrolling
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          minWidth: 320, // Set the minimum width
+          minWidth: 350, // Set the minimum width
           maxWidth: double.infinity, // You can set the maximum width as needed
         ),
         child: SizedBox(
@@ -512,26 +516,51 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        DateRangeContainer(
-                          startDate: _startDate!, // Your startDate
-                          endDate: _endDate!, // Your endDate
-                          onCalendarPressed:
-                              _showCalendarFilterDialog, // Pass the calendar callback
-                        ),
-                        SizedBox(width: 16),
-                        RoundedButton(
-                          width: 80,
-                          color: Colors.lightBlueAccent,
-                          title:
-                              selectedBaseCurrency, // Use the function to display descriptive text
-                          onPressed: () {
-                            _showCurrencyPicker(
-                                context); // Show the picker when button is pressed
-                          },
-                        ),
-                      ],
+                    Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize
+                            .min, // Ensure the row takes the minimum width needed
+                        mainAxisAlignment: MainAxisAlignment
+                            .center, // Center the items within the row
+                        children: [
+                          DateRangeContainer(
+                            startDate: _startDate!, // Your startDate
+                            endDate: _endDate!, // Your endDate
+                            onCalendarPressed:
+                                _showCalendarFilterDialog, // Pass the calendar callback
+                          ),
+                          SizedBox(width: 16),
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              backgroundColor: Colors
+                                  .transparent, // No background color for outlined look
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    8.0), // Same border radius as the date range picker
+                                side: BorderSide(
+                                    color: Colors
+                                        .lightBlue), // Border color and width
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14), // Match padding
+                            ),
+                            onPressed: () {
+                              _showCurrencyPicker(
+                                  context); // Show the currency picker when button is pressed
+                            },
+                            child: Text(
+                              selectedBaseCurrency,
+                              style: TextStyle(
+                                color: Colors
+                                    .lightBlue, // Text color similar to date range picker
+                                fontSize:
+                                    16, // Match font size with DateRangeContainer
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     SizedBox(height: 20), // Space between controls and charts
 

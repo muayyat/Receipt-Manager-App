@@ -121,7 +121,7 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       selectedCategoryIcon = categoryData?['icon'] ?? ''; // Get category icon
       selectedCategoryName = categoryData?['name'] ?? ''; // Get category name
     });
-    logger.e('selectedCategoryName: ${selectedCategoryName!}');
+    logger.i('selectedCategoryName: ${selectedCategoryName!}');
   }
 
   Future<void> fetchCurrencies() async {
