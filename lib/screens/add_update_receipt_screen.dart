@@ -130,6 +130,7 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       });
     } catch (e) {
       logger.e("Error fetching category details: $e");
+    }
   }
 
   Future<void> fetchCurrencies() async {
