@@ -114,13 +114,22 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
 
   // Function to fetch category details based on the categoryId
   Future<void> _fetchCategoryDetails(String categoryId) async {
-    setState(() {
-      selectedCategoryIcon = _categoryService.fetchCategoryNameById(
-          loggedInUser!.email!, categoryId) as String?; // Get category icon
-      selectedCategoryName = _categoryService.fetchCategoryIconById(
-          loggedInUser!.email!, categoryId) as String?; // Get category name
-    });
-    logger.i('selectedCategoryName: ${selectedCategoryName!}');
+    try {
+      // Fetch the category name and icon asynchronously
+      String? categoryName = await _categoryService.fetchCategoryNameById(
+          loggedInUser!.email!, categoryId);
+      String? categoryIcon = await _categoryService.fetchCategoryIconById(
+          loggedInUser!.email!, categoryId);
+
+      // Update the state with the fetched category details
+      setState(() {
+        selectedCategoryName = categoryName ??
+            'Uncategorized'; // Use default if categoryName is null
+        selectedCategoryIcon =
+            categoryIcon ?? '❓'; // Use default if categoryIcon is null
+      });
+    } catch (e) {
+      logger.e("Error fetching category details: $e");
   }
 
   Future<void> fetchCurrencies() async {

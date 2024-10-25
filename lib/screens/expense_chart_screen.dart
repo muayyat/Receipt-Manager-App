@@ -48,7 +48,6 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
     Color(0xFF8D6E63), // Soft Brown
   ];
   Map<String, Color> categoryColors = {};
-  List<Map<String, dynamic>> userCategories = [];
   Map<String, double> categoryGroupedTotals = {};
 
   TimeInterval selectedInterval =
@@ -64,7 +63,6 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
 
   Future<void> initializeData() async {
     await getCurrentUser(); // Ensure the user is fetched first
-    await fetchCategories(); // Fetch categories after getting the user
     fetchCurrencyCodes(); // These can run in parallel or after the user fetch
     fetchCategoryGroupedExpenseData(); // Fetch expense data
     fetchIntervalGroupedExpenseData(); // Fetch interval data
@@ -72,25 +70,6 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
 
   Future<void> getCurrentUser() async {
     loggedInUser = await AuthService.getCurrentUser();
-  }
-
-  // Method to fetch and store the categories
-  Future<void> fetchCategories() async {
-    try {
-      List<Map<String, dynamic>> fetchedCategories =
-          await categoryService.fetchUserCategories(loggedInUser!.email!);
-
-      setState(() {
-        userCategories = fetchedCategories; // Store categories in state
-        isLoading = false; // Stop loading spinner
-      });
-    } catch (e) {
-      logger.e('Error fetching categories: $e');
-
-      setState(() {
-        isLoading = false; // Stop loading even if there's an error
-      });
-    }
   }
 
   Future<void> _showCalendarFilterDialog() async {
@@ -182,17 +161,21 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
     }
   }
 
-  // Method to get category name by ID
-  String getCategoryIconNameById(String categoryId) {
-    final category = userCategories.firstWhere(
-      (category) => category['id'] == categoryId,
-      orElse: () => {
-        'icon': '❓',
-        'name': 'Uncategorized'
-      }, // Return a default if not found
-    );
+// Method to get category icon and name by ID
+  Future<String> getCategoryIconNameById(
+      String userId, String categoryId) async {
+    // Fetch the category name and icon asynchronously
+    String? categoryName =
+        await categoryService.fetchCategoryNameById(userId, categoryId);
+    String? categoryIcon =
+        await categoryService.fetchCategoryIconById(userId, categoryId);
 
-    String categoryDisplay = category['icon'] + ' ' + category['name'];
+    // Use default values if category name or icon is not found
+    categoryName ??= 'Uncategorized';
+    categoryIcon ??= '❓';
+
+    // Concatenate icon and name
+    String categoryDisplay = '$categoryIcon $categoryName';
 
     return categoryDisplay;
   }
@@ -252,41 +235,66 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
                     categoryGroupedTotals.values
                         .fold(0, (sum, item) => sum + item)) *
                 100;
-            final categoryDisplay = getCategoryIconNameById(entry.key);
 
-            return Padding(
-              padding:
-                  const EdgeInsets.symmetric(vertical: 4.0, horizontal: 10),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 16,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color:
-                          categoryColors[entry.key], // Set the background color
-                      borderRadius: BorderRadius.circular(5), // Rounded corners
+            // Use FutureBuilder to fetch the category name and icon asynchronously
+            return FutureBuilder<String>(
+              future: getCategoryIconNameById(loggedInUser!.email!, entry.key),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  // Show a loading spinner or placeholder while waiting
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 4.0, horizontal: 10),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(width: 8),
+                        Text('Loading...'),
+                      ],
                     ),
-                  ),
-                  SizedBox(width: 8), // Space between color box and text
-                  // Make the description scroll horizontally if it exceeds the width
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Text(
-                        '$categoryDisplay: ${total.toStringAsFixed(2)} $selectedBaseCurrency (${percentage.toStringAsFixed(1)}%)',
-                        style: TextStyle(fontSize: 16),
-                        textAlign: TextAlign.left,
-                        softWrap: false, // Prevent wrapping to the next line
-                        overflow: TextOverflow
-                            .ellipsis, // Show ellipsis if text is too long
-                      ),
+                  );
+                } else if (snapshot.hasError) {
+                  return Text('Error loading category');
+                } else {
+                  // When the data is ready, show the category name and icon
+                  String categoryDisplay = snapshot.data!;
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 4.0, horizontal: 10),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: categoryColors[entry.key],
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        // Display the category name and percentage
+                        Expanded(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Text(
+                              '$categoryDisplay: ${total.toStringAsFixed(2)} $selectedBaseCurrency (${percentage.toStringAsFixed(1)}%)',
+                              style: TextStyle(fontSize: 16),
+                              textAlign: TextAlign.left,
+                              softWrap: false,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
+                  );
+                }
+              },
             );
           }).toList(),
         )
