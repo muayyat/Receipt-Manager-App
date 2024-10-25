@@ -114,12 +114,11 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
 
   // Function to fetch category details based on the categoryId
   Future<void> _fetchCategoryDetails(String categoryId) async {
-    final categoryData = await _categoryService.fetchCategoryById(
-        loggedInUser!.email!, categoryId);
-
     setState(() {
-      selectedCategoryIcon = categoryData?['icon'] ?? ''; // Get category icon
-      selectedCategoryName = categoryData?['name'] ?? ''; // Get category name
+      selectedCategoryIcon = _categoryService.fetchCategoryNameById(
+          loggedInUser!.email!, categoryId) as String?; // Get category icon
+      selectedCategoryName = _categoryService.fetchCategoryIconById(
+          loggedInUser!.email!, categoryId) as String?; // Get category name
     });
     logger.i('selectedCategoryName: ${selectedCategoryName!}');
   }

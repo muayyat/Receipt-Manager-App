@@ -93,7 +93,9 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
           'Date: Oldest First',
           'Date: Newest First',
           'Amount: Lowest First',
-          'Amount: Highest First'
+          'Amount: Highest First',
+          'Category: A-Z',
+          'Category: Z-A'
         ];
 
         return SizedBox(
@@ -133,6 +135,12 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
                       break;
                     case 3:
                       onSortChanged('amount', true); // Amount: Highest First
+                      break;
+                    case 4:
+                      onSortChanged('category', false); // Category: A-Z
+                      break;
+                    case 5:
+                      onSortChanged('category', true); // Category: Z-A
                       break;
                   }
                   Navigator.of(context).pop(); // Close the bottom sheet
@@ -188,6 +196,29 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
           return isDescending
               ? bValue.compareTo(aValue)
               : aValue.compareTo(bValue);
+        });
+      });
+    } else if (currentSortField == 'category') {
+      // Map for storing fetched category names temporarily
+      Map<String, String?> categoryNames = {};
+
+      // Fetch category names asynchronously for each receipt
+      for (var receipt in sortedReceiptList) {
+        String categoryId = receipt['categoryId'];
+        categoryNames[categoryId] = await categoryService.fetchCategoryNameById(
+          loggedInUser!.email!,
+          categoryId,
+        );
+      }
+
+      // Sort the list based on fetched category names
+      setState(() {
+        sortedReceiptList.sort((a, b) {
+          var aCategory = categoryNames[a['categoryId']] ?? 'Uncategorized';
+          var bCategory = categoryNames[b['categoryId']] ?? 'Uncategorized';
+          return isDescending
+              ? bCategory.compareTo(aCategory)
+              : aCategory.compareTo(bCategory);
         });
       });
     } else {
@@ -318,18 +349,25 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
         );
       },
       child: (loggedInUser?.email != null && categoryId != null)
-          ? FutureBuilder<Map<String, dynamic>?>(
-              future: categoryService.fetchCategoryById(
+          ? FutureBuilder<String?>(
+              future: categoryService.fetchCategoryNameById(
                   loggedInUser!.email!, categoryId),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(child: CircularProgressIndicator());
                 }
 
-                String categoryName = snapshot.data?['name'] ?? 'Uncategorized';
+                String categoryName = snapshot.data ?? 'Uncategorized';
 
-                return _buildReceiptCardContent(imageUrl, itemName, merchant,
-                    date, categoryName, currency, amount);
+                return _buildReceiptCardContent(
+                  imageUrl,
+                  itemName,
+                  merchant,
+                  date,
+                  categoryName, // Use the fetched category name
+                  currency,
+                  amount,
+                );
               },
             )
           : _buildReceiptCardContent(

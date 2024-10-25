@@ -68,8 +68,8 @@ class CategoryService {
     }
   }
 
-  // Fetch category name and icon by category ID
-  Future<Map<String, dynamic>?> fetchCategoryById(
+  // Fetch category name by category ID
+  Future<String?> fetchCategoryNameById(
       String userId, String categoryId) async {
     try {
       DocumentSnapshot userDoc =
@@ -84,29 +84,70 @@ class CategoryService {
         logger.i('Category list fetched: $categoryList'); // Debug print
 
         // Find the category by its ID
-        var category = categoryList
-            .firstWhere((category) => category['id'] == categoryId, orElse: () {
-          logger.w('Category with ID $categoryId not found.'); // Debug print
-          return null;
-        });
+        var category = categoryList.firstWhere(
+          (category) => category['id'] == categoryId,
+          orElse: () {
+            logger.w('Category with ID $categoryId not found.'); // Debug print
+            return null;
+          },
+        );
 
         if (category != null) {
-          logger.i('Category found: ${category['name']}'); // Debug print
-          return {
-            'id': userDoc.id,
-            'name': category['name'] ?? 'Unknown',
-            'icon': category['icon'] ?? ''
-          };
+          logger.i('Category name found: ${category['name']}'); // Debug print
+          return category['name'] ?? 'Unknown';
         }
       } else {
         logger.w('User document does not exist or has no data'); // Debug print
       }
 
       logger.w(
-          'Returning null, no category found for ID: $categoryId'); // Debug print
+          'Returning null, no category name found for ID: $categoryId'); // Debug print
       return null; // Return null if category not found
     } catch (e) {
-      logger.e("Error fetching category by ID: $e"); // Debug print for error
+      logger
+          .e("Error fetching category name by ID: $e"); // Debug print for error
+      return null;
+    }
+  }
+
+  // Fetch category icon by category ID
+  Future<String?> fetchCategoryIconById(
+      String userId, String categoryId) async {
+    try {
+      DocumentSnapshot userDoc =
+          await _firestore.collection('categories').doc(userId).get();
+
+      if (userDoc.exists && userDoc.data() != null) {
+        logger.w(
+            'User document exists. Fetching category list...'); // Debug print
+
+        var data = userDoc.data() as Map<String, dynamic>;
+        List<dynamic> categoryList = data['categorylist'] ?? [];
+        logger.i('Category list fetched: $categoryList'); // Debug print
+
+        // Find the category by its ID
+        var category = categoryList.firstWhere(
+          (category) => category['id'] == categoryId,
+          orElse: () {
+            logger.w('Category with ID $categoryId not found.'); // Debug print
+            return null;
+          },
+        );
+
+        if (category != null) {
+          logger.i('Category icon found: ${category['icon']}'); // Debug print
+          return category['icon'] ?? '';
+        }
+      } else {
+        logger.w('User document does not exist or has no data'); // Debug print
+      }
+
+      logger.w(
+          'Returning null, no icon found for ID: $categoryId'); // Debug print
+      return null; // Return null if icon not found
+    } catch (e) {
+      logger
+          .e("Error fetching category icon by ID: $e"); // Debug print for error
       return null;
     }
   }
