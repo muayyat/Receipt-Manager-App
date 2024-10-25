@@ -63,9 +63,13 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
 
   Future<void> initializeData() async {
     await getCurrentUser(); // Ensure the user is fetched first
-    fetchCurrencyCodes(); // These can run in parallel or after the user fetch
-    fetchCategoryGroupedExpenseData(); // Fetch expense data
-    fetchIntervalGroupedExpenseData(); // Fetch interval data
+
+    // Run the rest of the methods in parallel
+    await Future.wait([
+      fetchCurrencyCodes(),
+      fetchCategoryGroupedExpenseData(),
+      fetchIntervalGroupedExpenseData(),
+    ] as Iterable<Future>);
   }
 
   Future<void> getCurrentUser() async {
