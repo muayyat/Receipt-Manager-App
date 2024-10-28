@@ -46,7 +46,7 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
 
   // Filtering
   List<String> selectedCategoryIds = []; // Store selected category IDs
-  bool includeUncategorized = true;
+  bool isIncludeUncategorized = true;
 
   @override
   void initState() {
@@ -102,10 +102,20 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
     );
   }
 
+  void _filterByDateRange() {
+    if (_startDate != null && _endDate != null) {
+      sortedReceiptList = sortedReceiptList.where((receipt) {
+        final receiptDate = (receipt['date'] as Timestamp).toDate();
+        return receiptDate.isAfter(_startDate!) &&
+            receiptDate.isBefore(_endDate!);
+      }).toList();
+    }
+  }
+
   // TODO: modify the dialog to a modern one
   Future<void> _showCategoryFilterDialog() async {
     List<String> tempSelectedCategoryIds = List.from(selectedCategoryIds);
-    bool isUncategorizedSelected = includeUncategorized;
+    bool isUncategorizedSelected = isIncludeUncategorized;
 
     showModalBottomSheet(
       context: context,
@@ -137,9 +147,9 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
                           setState(() {
                             isUncategorizedSelected = isChecked ?? false;
                             if (isUncategorizedSelected) {
-                              includeUncategorized = true;
+                              isIncludeUncategorized = true;
                             } else {
-                              includeUncategorized = false;
+                              isIncludeUncategorized = false;
                             }
                           });
                         },
@@ -166,9 +176,14 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
                 ),
                 TextButton(
                   onPressed: () {
-                    // Call the new onFilterChanged method with the selected categories and the uncategorized flag
-                    onFilterChanged(tempSelectedCategoryIds,
-                        isUncategorizedSelected, sortedReceiptList);
+                    setState(() {
+                      // Update selected categories and the uncategorized flag
+                      selectedCategoryIds = tempSelectedCategoryIds;
+                      isIncludeUncategorized = isUncategorizedSelected;
+
+                      // Reapply the filters and sort the list
+                      _applyFiltersAndSort();
+                    });
                     Navigator.of(context).pop(); // Close the bottom sheet
                   },
                   child: Text('APPLY', style: TextStyle(fontSize: 20)),
@@ -181,48 +196,15 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
     );
   }
 
-  void onFilterChanged(
-      List<String> newSelectedCategoryIds,
-      bool isUncategorizedSelected,
-      List<Map<String, dynamic>> initialReceiptList) {
-    setState(() {
-      selectedCategoryIds = newSelectedCategoryIds;
-      includeUncategorized = isUncategorizedSelected;
-
-      // Reapply the filtering logic based on the updated selectedCategoryIds and `includeUncategorized`
-      _applyFilters(initialReceiptList);
-    });
-  }
-
-  void _applyFilters(List<Map<String, dynamic>> initialReceiptList) {
-    List<Map<String, dynamic>> filteredList = List.from(initialReceiptList);
-
-    // Filter by selected categories and include "Uncategorized" if selected
-    if (selectedCategoryIds.isNotEmpty || includeUncategorized) {
-      filteredList = filteredList.where((receipt) {
+  void _filterByCategories() {
+    if (selectedCategoryIds.isNotEmpty || isIncludeUncategorized) {
+      sortedReceiptList = sortedReceiptList.where((receipt) {
         // Include receipts that match selected categories or have a null categoryId if "Uncategorized" is selected
-        if (includeUncategorized && receipt['categoryId'] == null) {
+        if (isIncludeUncategorized && receipt['categoryId'] == null) {
           return true;
         }
-        // Check if the receipt matches any of the selected category IDs
         return selectedCategoryIds.contains(receipt['categoryId']);
       }).toList();
-    }
-
-    // Filter by date range
-    if (_startDate != null && _endDate != null) {
-      filteredList = filteredList.where((receipt) {
-        final receiptDate = (receipt['date'] as Timestamp).toDate();
-        return receiptDate.isAfter(_startDate!) &&
-            receiptDate.isBefore(_endDate!);
-      }).toList();
-    }
-
-    // Update the sortedReceiptList only if it differs from the current list
-    if (sortedReceiptList != filteredList) {
-      setState(() {
-        sortedReceiptList = filteredList;
-      });
     }
   }
 
@@ -371,6 +353,13 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
         });
       });
     }
+  }
+
+  void _applyFiltersAndSort() {
+    _filterByCategories();
+    _filterByDateRange();
+    _sortReceiptList();
+    setState(() {});
   }
 
   Center _buildLoadingIndicator() {
@@ -527,26 +516,9 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
             snapshot.data!.get('receiptlist') as List<dynamic>? ?? [];
         sortedReceiptList = receiptList.cast<Map<String, dynamic>>();
 
-        // Filter by selected categories and include "Uncategorized" if selected
-        if (selectedCategoryIds.isNotEmpty || includeUncategorized) {
-          sortedReceiptList = sortedReceiptList.where((receipt) {
-            // Include receipts that match selected categories or have a null categoryId if "Uncategorized" is selected
-            if (includeUncategorized && receipt['categoryId'] == null) {
-              return true;
-            }
-            // Check if the receipt matches any of the selected category IDs
-            return selectedCategoryIds.contains(receipt['categoryId']);
-          }).toList();
-        }
-
-        // Filter by date range
-        if (_startDate != null && _endDate != null) {
-          sortedReceiptList = sortedReceiptList.where((receipt) {
-            final receiptDate = (receipt['date'] as Timestamp).toDate();
-            return receiptDate.isAfter(_startDate!) &&
-                receiptDate.isBefore(_endDate!);
-          }).toList();
-        }
+        // Apply category and date filters
+        _filterByCategories();
+        _filterByDateRange();
 
         _sortReceiptList();
 
