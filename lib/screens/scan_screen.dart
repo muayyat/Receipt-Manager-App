@@ -175,29 +175,41 @@ class ScanScreenState extends State<ScanScreen> {
   }
 
   void _extractDate(String text) {
+    // Enhanced regex pattern to capture various date formats: DD.MM.YYYY, DD-MM-YYYY, etc.
+    // Allows for optional non-numeric characters (like "-" or " ") before and after the date
     RegExp dateRegex = RegExp(
-      r'(\b\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\b|\b\d{4}[./-]\d{1,2}[./-]\d{1,2}\b)',
+      r'(?<!\d)(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})(?!\d)',  // Matches multiple formats with separators
       caseSensitive: false,
     );
 
     Match? dateMatch = dateRegex.firstMatch(text);
     if (dateMatch != null) {
       String rawDate = dateMatch.group(0)!;
+
       try {
         DateTime parsedDate;
 
-        if (rawDate.contains('-')) {
-          parsedDate = DateTime.parse(rawDate);
-        } else if (rawDate.contains('/')) {
-          var parts = rawDate.split('/');
-          if (parts[2].length == 2) {
-            parts[2] = '20' + parts[2];
-          }
-          parsedDate = DateTime.parse('${parts[2]}-${parts[0]}-${parts[1]}');
-        } else {
+        if (rawDate.contains('.') && rawDate.length == 10) {
+          // Format: DD.MM.YYYY
           parsedDate = DateFormat("dd.MM.yyyy").parse(rawDate);
+        } else if (rawDate.contains('.') && rawDate.length == 8) {
+          // Format: DD.MM.YY
+          parsedDate = DateFormat("dd.MM.yy").parse(rawDate);
+        } else if (rawDate.contains('-') && rawDate.length == 10) {
+          // Format: DD-MM-YYYY or YYYY-MM-DD
+          if (rawDate.split('-')[0].length == 4) {
+            parsedDate = DateFormat("yyyy-MM-dd").parse(rawDate);
+          } else {
+            parsedDate = DateFormat("dd-MM-yyyy").parse(rawDate);
+          }
+        } else if (rawDate.contains('-') && rawDate.length == 8) {
+          // Format: DD-MM-YY
+          parsedDate = DateFormat("dd-MM-yy").parse(rawDate);
+        } else {
+          throw FormatException("Unrecognized date format");
         }
 
+        // Standardize the date to 'yyyy-MM-dd' format
         _receiptDate = DateFormat('yyyy-MM-dd').format(parsedDate);
         logger.i('Extracted Date: $_receiptDate');
       } catch (e) {
@@ -209,6 +221,10 @@ class ScanScreenState extends State<ScanScreen> {
       _receiptDate = "Not Found";
     }
   }
+
+
+
+
 
   void _confirmDataAndNavigate() {
     Navigator.push(
