@@ -14,6 +14,10 @@ import '../services/category_service.dart';
 import '../services/currency_service.dart';
 import '../services/receipt_service.dart';
 import '../services/storage_service.dart';
+//import 'package:receipt_manager/screens/dashboard_screen.dart';
+import 'package:receipt_manager/screens/receipt_list_screen.dart';
+
+
 
 class AddOrUpdateReceiptScreen extends StatefulWidget {
   static const String id = 'add_receipt_screen';
@@ -345,8 +349,7 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       'merchant': merchantController.text,
       'date': Timestamp.fromDate(DateTime.parse(dateController.text)),
       'amount': double.tryParse(totalController.text) ?? 0.0,
-      'categoryId':
-          selectedCategoryId, // Store the selected categoryId instead of category name
+      'categoryId': selectedCategoryId, // Store the selected categoryId instead of category name
       'currency': selectedCurrency,
       'itemName': itemNameController.text,
       'description': descriptionController.text,
@@ -370,8 +373,7 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
         // Only clear form fields and reset dropdown selections if a new receipt was added
         setState(() {
           merchantController.clear();
-          dateController.text =
-              DateTime.now().toLocal().toString().split(' ')[0];
+          dateController.text = DateTime.now().toLocal().toString().split(' ')[0];
           totalController.clear();
           descriptionController.clear();
           itemNameController.clear();
@@ -379,11 +381,9 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
           selectedCurrency = null;
           uploadedImageUrl = null;
         });
-      }
 
-      // Navigate back to the receipt list screen after saving
-      if (mounted) {
-        Navigator.pop(context);
+        // Navigate back to the dashboard screen after saving
+        Navigator.pushReplacementNamed(context, ReceiptListScreen.id);
       }
     } catch (e) {
       // Handle error: show an error message
@@ -392,6 +392,7 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       );
     }
   }
+
 
   Future<void> _confirmDelete() async {
     // Show a confirmation dialog before deletion
