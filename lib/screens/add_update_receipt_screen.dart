@@ -62,14 +62,12 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
 
     getCurrentUser().then((_) {
       if (widget.existingReceipt != null) {
-        // Populate the fields with existing receipt data
+        // Populate only the relevant fields with data passed from ScanScreen
         merchantController.text = widget.existingReceipt!['merchant'] ?? '';
-        dateController.text = (widget.existingReceipt!['date'] as Timestamp)
-            .toDate()
-            .toLocal()
-            .toString()
-            .split(' ')[0];
-        totalController.text = widget.existingReceipt!['amount'].toString();
+        dateController.text = widget.existingReceipt!['date'] ?? '';
+        totalController.text = widget.existingReceipt!['amount'] ?? '';
+
+        // Existing logic to handle other fields and functionality
         descriptionController.text =
             widget.existingReceipt!['description'] ?? '';
         itemNameController.text = widget.existingReceipt!['itemName'] ?? '';
@@ -91,6 +89,8 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       fetchUserCategories();
     });
   }
+
+
 
   Future<void> getCurrentUser() async {
     loggedInUser = await AuthService.getCurrentUser();
