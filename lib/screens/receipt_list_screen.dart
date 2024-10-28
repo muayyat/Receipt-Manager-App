@@ -34,6 +34,7 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
 
   Stream<DocumentSnapshot>? receiptsStream;
   List<Map<String, dynamic>> sortedReceiptList = [];
+  List<Map<String, dynamic>> userCategories = [];
 
   // Set default dates
   DateTime? _startDate =
@@ -55,6 +56,13 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
     setState(() {
       if (loggedInUser != null) {
         receiptsStream = receiptService.fetchReceipts();
+        // Fetch user categories directly from the service
+        categoryService
+            .fetchUserCategories(loggedInUser!.email!)
+            .then((categories) {
+          userCategories = categories; // Directly assign the fetched categories
+          setState(() {}); // Trigger rebuild with new categories
+        });
       } else {
         // You can handle the case where the user is not logged in if needed.
         logger.w('No user is logged in.');
@@ -199,23 +207,19 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
         });
       });
     } else if (currentSortField == 'category') {
-      // Map for storing fetched category names temporarily
-      Map<String, String?> categoryNames = {};
+      // Create a map to store category names for quick access
+      Map<String, String?> categoryNamesMap = {};
 
-      // Fetch category names asynchronously for each receipt
-      for (var receipt in sortedReceiptList) {
-        String categoryId = receipt['categoryId'];
-        categoryNames[categoryId] = await categoryService.fetchCategoryNameById(
-          loggedInUser!.email!,
-          categoryId,
-        );
+// Populate the map with category names from userCategories
+      for (var category in userCategories) {
+        categoryNamesMap[category['id']] = category['name'];
       }
 
-      // Sort the list based on fetched category names
+// Sort the list based on fetched category names
       setState(() {
         sortedReceiptList.sort((a, b) {
-          var aCategory = categoryNames[a['categoryId']] ?? 'Uncategorized';
-          var bCategory = categoryNames[b['categoryId']] ?? 'Uncategorized';
+          var aCategory = categoryNamesMap[a['categoryId']] ?? 'Uncategorized';
+          var bCategory = categoryNamesMap[b['categoryId']] ?? 'Uncategorized';
           return isDescending
               ? bCategory.compareTo(aCategory)
               : aCategory.compareTo(bCategory);
@@ -335,6 +339,13 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
     String imageUrl = receiptData['imageUrl'] ?? '';
     String receiptId = receiptData['id'] ?? ''; // Get receipt ID from data
 
+    // Find the category in the userCategories list
+    var category = userCategories.firstWhere(
+      (cat) => cat['id'] == categoryId,
+      orElse: () =>
+          {'name': 'Uncategorized', 'icon': ''}, // Fallback if not found
+    );
+
     return GestureDetector(
       onTap: () {
         // Navigate to AddReceiptScreen and pass receipt data
@@ -348,36 +359,15 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
           ),
         );
       },
-      child: (loggedInUser?.email != null && categoryId != null)
-          ? FutureBuilder<String?>(
-              future: categoryService.fetchCategoryNameById(
-                  loggedInUser!.email!, categoryId),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                }
-
-                String categoryName = snapshot.data ?? 'Uncategorized';
-
-                return _buildReceiptCardContent(
-                  imageUrl,
-                  itemName,
-                  merchant,
-                  date,
-                  categoryName, // Use the fetched category name
-                  currency,
-                  amount,
-                );
-              },
-            )
-          : _buildReceiptCardContent(
-              imageUrl,
-              itemName,
-              merchant,
-              date,
-              'Uncategorized',
-              currency,
-              amount), // Handle case where categoryId is null
+      child: _buildReceiptCardContent(
+        imageUrl,
+        itemName,
+        merchant,
+        date,
+        category['name'], // Use the fetched category name directly
+        currency,
+        amount,
+      ),
     );
   }
 
