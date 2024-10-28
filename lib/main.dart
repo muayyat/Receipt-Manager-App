@@ -12,6 +12,7 @@ import 'package:receipt_manager/screens/scan_screen.dart';
 import 'package:receipt_manager/screens/setting_screen.dart';
 import 'package:receipt_manager/screens/welcome_screen.dart';
 
+
 import 'firebase_options.dart';
 
 void main() async {
