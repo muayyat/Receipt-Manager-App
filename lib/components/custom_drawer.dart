@@ -8,6 +8,7 @@ import 'package:receipt_manager/screens/expense_chart_screen.dart';
 import 'package:receipt_manager/screens/profile_screen.dart';
 import 'package:receipt_manager/screens/welcome_screen.dart';
 
+import '../screens/budget_screen.dart';
 import '../screens/category_screen.dart';
 import '../screens/receipt_list_screen.dart';
 import '../screens/setting_screen.dart';
@@ -146,6 +147,13 @@ class CustomDrawerState extends State<CustomDrawer> {
                   title: Text('Categories'),
                   onTap: () {
                     Navigator.pushNamed(context, CategoryScreen.id);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.savings),
+                  title: Text('Budgets'),
+                  onTap: () {
+                    Navigator.pushNamed(context, BudgetScreen.id);
                   },
                 ),
                 ListTile(
