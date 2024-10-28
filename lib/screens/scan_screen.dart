@@ -160,7 +160,7 @@ class ScanScreenState extends State<ScanScreen> {
 
   void _extractTotalAmount(String text) {
     RegExp totalRegex = RegExp(
-      r'(Total|TOTAL|total|Subtotal|SUBTOTAL|Amount Due|BALANCE DUE|Amount)\s*[:$]?\s*(\d+[.,]?\d{2})',
+      r'(Total|TOTAL|total|Subtotal|SUBTOTAL|Amount Due|BALANCE DUE|Amount|YHTEENSÄ|YHTEENSÄ)\s*[:$]?\s*(\d+[.,]?\d{2})',
       caseSensitive: false,
     );
 
