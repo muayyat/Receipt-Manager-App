@@ -44,6 +44,9 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
   String currentSortField = 'date';
   bool isDescending = false;
 
+  // Filtering
+  List<String> selectedCategoryIds = []; // Store selected category IDs
+
   @override
   void initState() {
     super.initState();
@@ -86,6 +89,61 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
               _startDate = start;
               _endDate = end;
             });
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _showCategoryFilterDialog() async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'Filter by Categories',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Expanded(
+                  child: ListView(
+                    children: userCategories.map((category) {
+                      return CheckboxListTile(
+                        title: Text(category['name']),
+                        value: selectedCategoryIds.contains(category['id']),
+                        onChanged: (bool? isChecked) {
+                          setState(() {
+                            if (isChecked == true) {
+                              selectedCategoryIds.add(category['id']);
+                            } else {
+                              selectedCategoryIds.remove(category['id']);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      Navigator.of(context).pop(); // Close the bottom sheet
+                    });
+                  },
+                  child: Text('APPLY', style: TextStyle(fontSize: 20)),
+                ),
+              ],
+            );
           },
         );
       },
@@ -393,6 +451,14 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
             snapshot.data!.get('receiptlist') as List<dynamic>? ?? [];
         sortedReceiptList = receiptList.cast<Map<String, dynamic>>();
 
+        // Filter by selected categories
+        if (selectedCategoryIds.isNotEmpty) {
+          sortedReceiptList = sortedReceiptList.where((receipt) {
+            return selectedCategoryIds.contains(receipt['categoryId']);
+          }).toList();
+        }
+
+        // Filter by date range
         if (_startDate != null && _endDate != null) {
           sortedReceiptList = sortedReceiptList.where((receipt) {
             final receiptDate = (receipt['date'] as Timestamp).toDate();
@@ -477,7 +543,13 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
                         onCalendarPressed:
                             _showCalendarFilterDialog, // Pass the calendar callback
                       ),
-                      SizedBox(width: 8), // Add spacing between the two buttons
+                      SizedBox(width: 8),
+                      IconButton(
+                        icon: Icon(Icons.filter_alt_outlined,
+                            color: Colors.lightBlue), // Filter icon
+                        onPressed:
+                            _showCategoryFilterDialog, // Show category filter dialog
+                      ),
                       IconButton(
                         icon: Icon(Icons.sort,
                             color: Colors.lightBlue), // Sort button icon
