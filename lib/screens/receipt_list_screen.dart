@@ -95,7 +95,10 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
     );
   }
 
+  // TODO: modify the dialog to a modern one
   Future<void> _showCategoryFilterDialog() async {
+    List<String> tempSelectedCategoryIds = List.from(selectedCategoryIds);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -120,13 +123,13 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
                     children: userCategories.map((category) {
                       return CheckboxListTile(
                         title: Text(category['name']),
-                        value: selectedCategoryIds.contains(category['id']),
+                        value: tempSelectedCategoryIds.contains(category['id']),
                         onChanged: (bool? isChecked) {
                           setState(() {
                             if (isChecked == true) {
-                              selectedCategoryIds.add(category['id']);
+                              tempSelectedCategoryIds.add(category['id']);
                             } else {
-                              selectedCategoryIds.remove(category['id']);
+                              tempSelectedCategoryIds.remove(category['id']);
                             }
                           });
                         },
@@ -136,9 +139,9 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
                 ),
                 TextButton(
                   onPressed: () {
-                    setState(() {
-                      Navigator.of(context).pop(); // Close the bottom sheet
-                    });
+                    // Call the new onFilterChanged method with the selected categories
+                    onFilterChanged(tempSelectedCategoryIds);
+                    Navigator.of(context).pop(); // Close the bottom sheet
                   },
                   child: Text('APPLY', style: TextStyle(fontSize: 20)),
                 ),
@@ -148,6 +151,30 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
         );
       },
     );
+  }
+
+  void onFilterChanged(List<String> newSelectedCategoryIds) {
+    setState(() {
+      selectedCategoryIds = newSelectedCategoryIds;
+
+      // Reapply the filtering logic based on the updated selectedCategoryIds
+      _applyFilters();
+    });
+  }
+
+  void _applyFilters() {
+    // Fetch the initial list from Firestore or your receipt list
+    List<Map<String, dynamic>> filteredList = List.from(sortedReceiptList);
+
+    // Filter by selected categories
+    if (selectedCategoryIds.isNotEmpty) {
+      filteredList = filteredList.where((receipt) {
+        return selectedCategoryIds.contains(receipt['categoryId']);
+      }).toList();
+    }
+
+    // Update the sortedReceiptList with the filtered results
+    sortedReceiptList = filteredList;
   }
 
   void _showSortBottomSheet(BuildContext context) {
