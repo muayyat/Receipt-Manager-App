@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../components/custom_drawer.dart';
 import '../services/auth_service.dart';
 import '../services/budget_service.dart';
+import '../services/category_service.dart';
 import '../services/receipt_service.dart';
 
 class SummaryScreen extends StatefulWidget {
@@ -18,10 +19,11 @@ class SummaryScreen extends StatefulWidget {
 class SummaryScreenState extends State<SummaryScreen> {
   User? loggedInUser;
 
+  final CategoryService _categoryService = CategoryService();
   final BudgetService _budgetService = BudgetService();
   final ReceiptService _receiptService = ReceiptService();
 
-  String selectedBaseCurrency = 'EUR';
+  String? baseCurrency;
 
   DateTime selectedDate =
       DateTime(DateTime.now().year, DateTime.now().month, 1);
@@ -52,8 +54,14 @@ class SummaryScreenState extends State<SummaryScreen> {
     // Fetch budgets and expenses for the selected month
     List<Map<String, dynamic>> budgets =
         await _budgetService.fetchUserBudgets(loggedInUser!.email!);
+    // Update baseCurrency based on budgets data
+    if (budgets.isNotEmpty && budgets[0]['currency'] != null) {
+      baseCurrency = budgets[0]['currency'];
+    } else {
+      baseCurrency = 'EUR'; // Default to EUR if no currency is found in budgets
+    }
     Map<String, double> expenses = await _receiptService
-        .groupReceiptsByCategory(selectedBaseCurrency, startDate, endDate);
+        .groupReceiptsByCategory(baseCurrency!, startDate, endDate);
 
     // Organize data for visualization
     setState(() {
