@@ -21,7 +21,6 @@ class CategoryScreenState extends State<CategoryScreen> {
   User? loggedInUser;
 
   List<Map<String, dynamic>> userCategories = [];
-  String? selectedCategoryId;
 
   final ReceiptService receiptService = ReceiptService();
 
@@ -143,35 +142,23 @@ class CategoryScreenState extends State<CategoryScreen> {
                   String categoryId = userCategories[index]['id'] ?? '';
                   String categoryName =
                       userCategories[index]['name']?.trim() ?? '';
-                  bool isSelected = categoryId == selectedCategoryId;
 
-                  return Container(
-                    color: isSelected
-                        ? Colors.lightBlue.withOpacity(0.2)
-                        : null, // Highlight selected row
-                    child: ListTile(
-                      leading: Text(userCategories[index]['icon'] ?? '',
-                          style: TextStyle(fontSize: 26)),
-                      title: Text(
-                        categoryName,
-                        style: TextStyle(
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.normal,
-                        ),
-                      ),
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete_outline, color: Colors.red),
-                        onPressed: () {
-                          deleteCategory(categoryId);
-                        },
-                      ),
-                      onTap: () {
-                        setState(() {
-                          selectedCategoryId = categoryId;
-                        });
-                        Navigator.pop(context, selectedCategoryId);
+                  return ListTile(
+                    leading: Text(userCategories[index]['icon'] ?? '',
+                        style: TextStyle(fontSize: 26)),
+                    title: Text(
+                      categoryName,
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete_outline, color: Colors.red),
+                      onPressed: () {
+                        deleteCategory(categoryId);
                       },
                     ),
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
                   );
                 },
               ),

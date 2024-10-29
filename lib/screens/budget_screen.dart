@@ -228,13 +228,39 @@ class BudgetScreenState extends State<BudgetScreen> {
                       categoryIcon,
                       style: TextStyle(fontSize: 26),
                     ),
-                    title: Text(categoryName, style: TextStyle(fontSize: 18)),
+                    title: Text(categoryName, style: TextStyle(fontSize: 16)),
                     trailing: SizedBox(
                       width: 100,
                       child: TextField(
                         decoration: InputDecoration(
                           hintText: budgetAmount.toStringAsFixed(2),
-                          border: OutlineInputBorder(),
+                          hintStyle: TextStyle(
+                            color: Colors.grey[600],
+                          ),
+                          contentPadding: EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 12), // Add padding
+                          border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.circular(12), // Rounded corners
+                            borderSide: BorderSide(
+                              color: Colors.grey[300]!, // Default border color
+                              width: 1.0,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: Colors.lightBlue, // Focused border color
+                              width: 1.5,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: Colors.grey[300]!, // Enabled border color
+                              width: 1.0,
+                            ),
+                          ),
                         ),
                         keyboardType: TextInputType.number,
                         onChanged: (value) {
