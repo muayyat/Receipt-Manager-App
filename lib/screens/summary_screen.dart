@@ -227,40 +227,58 @@ class SummaryScreenState extends State<SummaryScreen> {
                                   SizedBox(width: 8.0),
                                   Text(
                                     categoryName,
-                                    style: TextStyle(fontSize: 16.0),
+                                    style: TextStyle(
+                                        fontSize: 16.0,
+                                        fontWeight: FontWeight.w600),
                                   ),
                                 ],
                               ),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    'Budget: ${budget['currency']} ${budgetAmount.toStringAsFixed(2)}, Spent: ${budget['currency']} ${spent.toStringAsFixed(2)}',
-                                    style: TextStyle(
-                                        color: Colors.grey[700],
-                                        fontSize: 14.0),
-                                  ),
-                                  SizedBox(height: 4.0),
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(5.0),
-                                    child: LinearProgressIndicator(
-                                      value: ratio.clamp(0.0, 1.0),
-                                      color: getColor(ratio),
-                                      backgroundColor: Colors.grey[300],
-                                      minHeight: 6.0,
-                                    ),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Budget: ${budget['currency']} ${budgetAmount.toStringAsFixed(2)}',
+                                        style: TextStyle(
+                                            color: Colors.grey[700],
+                                            fontSize: 14.0),
+                                      ),
+                                      Text(
+                                        'Spent: ${budget['currency']} ${spent.toStringAsFixed(2)}',
+                                        style: TextStyle(
+                                          color: ratio > 1.0
+                                              ? Colors.red
+                                              : Colors.green,
+                                          fontSize: 14.0,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
                               trailing: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    ratioText,
-                                    style: TextStyle(
-                                      color: getColor(ratio),
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14.0,
+                                  Container(
+                                    width: 48.0,
+                                    height: 48.0,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: getColor(ratio).withOpacity(0.2),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        ratioText,
+                                        style: TextStyle(
+                                          color: getColor(ratio),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12.0,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ],
