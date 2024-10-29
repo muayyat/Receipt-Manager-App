@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../components/custom_drawer.dart';
@@ -76,26 +75,47 @@ class SummaryScreenState extends State<SummaryScreen> {
 
       List<Map<String, dynamic>> budgets =
           await _budgetService.fetchUserBudgets(loggedInUser!.email!);
-
       if (budgets.isNotEmpty && budgets[0]['currency'] != null) {
         baseCurrency = budgets[0]['currency'];
       } else {
-        baseCurrency = 'EUR'; // Default currency
+        baseCurrency = 'EUR';
       }
 
       if (baseCurrency != null) {
         Map<String, double> expenses = await _receiptService
             .groupReceiptsByCategory(baseCurrency!, startDate, endDate);
 
+        // Fetch categories and convert to map format with categoryId as the key
+        List<Map<String, dynamic>> categoriesList =
+            await _categoryService.fetchUserCategories(loggedInUser!.email!);
+        Map<String, Map<String, dynamic>> categoryMap = {
+          for (var category in categoriesList)
+            category['id']: {
+              'name': category['name'],
+              'icon': category[
+                  'icon'], // Ensure icon is stored as IconData if possible
+            },
+        };
+
         setState(() {
-          budgetData = {'budgets': budgets, 'expenses': expenses};
+          budgetData = {
+            'budgets': budgets.map((budget) {
+              String categoryId = budget['categoryId'];
+              Map<String, dynamic> categoryDetails =
+                  categoryMap[categoryId] ?? {};
+              budget['categoryName'] = categoryDetails['name'] ?? 'Unknown';
+              budget['categoryIcon'] = categoryDetails['icon'] ?? '';
+              return budget;
+            }).toList(),
+            'expenses': expenses
+          };
           isLoading = false;
         });
       }
     } catch (e) {
       print("Error loading data: $e");
       setState(() {
-        isLoading = false; // Stop loading if an error occurs
+        isLoading = false;
       });
     }
   }
@@ -104,78 +124,6 @@ class SummaryScreenState extends State<SummaryScreen> {
     if (ratio < 0.75) return Colors.green;
     if (ratio < 1.0) return Colors.yellow;
     return Colors.red;
-  }
-
-  void _selectMonth() async {
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        int selectedYear = selectedDate.year;
-        int selectedMonth = selectedDate.month;
-
-        return Container(
-          height: 250,
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Text(
-                'Select Month',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Year Picker
-                  Expanded(
-                    child: CupertinoPicker(
-                      scrollController: FixedExtentScrollController(
-                        initialItem: selectedYear - 2020, // Start from 2020
-                      ),
-                      itemExtent: 32.0,
-                      onSelectedItemChanged: (index) {
-                        selectedYear = 2020 + index;
-                      },
-                      children: List<Widget>.generate(
-                        20,
-                        (index) => Center(child: Text('${2020 + index}')),
-                      ),
-                    ),
-                  ),
-                  // Month Picker
-                  Expanded(
-                    child: CupertinoPicker(
-                      scrollController: FixedExtentScrollController(
-                        initialItem: selectedMonth - 1,
-                      ),
-                      itemExtent: 32.0,
-                      onSelectedItemChanged: (index) {
-                        selectedMonth = index + 1;
-                      },
-                      children: List<Widget>.generate(
-                        12,
-                        (index) => Center(child: Text('${index + 1}')),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    selectedDate = DateTime(selectedYear, selectedMonth);
-                  });
-                  Navigator.pop(context);
-                },
-                child: Text('Done'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   @override
@@ -243,10 +191,12 @@ class SummaryScreenState extends State<SummaryScreen> {
                           itemCount: budgetData['budgets']?.length ?? 0,
                           itemBuilder: (context, index) {
                             var budget = budgetData['budgets'][index];
-                            String categoryId = budget['categoryId'];
+                            String categoryName = budget['categoryName'];
+                            String categoryIcon = budget['categoryIcon'];
                             double budgetAmount = budget['amount'];
-                            double spent =
-                                budgetData['expenses'][categoryId] ?? 0.0;
+                            double spent = budgetData['expenses']
+                                    [budget['categoryId']] ??
+                                0.0;
                             String ratioText;
                             double ratio;
 
@@ -268,7 +218,7 @@ class SummaryScreenState extends State<SummaryScreen> {
                             }
 
                             return ListTile(
-                              title: Text(categoryId),
+                              title: Text('$categoryIcon $categoryName'),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
