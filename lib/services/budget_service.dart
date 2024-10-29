@@ -5,7 +5,7 @@ import '../logger.dart';
 class BudgetService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Fetch user budgets
+  // Fetch all budgets for a user
   Future<List<Map<String, dynamic>>> fetchUserBudgets(String userId) async {
     try {
       DocumentSnapshot userDoc =
@@ -15,15 +15,16 @@ class BudgetService {
         var data = userDoc.data() as Map<String, dynamic>;
         List<dynamic> budgetList = data['budgetlist'] ?? [];
 
-        return budgetList
-            .map((budget) => {
-                  'categoryId': budget['categoryId'] ?? '',
-                  'amount': budget['amount'] ?? 0,
-                  'currency': budget['currency'] ?? 'USD',
-                  'period':
-                      budget['period'] ?? 'monthly' // Default to 'monthly'
-                })
-            .toList();
+        return budgetList.map((budget) {
+          return {
+            'categoryId': budget['categoryId'] ?? '',
+            'amount': budget['amount'] ?? 0.0,
+            'currency': budget['currency'] ??
+                'USD', // Apply top-level currency to each budget item
+            'period': budget['period'] ??
+                'monthly', // Apply top-level period to each budget item
+          };
+        }).toList();
       } else {
         return [];
       }
@@ -33,50 +34,15 @@ class BudgetService {
     }
   }
 
-  // Add or Update budget for a specific category
-  Future<void> addOrUpdateBudget(String userId, String categoryId,
-      double amount, String currency, String period) async {
+  Future<void> updateUserBudgets(
+      String userId, List<Map<String, dynamic>> budgetList) async {
     try {
-      DocumentReference userDocRef =
-          _firestore.collection('budgets').doc(userId);
-
-      // Fetch the user's document
-      DocumentSnapshot userDoc = await userDocRef.get();
-
-      // Define the new budget data
-      Map<String, dynamic> newBudget = {
-        'categoryId': categoryId,
-        'amount': amount,
-        'currency': currency,
-        'period':
-            period, // Accept period as a String (e.g., 'daily', 'monthly')
-      };
-
-      if (!userDoc.exists) {
-        // If the document doesn't exist, create it and initialize budgetlist with the new budget
-        await userDocRef.set({
-          'budgetlist': [newBudget],
-        });
-      } else {
-        var data = userDoc.data() as Map<String, dynamic>;
-        List<dynamic> budgetList = data['budgetlist'] ?? [];
-
-        // Check if budget for categoryId exists
-        var existingBudgetIndex = budgetList
-            .indexWhere((budget) => budget['categoryId'] == categoryId);
-
-        if (existingBudgetIndex != -1) {
-          // Update existing budget
-          budgetList[existingBudgetIndex] = newBudget;
-        } else {
-          // Add new budget
-          budgetList.add(newBudget);
-        }
-
-        await userDocRef.update({'budgetlist': budgetList});
-      }
+      await _firestore.collection('budgets').doc(userId).update({
+        'budgetlist': budgetList,
+      });
     } catch (e) {
-      logger.e("Error adding/updating budget: $e");
+      logger.e("Error updating user budgets: $e");
+      throw e;
     }
   }
 
@@ -91,7 +57,7 @@ class BudgetService {
         var data = userDoc.data() as Map<String, dynamic>;
         List<dynamic> budgetList = data['budgetlist'] ?? [];
 
-        // Find the budget by categoryId
+        // Find the specific budget by categoryId
         var budget = budgetList.firstWhere(
           (budget) => budget['categoryId'] == categoryId,
           orElse: () {
@@ -105,7 +71,7 @@ class BudgetService {
                 'categoryId': budget['categoryId'],
                 'amount': budget['amount'],
                 'currency': budget['currency'],
-                'period': budget['period']
+                'period': budget['period'],
               }
             : null;
       }

@@ -1,11 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../components/add_budget_widget.dart';
 import '../components/custom_drawer.dart';
 import '../logger.dart';
 import '../services/auth_service.dart';
 import '../services/budget_service.dart';
+import '../services/category_service.dart';
 
 class BudgetScreen extends StatefulWidget {
   static const String id = 'budget_screen';
@@ -18,10 +18,12 @@ class BudgetScreen extends StatefulWidget {
 
 class BudgetScreenState extends State<BudgetScreen> {
   User? loggedInUser;
+  List<Map<String, dynamic>> userCategories =
+      []; // Store categories with budget
+  String selectedPeriod = 'Monthly';
+  String selectedCurrency = '¥';
 
-  List<Map<String, dynamic>> userBudgets = [];
-  String? selectedBudgetId;
-
+  final CategoryService _categoryService = CategoryService();
   final BudgetService _budgetService = BudgetService();
 
   @override
@@ -33,88 +35,177 @@ class BudgetScreenState extends State<BudgetScreen> {
   void getCurrentUser() async {
     loggedInUser = await AuthService.getCurrentUser();
     if (loggedInUser != null) {
-      fetchUserBudgets(); // Call fetchUserBudgets only after loggedInUser is assigned.
+      fetchUserCategoriesAndBudgets(); // Fetch categories and budgets after assigning loggedInUser
     }
   }
 
-  Future<void> fetchUserBudgets() async {
+  Future<void> fetchUserCategoriesAndBudgets() async {
     try {
+      logger.i(
+          "Fetching categories and budgets for user: ${loggedInUser!.email}");
+
+      // Fetch categories and budget data from services
+      List<Map<String, dynamic>> categories =
+          await _categoryService.fetchUserCategories(loggedInUser!.email!);
       List<Map<String, dynamic>> budgets =
           await _budgetService.fetchUserBudgets(loggedInUser!.email!);
 
+      logger.i("Fetched categories: $categories");
+      logger.i("Fetched budgets: $budgets");
+
+      if (budgets.isNotEmpty) {
+        selectedCurrency = budgets[0]['currency'] ?? '¥';
+        selectedPeriod = budgets[0]['period'] ?? 'Monthly';
+      }
+
+      // Map budgets by categoryId for quick lookup
+      Map<String, dynamic> budgetMap = {
+        for (var budget in budgets)
+          budget['categoryId']: budget['amount'] ?? 0.0
+      };
+      logger.i("Mapped budget data by categoryId: $budgetMap");
+
+      // Combine categories with their respective budget amounts
       setState(() {
-        userBudgets = budgets;
+        userCategories = categories.map((category) {
+          String categoryId = category['id'] ?? '';
+          String categoryName = category['name'] ?? 'Unknown';
+          String categoryIcon = category['icon'] ?? '📦';
+          double budgetAmount = budgetMap[categoryId] ?? 0.0;
+
+          logger.i(
+              "Processing category - ID: $categoryId, Name: $categoryName, Icon: $categoryIcon, Budget: $budgetAmount");
+
+          return {
+            'categoryId': categoryId,
+            'categoryName': categoryName,
+            'categoryIcon': categoryIcon,
+            'budget': budgetAmount,
+          };
+        }).toList();
       });
+
+      logger.i("Final user categories with budgets: $userCategories");
     } catch (e) {
-      logger.e("Error fetching user budgets: $e");
+      logger.e("Error fetching user categories or budgets: $e");
     }
   }
 
-  // Function to show the AddBudgetWidget dialog
-  void _showAddBudgetDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: AddBudgetWidget(
-            userId: loggedInUser!.email!,
-            onBudgetAdded: () {
-              // Refresh budgets when a new budget is added
-              fetchUserBudgets();
-            },
-          ),
-        );
-      },
-    );
+  Future<void> saveAllBudgets() async {
+    try {
+      logger.i("Saving all budgets for user: ${loggedInUser!.email}");
+
+      // Create a list of budget entries to save
+      List<Map<String, dynamic>> budgetList = userCategories.map((category) {
+        return {
+          'categoryId': category['categoryId'],
+          'amount': category['budget'],
+          'currency': selectedCurrency,
+          'period': selectedPeriod,
+        };
+      }).toList();
+
+      // Call the service to update the user's budget list in the backend
+      await _budgetService.updateUserBudgets(loggedInUser!.email!, budgetList);
+
+      logger.i("Successfully saved all budgets");
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Budgets saved successfully'),
+        backgroundColor: Colors.green,
+      ));
+    } catch (e) {
+      logger.e("Error saving budgets: $e");
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Failed to save budgets'),
+        backgroundColor: Colors.red,
+      ));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Ensure dropdown values have defaults if they are null
+    final periodOptions = ['Monthly', 'Yearly'];
+    if (!periodOptions.contains(selectedPeriod)) selectedPeriod = 'Monthly';
+    final currencyOptions = ['¥', '\$', '€'];
+    if (!currencyOptions.contains(selectedCurrency)) selectedCurrency = '¥';
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Your Budgets'),
-        backgroundColor: Colors.lightBlueAccent,
+        backgroundColor: Colors.lightBlue,
       ),
       drawer: CustomDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Period and Currency Dropdowns
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                DropdownButton<String>(
+                  value: selectedPeriod,
+                  items: periodOptions
+                      .map((period) => DropdownMenuItem(
+                            value: period,
+                            child: Text(period),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedPeriod = value!;
+                    });
+                  },
+                ),
+                DropdownButton<String>(
+                  value: selectedCurrency,
+                  items: currencyOptions
+                      .map((currency) => DropdownMenuItem(
+                            value: currency,
+                            child: Text(currency),
+                          ))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedCurrency = value!;
+                    });
+                  },
+                ),
+              ],
+            ),
+            SizedBox(height: 10),
+            // Category List with Budget Input
             Expanded(
               child: ListView.builder(
-                itemCount: userBudgets.length,
+                itemCount: userCategories.length,
                 itemBuilder: (context, index) {
-                  String budgetId = userBudgets[index]['categoryId'] ?? '';
-                  String budgetAmount =
-                      userBudgets[index]['amount']?.toString() ?? '0';
-                  String budgetCurrency =
-                      userBudgets[index]['currency'] ?? 'USD';
-                  String budgetPeriod =
-                      userBudgets[index]['period'] ?? 'monthly';
-                  bool isSelected = budgetId == selectedBudgetId;
+                  String categoryName = userCategories[index]['categoryName'];
+                  String categoryIcon = userCategories[index]['categoryIcon'];
+                  double budgetAmount = userCategories[index]['budget'];
 
-                  return Container(
-                    color: isSelected
-                        ? Colors.lightBlue.withOpacity(0.2)
-                        : null, // Highlight selected row
-                    child: ListTile(
-                      title: Text(
-                        'Budget for $budgetId: $budgetAmount $budgetCurrency',
-                        style: TextStyle(
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.normal,
+                  return ListTile(
+                    leading: Text(
+                      categoryIcon,
+                      style: TextStyle(fontSize: 28),
+                    ),
+                    title: Text(categoryName, style: TextStyle(fontSize: 18)),
+                    trailing: SizedBox(
+                      width: 100,
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: budgetAmount.toStringAsFixed(2),
+                          border: OutlineInputBorder(),
                         ),
+                        keyboardType: TextInputType.number,
+                        onChanged: (value) {
+                          setState(() {
+                            userCategories[index]['budget'] =
+                                double.tryParse(value) ?? 0.0;
+                          });
+                        },
                       ),
-                      subtitle: Text('Period: $budgetPeriod'),
-                      onTap: () {
-                        setState(() {
-                          selectedBudgetId = budgetId;
-                        });
-                        Navigator.pop(context, selectedBudgetId);
-                      },
                     ),
                   );
                 },
@@ -124,10 +215,10 @@ class BudgetScreenState extends State<BudgetScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showAddBudgetDialog,
+        onPressed: saveAllBudgets,
         backgroundColor: Colors.lightBlueAccent,
         elevation: 6,
-        child: Icon(Icons.add),
+        child: Icon(Icons.save),
       ),
     );
   }
