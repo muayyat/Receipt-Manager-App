@@ -210,6 +210,9 @@ class CurrencyPicker extends StatelessWidget {
         int initialIndex = currencyList.indexOf(selectedCurrency);
         if (initialIndex == -1) initialIndex = 0;
 
+        // Track the selected currency locally
+        String currentSelectedCurrency = currencyList[initialIndex];
+
         return Container(
           padding: EdgeInsets.all(16),
           height: 300,
@@ -230,7 +233,7 @@ class CurrencyPicker extends StatelessWidget {
                         ),
                         itemExtent: 32.0,
                         onSelectedItemChanged: (int index) {
-                          onCurrencySelected(currencyList[index]);
+                          currentSelectedCurrency = currencyList[index];
                         },
                         children: currencyList
                             .map((currency) => Center(child: Text(currency)))
@@ -240,6 +243,8 @@ class CurrencyPicker extends StatelessWidget {
                     SizedBox(height: 20),
                     TextButton(
                       onPressed: () {
+                        // Call onCurrencySelected when DONE is pressed
+                        onCurrencySelected(currentSelectedCurrency);
                         Navigator.pop(context); // Close the picker
                       },
                       child: Text('DONE'),
