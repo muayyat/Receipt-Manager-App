@@ -23,7 +23,8 @@ class SummaryScreenState extends State<SummaryScreen> {
 
   String selectedBaseCurrency = 'EUR';
 
-  DateTime selectedDate = DateTime.now();
+  DateTime selectedDate =
+      DateTime(DateTime.now().year, DateTime.now().month, 1);
   Map<String, dynamic> budgetData = {};
   bool isLoading = true;
 
@@ -112,8 +113,24 @@ class SummaryScreenState extends State<SummaryScreen> {
                 String categoryId = budget['categoryId'];
                 double budgetAmount = budget['amount'];
                 double spent = budgetData['expenses'][categoryId] ?? 0.0;
-                double ratio = spent / budgetAmount;
+                String ratioText;
+                double ratio;
 
+                if (budgetAmount == 0) {
+                  if (spent > 0) {
+                    // Indicate over-budget with no budget set
+                    ratioText = '∞%'; // or use 'Over Budget'
+                    ratio = 1.0; // Force progress bar to full
+                  } else {
+                    // No budget and no spending
+                    ratioText = '0.0%';
+                    ratio = 0.0; // Keep progress bar empty
+                  }
+                } else {
+                  // Normal case where budgetAmount > 0
+                  ratio = spent / budgetAmount;
+                  ratioText = '${(ratio * 100).toStringAsFixed(1)}%';
+                }
                 return ListTile(
                   title: Text(categoryId),
                   subtitle: Column(
@@ -130,7 +147,7 @@ class SummaryScreenState extends State<SummaryScreen> {
                     ],
                   ),
                   trailing: Text(
-                    '${(ratio * 100).toStringAsFixed(1)}%',
+                    ratioText,
                     style: TextStyle(
                       color: getColor(ratio),
                       fontWeight: FontWeight.bold,
