@@ -137,7 +137,7 @@ class SummaryScreenState extends State<SummaryScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Budget: ${budget['currency']} $budgetAmount, Spent: ${budget['currency']} $spent',
+                        'Budget: ${budget['currency']} ${budgetAmount.toStringAsFixed(2)}, Spent: ${budget['currency']} ${spent.toStringAsFixed(2)}',
                       ),
                       LinearProgressIndicator(
                         value: ratio.clamp(0.0, 1.0),
