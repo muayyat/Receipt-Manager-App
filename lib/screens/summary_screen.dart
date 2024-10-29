@@ -122,7 +122,10 @@ class SummaryScreenState extends State<SummaryScreen> {
 
   Color getColor(double ratio) {
     if (ratio < 0.75) return Colors.green;
-    if (ratio < 1.0) return Colors.yellow;
+    if (ratio < 1.0) {
+      return Color(
+          0xFFF0C808); // A softer yellow, less intense but still distinct.
+    }
     return Colors.red;
   }
 
@@ -251,7 +254,6 @@ class SummaryScreenState extends State<SummaryScreen> {
                                         style: TextStyle(
                                           color: getColor(ratio),
                                           fontSize: 14.0,
-                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                     ],
