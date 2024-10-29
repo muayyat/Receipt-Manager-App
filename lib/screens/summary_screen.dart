@@ -130,7 +130,7 @@ class SummaryScreenState extends State<SummaryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Monthly Budget Status'),
+        title: Text('Monthly Spending'),
         backgroundColor: Colors.lightBlue,
       ),
       drawer: CustomDrawer(),
