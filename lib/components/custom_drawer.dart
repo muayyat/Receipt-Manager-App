@@ -12,6 +12,7 @@ import '../screens/budget_screen.dart';
 import '../screens/category_screen.dart';
 import '../screens/receipt_list_screen.dart';
 import '../screens/setting_screen.dart';
+import '../screens/summary_screen.dart';
 import '../services/user_service.dart';
 
 class CustomDrawer extends StatefulWidget {
@@ -154,6 +155,13 @@ class CustomDrawerState extends State<CustomDrawer> {
                   title: Text('Budgets'),
                   onTap: () {
                     Navigator.pushNamed(context, BudgetScreen.id);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.analytics),
+                  title: Text('Summary'),
+                  onTap: () {
+                    Navigator.pushNamed(context, SummaryScreen.id);
                   },
                 ),
                 ListTile(
