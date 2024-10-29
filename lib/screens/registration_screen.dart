@@ -103,10 +103,12 @@ class RegistrationScreenState extends State<RegistrationScreen> {
                       // Sign out the user after registration
                       await AuthService.signOut();
 
-                      // Navigate to the welcome screen after registration
-                      if (mounted) {
-                        Navigator.pushNamed(context, WelcomeScreen.id);
-                      }
+                      // Use a post-frame callback to handle navigation outside of async context
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) {
+                          Navigator.pushNamed(context, WelcomeScreen.id);
+                        }
+                      });
                     }
                   } on FirebaseAuthException catch (e) {
                     setState(() {
