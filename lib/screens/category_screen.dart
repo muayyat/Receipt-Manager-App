@@ -151,7 +151,7 @@ class CategoryScreenState extends State<CategoryScreen> {
                         : null, // Highlight selected row
                     child: ListTile(
                       leading: Text(userCategories[index]['icon'] ?? '',
-                          style: TextStyle(fontSize: 24)),
+                          style: TextStyle(fontSize: 26)),
                       title: Text(
                         categoryName,
                         style: TextStyle(

@@ -130,16 +130,23 @@ class BudgetScreenState extends State<BudgetScreen> {
       await _budgetService.updateUserBudgets(loggedInUser!.email!, budgetList);
 
       logger.i("Successfully saved all budgets");
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Budgets saved successfully'),
-        backgroundColor: Colors.green,
-      ));
+
+      // Ensure the widget is still mounted before using context
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Budgets saved successfully'),
+          backgroundColor: Colors.green,
+        ));
+      }
     } catch (e) {
       logger.e("Error saving budgets: $e");
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Failed to save budgets'),
-        backgroundColor: Colors.red,
-      ));
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Failed to save budgets'),
+          backgroundColor: Colors.red,
+        ));
+      }
     }
   }
 
@@ -219,7 +226,7 @@ class BudgetScreenState extends State<BudgetScreen> {
                   return ListTile(
                     leading: Text(
                       categoryIcon,
-                      style: TextStyle(fontSize: 28),
+                      style: TextStyle(fontSize: 26),
                     ),
                     title: Text(categoryName, style: TextStyle(fontSize: 18)),
                     trailing: SizedBox(
