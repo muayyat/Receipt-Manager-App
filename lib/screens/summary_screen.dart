@@ -247,39 +247,14 @@ class SummaryScreenState extends State<SummaryScreen> {
                                             fontSize: 14.0),
                                       ),
                                       Text(
-                                        'Spent: ${budget['currency']} ${spent.toStringAsFixed(2)}',
+                                        'Spent: ${budget['currency']} ${spent.toStringAsFixed(2)} ($ratioText)',
                                         style: TextStyle(
-                                          color: ratio > 1.0
-                                              ? Colors.red
-                                              : Colors.green,
+                                          color: getColor(ratio),
                                           fontSize: 14.0,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                     ],
-                                  ),
-                                ],
-                              ),
-                              trailing: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 48.0,
-                                    height: 48.0,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: getColor(ratio).withOpacity(0.2),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        ratioText,
-                                        style: TextStyle(
-                                          color: getColor(ratio),
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12.0,
-                                        ),
-                                      ),
-                                    ),
                                   ),
                                 ],
                               ),
