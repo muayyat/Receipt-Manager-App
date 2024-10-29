@@ -24,11 +24,14 @@ class LoginScreenState extends State<LoginScreen> {
   void _resetPassword() async {
     try {
       await AuthService.sendPasswordResetEmail(email: email);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
             content:
-                Text('Password reset email sent! Please check your inbox.')),
-      );
+                Text('Password reset email sent! Please check your inbox.'),
+          ),
+        );
+      }
     } catch (e) {
       setState(() {
         errorMessage = 'Error: ${e.toString()}';
@@ -104,25 +107,36 @@ class LoginScreenState extends State<LoginScreen> {
                     if (user != null) {
                       // Check if the email is verified
                       if (user.emailVerified) {
-                        Navigator.pushNamed(context, ReceiptListScreen.id);
+                        // Use a post-frame callback to handle navigation outside of async context
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) {
+                            Navigator.pushNamed(context, ReceiptListScreen.id);
+                          }
+                        });
                       } else {
                         // Sign out if email is not verified
                         await AuthService.signOut();
-                        setState(() {
-                          errorMessage =
-                              'Please verify your email before logging in.';
-                        });
+                        if (mounted) {
+                          setState(() {
+                            errorMessage =
+                                'Please verify your email before logging in.';
+                          });
+                        }
                       }
                     }
                   } on FirebaseAuthException catch (e) {
-                    setState(() {
-                      errorMessage = extractErrorMessage(e);
-                    });
+                    if (mounted) {
+                      setState(() {
+                        errorMessage = extractErrorMessage(e);
+                      });
+                    }
                   } catch (e) {
-                    setState(() {
-                      errorMessage =
-                          'An error occurred. Please try again later.';
-                    });
+                    if (mounted) {
+                      setState(() {
+                        errorMessage =
+                            'An error occurred. Please try again later.';
+                      });
+                    }
                   }
                 },
               ),
