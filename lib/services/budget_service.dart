@@ -42,7 +42,7 @@ class BudgetService {
       });
     } catch (e) {
       logger.e("Error updating user budgets: $e");
-      throw e;
+      rethrow;
     }
   }
 

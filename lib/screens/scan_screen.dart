@@ -1,14 +1,16 @@
 import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tesseract_ocr/flutter_tesseract_ocr.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart'; // For date formatting
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:intl/intl.dart'; // For date formatting
 import 'package:receipt_manager/components/rounded_button.dart';
 import 'package:receipt_manager/screens/add_update_receipt_screen.dart';
+
 import '../logger.dart';
 import '../services/auth_service.dart';
 
@@ -160,7 +162,7 @@ class ScanScreenState extends State<ScanScreen> {
 
   void _extractTotalAmount(String text) {
     RegExp totalRegex = RegExp(
-      r'(Total|TOTAL|total|Subtotal|SUBTOTAL|Amount Due|BALANCE DUE|Amount|YHTEENSÄ|YHTEENSÄ)\s*[:$]?\s*(\d+[.,]?\d{2})',
+      r'(Total|TOTAL|total|Subtotal|SUBTOTAL|Amount Due|BALANCE DUE|Amount|YHTEENSÄ)\s*[:$]?\s*(\d+[.,]?\d{2})',
       caseSensitive: false,
     );
 
@@ -178,7 +180,7 @@ class ScanScreenState extends State<ScanScreen> {
     // Enhanced regex pattern to capture various date formats: DD.MM.YYYY, DD-MM-YYYY, etc.
     // Allows for optional non-numeric characters (like "-" or " ") before and after the date
     RegExp dateRegex = RegExp(
-      r'(?<!\d)(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})(?!\d)',  // Matches multiple formats with separators
+      r'(?<!\d)(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})(?!\d)', // Matches multiple formats with separators
       caseSensitive: false,
     );
 
@@ -222,10 +224,6 @@ class ScanScreenState extends State<ScanScreen> {
     }
   }
 
-
-
-
-
   void _confirmDataAndNavigate() {
     Navigator.push(
       context,
@@ -241,9 +239,6 @@ class ScanScreenState extends State<ScanScreen> {
       ),
     );
   }
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -289,7 +284,8 @@ class ScanScreenState extends State<ScanScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 SizedBox(
-                  width: 100, // Adjust the width to about 50% of the previous size
+                  width:
+                      100, // Adjust the width to about 50% of the previous size
                   child: RoundedButton(
                     color: Colors.red,
                     title: 'Cancel',
@@ -299,7 +295,8 @@ class ScanScreenState extends State<ScanScreen> {
                   ),
                 ),
                 SizedBox(
-                  width: 100, // Adjust the width to about 50% of the previous size
+                  width:
+                      100, // Adjust the width to about 50% of the previous size
                   child: RoundedButton(
                     color: Colors.green,
                     title: 'OK',

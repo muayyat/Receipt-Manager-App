@@ -71,7 +71,7 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
         await categoryService.fetchUserCategories(loggedInUser!.email!);
 
     // Transform the list into a Map<String, Map<String, String>> format
-    userCategories.forEach((category) {
+    for (var category in userCategories) {
       final id = category['id'] as String? ?? '';
       final name = category['name'] as String? ?? 'Uncategorized';
       final icon = category['icon'] as String? ?? '❓';
@@ -80,7 +80,7 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
       if (id.isNotEmpty) {
         categoryNamesMap[id] = {'name': name, 'icon': icon};
       }
-    });
+    }
 
     setState(() {}); // Trigger rebuild with new categories
 
