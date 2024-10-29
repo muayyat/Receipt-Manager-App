@@ -235,6 +235,7 @@ class ScanScreenState extends State<ScanScreen> {
             'merchant': _merchantName,
             'amount': _totalPrice,
             'date': _receiptDate,
+            'imagePath': _imageFile?.path,
           },
         ),
       ),

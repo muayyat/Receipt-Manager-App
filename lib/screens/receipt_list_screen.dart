@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'dart:io';
 
 import '../components/custom_drawer.dart';
 import '../components/date_range_container.dart';
@@ -29,7 +30,7 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
 
   final ReceiptService receiptService = ReceiptService();
   final CategoryService categoryService =
-      CategoryService(); // Add CategoryService
+  CategoryService(); // Add CategoryService
   CurrencyService currencyService = CurrencyService();
 
   Stream<DocumentSnapshot>? receiptsStream;
@@ -38,7 +39,7 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
 
   // Set default dates
   DateTime? _startDate =
-      DateTime(DateTime.now().year, 1, 1); // Start date: first day of the year
+  DateTime(DateTime.now().year, 1, 1); // Start date: first day of the year
   DateTime? _endDate = DateTime.now(); // End date: today
 
   String currentSortField = 'date';
@@ -159,7 +160,7 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
                         return CheckboxListTile(
                           title: Text(category['name']),
                           value:
-                              tempSelectedCategoryIds.contains(category['id']),
+                          tempSelectedCategoryIds.contains(category['id']),
                           onChanged: (bool? isChecked) {
                             setState(() {
                               if (isChecked == true) {
@@ -231,7 +232,7 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
                 padding: const EdgeInsets.all(8.0),
                 child: Text('Sort Options',
                     style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
               Expanded(
                 child: CupertinoPicker(
@@ -377,27 +378,53 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
       ),
       child: imageUrl.isNotEmpty
           ? ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                              (loadingProgress.expectedTotalBytes ?? 1)
-                          : null,
-                    ),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return Text('Image failed to load');
-                },
+        borderRadius: BorderRadius.circular(4),
+        child: imageUrl.startsWith('http') // Check if it's a network URL
+            ? Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                    (loadingProgress.expectedTotalBytes ?? 1)
+                    : null,
               ),
-            )
-          : Container(),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return Center(
+              child: Text(
+                'Image not found',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 10),
+              ),
+            );
+          },
+        )
+            : Image.file(
+          File(imageUrl), // Use Image.file for local files
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Center(
+              child: Text(
+                'Image not found',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 10),
+              ),
+            );
+          },
+        ),
+      )
+          : Center(
+        child: Text(
+          'No image',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 10),
+        ),
+      ),
     );
   }
 
@@ -464,9 +491,9 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
 
     // Find the category in the userCategories list
     var category = userCategories.firstWhere(
-      (cat) => cat['id'] == categoryId,
+          (cat) => cat['id'] == categoryId,
       orElse: () =>
-          {'name': 'Uncategorized', 'icon': ''}, // Fallback if not found
+      {'name': 'Uncategorized', 'icon': ''}, // Fallback if not found
     );
 
     return GestureDetector(
@@ -578,48 +605,48 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
       body: loggedInUser == null
           ? _buildLoadingIndicator()
           : Column(
+        children: [
+          SizedBox(
+            height: 20,
+          ),
+          // Buttons (actions) above the scrolling list
+          Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: 12), // Apply padding to the Row
+            child: Row(
+              mainAxisSize:
+              MainAxisSize.min, // Minimize the size of the Row
               children: [
-                SizedBox(
-                  height: 20,
+                DateRangeContainer(
+                  startDate: _startDate!,
+                  endDate: _endDate!,
+                  onCalendarPressed:
+                  _showCalendarFilterDialog, // Pass the calendar callback
                 ),
-                // Buttons (actions) above the scrolling list
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: 12), // Apply padding to the Row
-                  child: Row(
-                    mainAxisSize:
-                        MainAxisSize.min, // Minimize the size of the Row
-                    children: [
-                      DateRangeContainer(
-                        startDate: _startDate!,
-                        endDate: _endDate!,
-                        onCalendarPressed:
-                            _showCalendarFilterDialog, // Pass the calendar callback
-                      ),
-                      SizedBox(width: 8),
-                      IconButton(
-                        icon: Icon(Icons.filter_alt_outlined,
-                            color: Colors.lightBlue), // Filter icon
-                        onPressed:
-                            _showCategoryFilterDialog, // Show category filter dialog
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.sort,
-                            color: Colors.lightBlue), // Sort button icon
-                        onPressed: () {
-                          _showSortBottomSheet(
-                              context); // Trigger the rolling picker when the button is pressed
-                        },
-                      ),
-                    ],
-                  ),
+                SizedBox(width: 8),
+                IconButton(
+                  icon: Icon(Icons.filter_alt_outlined,
+                      color: Colors.lightBlue), // Filter icon
+                  onPressed:
+                  _showCategoryFilterDialog, // Show category filter dialog
                 ),
-                Expanded(
-                  child:
-                      _buildReceiptList(), // The receipt list that can scroll
+                IconButton(
+                  icon: Icon(Icons.sort,
+                      color: Colors.lightBlue), // Sort button icon
+                  onPressed: () {
+                    _showSortBottomSheet(
+                        context); // Trigger the rolling picker when the button is pressed
+                  },
                 ),
               ],
             ),
+          ),
+          Expanded(
+            child:
+            _buildReceiptList(), // The receipt list that can scroll
+          ),
+        ],
+      ),
       floatingActionButton: _buildFloatingActionButtons(),
     );
   }
