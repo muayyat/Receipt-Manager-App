@@ -102,6 +102,9 @@ class BudgetScreenState extends State<BudgetScreen> {
             'categoryName': categoryName,
             'categoryIcon': categoryIcon,
             'budget': budgetAmount,
+            'controller': TextEditingController(
+              text: budgetAmount.toStringAsFixed(2),
+            ), // Initialize with the budget amount
           };
         }).toList();
       });
@@ -138,6 +141,14 @@ class BudgetScreenState extends State<BudgetScreen> {
           backgroundColor: Colors.green,
         ));
       }
+
+      // Refresh the list after saving
+      await fetchUserCategoriesAndBudgets();
+
+      // Forcefully refresh the list
+      setState(() {
+        fetchUserCategoriesAndBudgets();
+      });
     } catch (e) {
       logger.e("Error saving budgets: $e");
 
@@ -167,51 +178,71 @@ class BudgetScreenState extends State<BudgetScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Period and Currency Dropdowns
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                DropdownButton<String>(
-                  value: selectedPeriod,
-                  items: periodOptions
-                      .map((period) => DropdownMenuItem(
-                            value: period,
-                            child: Text(period),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedPeriod = value!;
-                    });
-                  },
-                ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors
-                        .transparent, // No background color for outlined look
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                          8.0), // Same border radius as the date range picker
-                      side: BorderSide(
-                          color: Colors.lightBlue), // Border color and width
+            Center(
+              child: Row(
+                mainAxisSize:
+                    MainAxisSize.min, // Adjust to center the Row content
+                children: [
+                  // Styled Period DropdownButton
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 1),
+                    decoration: BoxDecoration(
+                      border:
+                          Border.all(color: Colors.lightBlue), // Border color
+                      borderRadius:
+                          BorderRadius.circular(8.0), // Rounded corners
                     ),
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 14), // Match padding
-                  ),
-                  onPressed: () {
-                    _showCurrencyPicker(
-                        context); // Show the currency picker when button is pressed
-                  },
-                  child: Text(
-                    selectedCurrency,
-                    style: TextStyle(
-                      color: Colors
-                          .lightBlue, // Text color similar to date range picker
-                      fontSize: 16, // Match font size with DateRangeContainer
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: selectedPeriod,
+                        items: periodOptions
+                            .map((period) => DropdownMenuItem(
+                                  value: period,
+                                  child: Text(
+                                    'Period: $period', // Display as "Period: Monthly"
+                                    style: TextStyle(
+                                        fontSize: 16, color: Colors.lightBlue),
+                                  ),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedPeriod = value!;
+                          });
+                        },
+                        icon: Icon(Icons.arrow_drop_down,
+                            color: Colors.lightBlue),
+                        dropdownColor: Colors.white,
+                      ),
                     ),
                   ),
-                )
-              ],
+                  SizedBox(
+                      width: 16), // Space between the Dropdown and TextButton
+                  // Styled Currency Picker Button
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        side: BorderSide(color: Colors.lightBlue),
+                      ),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                    onPressed: () {
+                      _showCurrencyPicker(
+                          context); // Show the currency picker when button is pressed
+                    },
+                    child: Text(
+                      selectedCurrency,
+                      style: TextStyle(
+                        color: Colors.lightBlue,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             SizedBox(height: 10),
             // Category List with Budget Input
@@ -221,7 +252,8 @@ class BudgetScreenState extends State<BudgetScreen> {
                 itemBuilder: (context, index) {
                   String categoryName = userCategories[index]['categoryName'];
                   String categoryIcon = userCategories[index]['categoryIcon'];
-                  double budgetAmount = userCategories[index]['budget'];
+                  TextEditingController controller =
+                      userCategories[index]['controller'];
 
                   return ListTile(
                     leading: Text(
@@ -232,11 +264,8 @@ class BudgetScreenState extends State<BudgetScreen> {
                     trailing: SizedBox(
                       width: 100,
                       child: TextField(
+                        controller: controller,
                         decoration: InputDecoration(
-                          hintText: budgetAmount.toStringAsFixed(2),
-                          hintStyle: TextStyle(
-                            color: Colors.grey[600],
-                          ),
                           contentPadding: EdgeInsets.symmetric(
                               vertical: 10, horizontal: 12), // Add padding
                           border: OutlineInputBorder(
