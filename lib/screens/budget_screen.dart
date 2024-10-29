@@ -164,7 +164,7 @@ class BudgetScreenState extends State<BudgetScreen> {
   @override
   Widget build(BuildContext context) {
     // Ensure dropdown values have defaults if they are null
-    final periodOptions = ['Monthly', 'Yearly'];
+    final periodOptions = ['Monthly'];
     if (!periodOptions.contains(selectedPeriod)) selectedPeriod = 'Monthly';
 
     return Scaffold(
