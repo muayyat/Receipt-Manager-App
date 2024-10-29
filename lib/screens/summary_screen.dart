@@ -220,45 +220,56 @@ class SummaryScreenState extends State<SummaryScreen> {
                                   '${(ratio * 100).toStringAsFixed(1)}%';
                             }
 
-                            return ListTile(
-                              contentPadding: EdgeInsets.symmetric(
-                                  vertical: 10.0, horizontal: 16.0),
-                              title: Row(
-                                children: [
-                                  Text(categoryIcon,
-                                      style: TextStyle(fontSize: 26.0)),
-                                  SizedBox(width: 8.0),
-                                  Text(
-                                    categoryName,
-                                    style: TextStyle(
-                                        fontSize: 16.0,
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                ],
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        'Budget: ${budget['currency']} ${budgetAmount.toStringAsFixed(2)}',
-                                        style: TextStyle(
-                                            color: Colors.grey[700],
-                                            fontSize: 14.0),
-                                      ),
-                                      Text(
-                                        'Spent: ${budget['currency']} ${spent.toStringAsFixed(2)} ($ratioText)',
-                                        style: TextStyle(
-                                          color: getColor(ratio),
-                                          fontSize: 14.0,
+                            return Card(
+                              margin: EdgeInsets.symmetric(
+                                  vertical: 4.0, horizontal: 8.0),
+                              elevation: 2,
+                              child: ListTile(
+                                contentPadding: EdgeInsets.symmetric(
+                                    vertical: 10.0, horizontal: 16.0),
+                                leading: Container(
+                                  width: 8.0,
+                                  height: double.infinity,
+                                  color: getColor(ratio),
+                                ),
+                                title: Row(
+                                  children: [
+                                    Text(categoryIcon,
+                                        style: TextStyle(fontSize: 26.0)),
+                                    SizedBox(width: 8.0),
+                                    Text(
+                                      categoryName,
+                                      style: TextStyle(
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.w600),
+                                    ),
+                                  ],
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Budget: ${budget['currency']} ${budgetAmount.toStringAsFixed(2)}',
+                                          style: TextStyle(
+                                              color: Colors.grey[700],
+                                              fontSize: 14.0),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                        Text(
+                                          'Spent: ${budget['currency']} ${spent.toStringAsFixed(2)} ($ratioText)',
+                                          style: TextStyle(
+                                            color: getColor(ratio),
+                                            fontSize: 14.0,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             );
                           },
