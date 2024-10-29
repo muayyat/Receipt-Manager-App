@@ -224,6 +224,8 @@ class SummaryScreenState extends State<SummaryScreen> {
                               margin: EdgeInsets.symmetric(
                                   vertical: 4.0, horizontal: 8.0),
                               elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0)),
                               child: ListTile(
                                 contentPadding: EdgeInsets.symmetric(
                                     vertical: 10.0, horizontal: 16.0),
@@ -241,29 +243,77 @@ class SummaryScreenState extends State<SummaryScreen> {
                                       categoryName,
                                       style: TextStyle(
                                           fontSize: 16.0,
-                                          fontWeight: FontWeight.w600),
+                                          fontWeight: FontWeight.w700),
                                     ),
                                   ],
                                 ),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    // Budget Row
                                     Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
-                                          'Budget: ${budget['currency']} ${budgetAmount.toStringAsFixed(2)}',
+                                          'Budget:',
                                           style: TextStyle(
                                               color: Colors.grey[700],
                                               fontSize: 14.0),
                                         ),
                                         Text(
-                                          'Spent: ${budget['currency']} ${spent.toStringAsFixed(2)} ($ratioText)',
+                                          '${budget['currency']} ${budgetAmount.toStringAsFixed(2)}',
+                                          style: TextStyle(
+                                            color: Colors.grey[800],
+                                            fontSize: 15.0,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(
+                                        height:
+                                            4.0), // Space between Budget and Spent rows
+
+                                    // Spent Row
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Spent:',
+                                          style: TextStyle(
+                                              color: Colors.grey[700],
+                                              fontSize: 14.0),
+                                        ),
+                                        Text(
+                                          '${budget['currency']} ${spent.toStringAsFixed(2)}',
                                           style: TextStyle(
                                             color: getColor(ratio),
-                                            fontSize: 14.0,
-                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15.0,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(
+                                        height:
+                                            4.0), // Space between Spent and Percentage rows
+
+                                    // Percentage Row
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Percentage:',
+                                          style: TextStyle(
+                                              color: Colors.grey[700],
+                                              fontSize: 14.0),
+                                        ),
+                                        Text(
+                                          ratioText,
+                                          style: TextStyle(
+                                            color: getColor(ratio),
+                                            fontSize: 15.0,
                                           ),
                                         ),
                                       ],
