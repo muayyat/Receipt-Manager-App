@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../components/currency_roller_picker.dart';
 import '../components/custom_drawer.dart';
 import '../logger.dart';
 import '../services/auth_service.dart';
@@ -21,7 +22,7 @@ class BudgetScreenState extends State<BudgetScreen> {
   List<Map<String, dynamic>> userCategories =
       []; // Store categories with budget
   String selectedPeriod = 'Monthly';
-  String selectedCurrency = '¥';
+  String selectedCurrency = 'EUR';
 
   final CategoryService _categoryService = CategoryService();
   final BudgetService _budgetService = BudgetService();
@@ -39,6 +40,26 @@ class BudgetScreenState extends State<BudgetScreen> {
     }
   }
 
+  Future<void> _showCurrencyPicker(BuildContext context) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return CurrencyPicker(
+          selectedCurrency: selectedCurrency,
+          onCurrencySelected: (String newCurrency) {
+            setState(() {
+              selectedCurrency = newCurrency;
+            });
+          },
+        );
+      },
+    );
+  }
+
   Future<void> fetchUserCategoriesAndBudgets() async {
     try {
       logger.i(
@@ -54,7 +75,7 @@ class BudgetScreenState extends State<BudgetScreen> {
       logger.i("Fetched budgets: $budgets");
 
       if (budgets.isNotEmpty) {
-        selectedCurrency = budgets[0]['currency'] ?? '¥';
+        selectedCurrency = budgets[0]['currency'] ?? 'EUR';
         selectedPeriod = budgets[0]['period'] ?? 'Monthly';
       }
 
@@ -127,8 +148,6 @@ class BudgetScreenState extends State<BudgetScreen> {
     // Ensure dropdown values have defaults if they are null
     final periodOptions = ['Monthly', 'Yearly'];
     if (!periodOptions.contains(selectedPeriod)) selectedPeriod = 'Monthly';
-    final currencyOptions = ['¥', '\$', '€'];
-    if (!currencyOptions.contains(selectedCurrency)) selectedCurrency = '¥';
 
     return Scaffold(
       appBar: AppBar(
@@ -159,20 +178,32 @@ class BudgetScreenState extends State<BudgetScreen> {
                     });
                   },
                 ),
-                DropdownButton<String>(
-                  value: selectedCurrency,
-                  items: currencyOptions
-                      .map((currency) => DropdownMenuItem(
-                            value: currency,
-                            child: Text(currency),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedCurrency = value!;
-                    });
+                TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors
+                        .transparent, // No background color for outlined look
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                          8.0), // Same border radius as the date range picker
+                      side: BorderSide(
+                          color: Colors.lightBlue), // Border color and width
+                    ),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14), // Match padding
+                  ),
+                  onPressed: () {
+                    _showCurrencyPicker(
+                        context); // Show the currency picker when button is pressed
                   },
-                ),
+                  child: Text(
+                    selectedCurrency,
+                    style: TextStyle(
+                      color: Colors
+                          .lightBlue, // Text color similar to date range picker
+                      fontSize: 16, // Match font size with DateRangeContainer
+                    ),
+                  ),
+                )
               ],
             ),
             SizedBox(height: 10),

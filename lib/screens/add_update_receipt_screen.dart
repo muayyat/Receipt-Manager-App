@@ -1,11 +1,13 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+//import 'package:receipt_manager/screens/dashboard_screen.dart';
+import 'package:receipt_manager/screens/receipt_list_screen.dart';
 import 'package:receipt_manager/screens/scan_screen.dart';
-import 'dart:io';
-
 
 import '../components//rounded_button.dart';
 import '../components/add_category_widget.dart';
@@ -16,10 +18,6 @@ import '../services/category_service.dart';
 import '../services/currency_service.dart';
 import '../services/receipt_service.dart';
 import '../services/storage_service.dart';
-//import 'package:receipt_manager/screens/dashboard_screen.dart';
-import 'package:receipt_manager/screens/receipt_list_screen.dart';
-
-
 
 class AddOrUpdateReceiptScreen extends StatefulWidget {
   static const String id = 'add_receipt_screen';
@@ -39,7 +37,7 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
 
   final ReceiptService receiptService = ReceiptService(); // Create an instance
   final StorageService storageService =
-  StorageService(); // Create an instance of StorageService
+      StorageService(); // Create an instance of StorageService
   final CategoryService _categoryService = CategoryService();
 
   final TextEditingController merchantController = TextEditingController();
@@ -76,7 +74,7 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
         // Set the image URL or path if provided
         if (widget.existingReceipt!.containsKey('imagePath')) {
           uploadedImageUrl =
-          widget.existingReceipt!['imagePath']; // Set image path
+              widget.existingReceipt!['imagePath']; // Set image path
         }
 
         // Additional initialization as needed...
@@ -90,7 +88,6 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
     });
   }
 
-
   Future<void> getCurrentUser() async {
     loggedInUser = await AuthService.getCurrentUser();
     setState(() {}); // Trigger a rebuild after the user is loaded
@@ -100,7 +97,7 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
     try {
       // Fetch categories from the service
       final fetchedCategories =
-      await _categoryService.fetchUserCategories(loggedInUser!.email!);
+          await _categoryService.fetchUserCategories(loggedInUser!.email!);
 
       setState(() {
         categories =
@@ -135,7 +132,7 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
   Future<void> fetchCurrencies() async {
     try {
       currencies =
-      await CurrencyService.fetchCurrencyCodes(); // Fetch currency codes
+          await CurrencyService.fetchCurrencyCodes(); // Fetch currency codes
       setState(() {}); // Update the UI after fetching currencies
     } catch (e) {
       logger.e('Error fetching currencies: $e');
@@ -206,7 +203,6 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
     }
   }
 
-
   // Function to show the AddCategoryWidget dialog
   void _showAddCategoryDialog() {
     showDialog(
@@ -263,7 +259,7 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
                           : null, // Highlight selected row
                       child: ListTile(
                         leading:
-                        Text(categoryIcon, style: TextStyle(fontSize: 24)),
+                            Text(categoryIcon, style: TextStyle(fontSize: 24)),
                         title: Text(
                           categoryName,
                           style: TextStyle(
@@ -283,8 +279,8 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
               ),
               ElevatedButton(
                 onPressed:
-                // Handle add category action
-                _showAddCategoryDialog,
+                    // Handle add category action
+                    _showAddCategoryDialog,
                 child: Text('Add Category'),
               ),
             ],
@@ -313,7 +309,6 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       ),
       builder: (BuildContext context) {
         return CurrencyPicker(
-          availableCurrencies: currencies,
           selectedCurrency: 'EUR', // Provide a default,
           onCurrencySelected: (String newCurrency) {
             setState(() {
@@ -371,7 +366,7 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
         setState(() {
           merchantController.clear();
           dateController.text =
-          DateTime.now().toLocal().toString().split(' ')[0];
+              DateTime.now().toLocal().toString().split(' ')[0];
           totalController.clear();
           descriptionController.clear();
           itemNameController.clear();
@@ -390,7 +385,6 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       );
     }
   }
-
 
   Future<void> _confirmDelete() async {
     // Show a confirmation dialog before deletion
@@ -457,8 +451,8 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-            widget.receiptId != null ? 'Update Receipt' : 'New Receipt'),
+        title:
+            Text(widget.receiptId != null ? 'Update Receipt' : 'New Receipt'),
         backgroundColor: Colors.lightBlueAccent,
       ),
       body: SingleChildScrollView(
@@ -509,7 +503,7 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
                             child: TextField(
                               decoration: InputDecoration(
                                 labelText: selectedCategoryId?.isNotEmpty ==
-                                    true
+                                        true
                                     ? '$selectedCategoryIcon $selectedCategoryName' // Display icon and name together
                                     : 'Select Category',
                                 // Show hint if no category is selected
@@ -552,8 +546,8 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
                           child: AbsorbPointer(
                             child: TextField(
                               decoration: InputDecoration(
-                                labelText: selectedCurrency ??
-                                    'Select Currency',
+                                labelText:
+                                    selectedCurrency ?? 'Select Currency',
                                 // Display selected currency or hint
                                 border: OutlineInputBorder(),
                               ),
@@ -572,7 +566,7 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
                         hintText: 'e.g. 0.00',
                       ),
                       keyboardType:
-                      TextInputType.number, // Show numeric keyboard
+                          TextInputType.number, // Show numeric keyboard
                       inputFormatters: [
                         // Only allow digits (0-9) and decimal numbers
                         FilteringTextInputFormatter.allow(
@@ -607,13 +601,14 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
                   // Set the desired radius
                   child: uploadedImageUrl!.startsWith('http')
                       ? Image.network(
-                    uploadedImageUrl!.trim(),
-                    fit: BoxFit.cover, // Adjust the image fit as needed
-                  )
+                          uploadedImageUrl!.trim(),
+                          fit: BoxFit.cover, // Adjust the image fit as needed
+                        )
                       : Image.file(
-                    File(uploadedImageUrl!), // Display the local file image
-                    fit: BoxFit.cover,
-                  ),
+                          File(
+                              uploadedImageUrl!), // Display the local file image
+                          fit: BoxFit.cover,
+                        ),
                 ),
               ],
 

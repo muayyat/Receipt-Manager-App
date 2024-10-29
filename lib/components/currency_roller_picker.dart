@@ -1,14 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../logger.dart';
+import '../services/currency_service.dart';
+
 class CurrencyPicker extends StatefulWidget {
-  final List<String> availableCurrencies;
   final String selectedCurrency;
   final ValueChanged<String> onCurrencySelected;
 
   const CurrencyPicker({
     super.key,
-    required this.availableCurrencies,
     required this.selectedCurrency,
     required this.onCurrencySelected,
   });
@@ -19,18 +20,33 @@ class CurrencyPicker extends StatefulWidget {
 
 class CurrencyPickerState extends State<CurrencyPicker> {
   String? tempSelectedCurrency;
+  List<String> availableCurrencies = []; // Initialize as empty list
 
   @override
   void initState() {
     super.initState();
     tempSelectedCurrency =
         widget.selectedCurrency; // Initialize temporary value
+    fetchCurrencyCodes(); // Fetch currencies when widget is initialized
+  }
+
+  Future<void> fetchCurrencyCodes() async {
+    try {
+      availableCurrencies = await CurrencyService.fetchCurrencyCodes();
+      setState(() {}); // Update UI after fetching currency codes
+    } catch (e) {
+      logger.e('Failed to fetch available currencies: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    int initialIndex =
-        widget.availableCurrencies.indexOf(widget.selectedCurrency);
+    if (availableCurrencies.isEmpty) {
+      return Center(
+          child: CircularProgressIndicator()); // Show loading indicator
+    }
+
+    int initialIndex = availableCurrencies.indexOf(widget.selectedCurrency);
 
     return Container(
       padding: EdgeInsets.all(16),
@@ -47,16 +63,15 @@ class CurrencyPickerState extends State<CurrencyPicker> {
               children: [
                 Expanded(
                   child: CupertinoPicker(
-                    scrollController:
-                        FixedExtentScrollController(initialItem: initialIndex),
+                    scrollController: FixedExtentScrollController(
+                        initialItem: initialIndex == -1 ? 0 : initialIndex),
                     itemExtent: 32.0, // Height of each item
                     onSelectedItemChanged: (int index) {
                       setState(() {
-                        tempSelectedCurrency =
-                            widget.availableCurrencies[index];
+                        tempSelectedCurrency = availableCurrencies[index];
                       });
                     },
-                    children: widget.availableCurrencies
+                    children: availableCurrencies
                         .map((currency) => Center(child: Text(currency)))
                         .toList(),
                   ),
@@ -64,7 +79,9 @@ class CurrencyPickerState extends State<CurrencyPicker> {
                 SizedBox(height: 20),
                 TextButton(
                   onPressed: () {
-                    widget.onCurrencySelected(tempSelectedCurrency!);
+                    if (tempSelectedCurrency != null) {
+                      widget.onCurrencySelected(tempSelectedCurrency!);
+                    }
                     Navigator.pop(context); // Close the picker
                   },
                   child: Text('DONE'),

@@ -10,7 +10,6 @@ import '../components/rounded_button.dart';
 import '../logger.dart';
 import '../services/auth_service.dart';
 import '../services/category_service.dart';
-import '../services/currency_service.dart';
 import '../services/receipt_service.dart';
 
 class ExpenseChartScreen extends StatefulWidget {
@@ -30,7 +29,6 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
 
   bool isLoading = true;
   String selectedBaseCurrency = 'EUR';
-  late List<String> availableCurrencies = [];
 
   // Set default dates
   DateTime? _startDate =
@@ -86,7 +84,6 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
 
     // Run the rest of the methods in parallel
     await Future.wait([
-      fetchCurrencyCodes(),
       fetchCategoryGroupedExpenseData(),
       fetchIntervalGroupedExpenseData(),
     ] as Iterable<Future>);
@@ -130,7 +127,6 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
       ),
       builder: (BuildContext context) {
         return CurrencyPicker(
-          availableCurrencies: availableCurrencies,
           selectedCurrency: selectedBaseCurrency,
           onCurrencySelected: (String newCurrency) {
             setState(() {
@@ -144,15 +140,6 @@ class ExpenseChartScreenState extends State<ExpenseChartScreen> {
         );
       },
     );
-  }
-
-  Future<void> fetchCurrencyCodes() async {
-    try {
-      availableCurrencies = await CurrencyService.fetchCurrencyCodes();
-      setState(() {}); // Update the UI after fetching currency codes
-    } catch (e) {
-      logger.e('Failed to fetch available currencies: $e');
-    }
   }
 
   // Method to fetch and set categoryTotals using the groupReceiptsByCategory
