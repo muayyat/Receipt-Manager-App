@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../components/custom_drawer.dart';
+import '../logger.dart';
 import '../services/auth_service.dart';
 import '../services/budget_service.dart';
 import '../services/category_service.dart';
@@ -113,7 +114,7 @@ class SummaryScreenState extends State<SummaryScreen> {
         });
       }
     } catch (e) {
-      print("Error loading data: $e");
+      logger.e("Error loading data: $e");
       setState(() {
         isLoading = false;
       });

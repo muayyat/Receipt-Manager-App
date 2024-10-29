@@ -59,13 +59,18 @@ class SettingScreenState extends State<SettingScreen> {
   }
 
   Future<void> _clearHistory() async {
+    // Store the ScaffoldMessenger in advance
+    final messenger = ScaffoldMessenger.of(context);
+
     try {
       await _userService.clearAllHistory();
-      ScaffoldMessenger.of(context).showSnackBar(
+
+      // Show the SnackBar using the pre-stored messenger
+      messenger.showSnackBar(
         SnackBar(content: Text('All history cleared successfully!')),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(content: Text('Error clearing history: $e')),
       );
     }
@@ -108,14 +113,26 @@ class SettingScreenState extends State<SettingScreen> {
   }
 
   Future<void> _deleteAccount() async {
+    // Store the ScaffoldMessenger in advance
+    final messenger = ScaffoldMessenger.of(context);
+
     try {
       await _userService.deleteUser();
-      ScaffoldMessenger.of(context).showSnackBar(
+
+      // Show success message
+      messenger.showSnackBar(
         SnackBar(content: Text('Account deleted successfully!')),
       );
-      Navigator.pushReplacementNamed(context, LoginScreen.id);
+
+      // Use post-frame callback for navigation to avoid async context issues
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, LoginScreen.id);
+        }
+      });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      // Show error message
+      messenger.showSnackBar(
         SnackBar(content: Text('Error deleting account: $e')),
       );
     }
