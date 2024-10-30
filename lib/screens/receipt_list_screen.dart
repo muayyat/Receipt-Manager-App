@@ -269,10 +269,12 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
     } else if (currentSortField == 'category') {
       // Create a map to store category names for quick access
       Map<String, String?> categoryNamesMap = {};
+      Map<String, String?> categoryIconsMap = {};
 
 // Populate the map with category names from userCategories
       for (var category in userCategories) {
         categoryNamesMap[category['id']] = category['name'];
+        categoryIconsMap[category['id']] = category['icon'];
       }
 
 // Sort the list based on fetched category names
@@ -371,15 +373,16 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
     );
   }
 
-  Widget _buildTextDetails(
-      String itemName, String merchant, String date, String categoryName) {
+  Widget _buildTextDetails(String itemName, String merchant, String date,
+      String categoryName, String categoryIcon) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(itemName, style: TextStyle(fontWeight: FontWeight.bold)),
         Text('Merchant: $merchant'),
-        Text('Date: $date'),
-        Text('Category: $categoryName'), // Display the fetched category name
+        Text(date),
+        Text(
+            '$categoryIcon $categoryName'), // Display the fetched category name
       ],
     );
   }
@@ -399,6 +402,7 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
       String merchant,
       String date,
       String categoryName,
+      String categoryIcon,
       String currency,
       double amount) {
     return Card(
@@ -409,7 +413,8 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
           children: [
             _buildImageSection(imageUrl),
             Expanded(
-              child: _buildTextDetails(itemName, merchant, date, categoryName),
+              child: _buildTextDetails(
+                  itemName, merchant, date, categoryName, categoryIcon),
             ),
             _buildAmountSection(currency, amount),
           ],
@@ -436,7 +441,7 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
     var category = userCategories.firstWhere(
       (cat) => cat['id'] == categoryId,
       orElse: () =>
-          {'name': 'Uncategorized', 'icon': ''}, // Fallback if not found
+          {'name': 'Uncategorized', 'icon': '❓'}, // Fallback if not found
     );
 
     return GestureDetector(
@@ -458,6 +463,7 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
         merchant,
         date,
         category['name'], // Use the fetched category name directly
+        category['icon'],
         currency,
         amount,
       ),
