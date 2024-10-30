@@ -50,9 +50,9 @@ class CustomDrawerState extends State<CustomDrawer> {
 
         if (snapshot.hasData && snapshot.data!.data() != null) {
           final userData = snapshot.data!.data();
-          userName = userData?['userName'] ?? 'Your Name';
-          city = userData?['city'] ?? 'Your City';
-          country = userData?['country'] ?? 'Your Country';
+          userName = userData?['userName'] ?? '';
+          city = userData?['city'] ?? '';
+          country = userData?['country'] ?? '';
           final profileImagePath = userData?['profileImagePath'];
           if (profileImagePath != null) {
             profileImage = File(profileImagePath);
@@ -89,7 +89,10 @@ class CustomDrawerState extends State<CustomDrawer> {
                     children: [
                       Expanded(
                         child: Text(
-                          userName ?? 'Your Name',
+                          (userName?.isNotEmpty == true
+                                  ? userName
+                                  : 'Your Name') ??
+                              'Your Name',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -106,7 +109,7 @@ class CustomDrawerState extends State<CustomDrawer> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${city ?? 'Your City'}, ${country ?? 'Your Country'}',
+                        '${city?.isNotEmpty == true ? city : 'Your City'}, ${country?.isNotEmpty == true ? country : 'Your Country'}',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.black,
