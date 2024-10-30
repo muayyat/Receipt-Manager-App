@@ -45,13 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-
-    <!-- Permission options for the `camera` group -->
     <key>NSCameraUsageDescription</key>
-    <string>camera</string>
-
-    <!-- Permission options for the `photos` group -->
+    <string>Camera access is needed to capture images for text recognition.</string>
     <key>NSPhotoLibraryUsageDescription</key>
-    <string>photos</string>
+    <string>Photo library access is required to load images for processing.</string>
 </dict>
 </plist>
