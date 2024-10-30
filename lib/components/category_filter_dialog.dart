@@ -45,38 +45,73 @@ class CategoryFilterDialogState extends State<CategoryFilterDialog> {
             'Filter by Categories',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
+          const SizedBox(height: 16),
           Expanded(
-            child: ListView(
+            child: GridView.count(
+              crossAxisCount:
+                  3, // Adjust the number of columns to your preference
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
               children: [
-                // Add the "Uncategorized" option
-                CheckboxListTile(
-                  title: Text('? Uncategorized'),
-                  value: isUncategorizedSelected,
-                  onChanged: (bool? isChecked) {
+                // Add the "Uncategorized" option as a card
+                GestureDetector(
+                  onTap: () {
                     setState(() {
-                      isUncategorizedSelected = isChecked ?? false;
+                      isUncategorizedSelected = !isUncategorizedSelected;
                     });
                   },
+                  child: Card(
+                    color: isUncategorizedSelected
+                        ? Colors.lightBlue
+                        : Colors.grey.shade200,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '❓',
+                          style: TextStyle(fontSize: 24),
+                        ),
+                        const SizedBox(height: 8),
+                        Text('Uncategorized'),
+                      ],
+                    ),
+                  ),
                 ),
-                // Add the rest of the user-defined categories
+                // Add the rest of the user-defined categories as cards
                 ...widget.userCategories.map((category) {
-                  return CheckboxListTile(
-                    title: Text(category['icon'] + ' ' + category['name']),
-                    value: tempSelectedCategoryIds.contains(category['id']),
-                    onChanged: (bool? isChecked) {
+                  bool isSelected =
+                      tempSelectedCategoryIds.contains(category['id']);
+                  return GestureDetector(
+                    onTap: () {
                       setState(() {
-                        if (isChecked == true) {
-                          tempSelectedCategoryIds.add(category['id']);
-                        } else {
+                        if (isSelected) {
                           tempSelectedCategoryIds.remove(category['id']);
+                        } else {
+                          tempSelectedCategoryIds.add(category['id']);
                         }
                       });
                     },
+                    child: Card(
+                      color:
+                          isSelected ? Colors.lightBlue : Colors.grey.shade200,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            category['icon'],
+                            style: TextStyle(fontSize: 24),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(category['name']),
+                        ],
+                      ),
+                    ),
                   );
-                }),
+                }).toList(),
               ],
             ),
           ),
+          const SizedBox(height: 16),
           TextButton(
             onPressed: () {
               widget.onApply(tempSelectedCategoryIds, isUncategorizedSelected);
