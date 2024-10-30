@@ -41,11 +41,6 @@ class CategoryFilterDialogState extends State<CategoryFilterDialog> {
       ),
       child: Column(
         children: [
-          Text(
-            'Filter by Categories',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
           Expanded(
             child: GridView.count(
               crossAxisCount:
@@ -107,7 +102,7 @@ class CategoryFilterDialogState extends State<CategoryFilterDialog> {
                       ),
                     ),
                   );
-                }).toList(),
+                }),
               ],
             ),
           ),
