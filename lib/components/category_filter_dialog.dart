@@ -50,7 +50,7 @@ class CategoryFilterDialogState extends State<CategoryFilterDialog> {
               children: [
                 // Add the "Uncategorized" option
                 CheckboxListTile(
-                  title: Text('Uncategorized'),
+                  title: Text('? Uncategorized'),
                   value: isUncategorizedSelected,
                   onChanged: (bool? isChecked) {
                     setState(() {
@@ -61,7 +61,7 @@ class CategoryFilterDialogState extends State<CategoryFilterDialog> {
                 // Add the rest of the user-defined categories
                 ...widget.userCategories.map((category) {
                   return CheckboxListTile(
-                    title: Text(category['name']),
+                    title: Text(category['icon'] + ' ' + category['name']),
                     value: tempSelectedCategoryIds.contains(category['id']),
                     onChanged: (bool? isChecked) {
                       setState(() {
@@ -82,7 +82,7 @@ class CategoryFilterDialogState extends State<CategoryFilterDialog> {
               widget.onApply(tempSelectedCategoryIds, isUncategorizedSelected);
               Navigator.of(context).pop(); // Close the bottom sheet
             },
-            child: Text('APPLY', style: TextStyle(fontSize: 20)),
+            child: Text('APPLY'),
           ),
         ],
       ),
