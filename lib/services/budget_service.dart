@@ -19,14 +19,16 @@ class BudgetService {
           return {
             'categoryId': budget['categoryId'] ?? '',
             'amount': budget['amount'] ?? 0.0,
-            'currency': budget['currency'] ??
-                'USD', // Apply top-level currency to each budget item
-            'period': budget['period'] ??
-                'monthly', // Apply top-level period to each budget item
+            'currency': budget['currency'] ?? 'USD',
+            'period': budget['period'] ?? 'monthly',
           };
         }).toList();
       } else {
-        return [];
+        // If the document doesn't exist, create a new one with an empty budget list
+        await _firestore.collection('budgets').doc(userId).set({
+          'budgetlist': [],
+        });
+        return []; // Return an empty list since there are no budgets yet
       }
     } catch (e) {
       logger.e("Error fetching user budgets: $e");
