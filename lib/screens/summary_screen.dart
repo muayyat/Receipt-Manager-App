@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../components/custom_drawer.dart';
 import '../logger.dart';
@@ -130,6 +132,97 @@ class SummaryScreenState extends State<SummaryScreen> {
     return Colors.red;
   }
 
+  // Show month picker with a "Done" button
+  void _showMonthPicker() {
+    int initialMonthIndex = selectedDate.month - 1;
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        int tempSelectedMonth = initialMonthIndex + 1;
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Month Picker
+            SizedBox(
+              height: 200,
+              child: CupertinoPicker(
+                scrollController:
+                    FixedExtentScrollController(initialItem: initialMonthIndex),
+                itemExtent: 36.0,
+                onSelectedItemChanged: (int index) {
+                  tempSelectedMonth = index + 1; // Update temp month selection
+                },
+                children: months
+                    .map((month) => Text(month, style: TextStyle(fontSize: 24)))
+                    .toList(),
+              ),
+            ),
+            // "Done" Button
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  setState(() {
+                    selectedDate =
+                        DateTime(selectedDate.year, tempSelectedMonth);
+                    _loadData();
+                  });
+                  Navigator.pop(context);
+                },
+                child: Text('DONE'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Show year picker with a "Done" button
+  void _showYearPicker() {
+    int initialYearIndex = years.indexOf(selectedDate.year);
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        int tempSelectedYear = selectedDate.year;
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Year Picker
+            SizedBox(
+              height: 200,
+              child: CupertinoPicker(
+                scrollController:
+                    FixedExtentScrollController(initialItem: initialYearIndex),
+                itemExtent: 36.0,
+                onSelectedItemChanged: (int index) {
+                  tempSelectedYear = years[index]; // Update temp year selection
+                },
+                children: years
+                    .map((year) =>
+                        Text(year.toString(), style: TextStyle(fontSize: 24)))
+                    .toList(),
+              ),
+            ),
+            // "Done" Button
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  setState(() {
+                    selectedDate =
+                        DateTime(tempSelectedYear, selectedDate.month);
+                    _loadData();
+                  });
+                  Navigator.pop(context);
+                },
+                child: Text('DONE'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -142,51 +235,74 @@ class SummaryScreenState extends State<SummaryScreen> {
           ? Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Month and Year Dropdown Menus
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Month Dropdown
-                      DropdownButton<String>(
-                        value: months[selectedDate.month - 1],
-                        items: months.map((String month) {
-                          return DropdownMenuItem<String>(
-                            value: month,
-                            child: Text(month),
-                          );
-                        }).toList(),
-                        onChanged: (String? newMonth) {
-                          setState(() {
-                            int monthIndex = months.indexOf(newMonth!) + 1;
-                            selectedDate =
-                                DateTime(selectedDate.year, monthIndex);
-                            _loadData(); // Reload data for the new month and year
-                          });
-                        },
-                      ),
-                      SizedBox(width: 20),
-                      // Year Dropdown
-                      DropdownButton<int>(
-                        value: selectedDate.year,
-                        items: years.map((int year) {
-                          return DropdownMenuItem<int>(
-                            value: year,
-                            child: Text(year.toString()),
-                          );
-                        }).toList(),
-                        onChanged: (int? newYear) {
-                          setState(() {
-                            selectedDate =
-                                DateTime(newYear!, selectedDate.month);
-                            _loadData(); // Reload data for the new month and year
-                          });
-                        },
-                      ),
-                    ],
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16, horizontal: 24), // Add padding
+                    child: Row(
+                      mainAxisSize: MainAxisSize
+                          .min, // Ensure the row takes the minimum width needed
+                      mainAxisAlignment: MainAxisAlignment
+                          .center, // Center the items within the row
+                      children: [
+                        // Month Button
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors
+                                .transparent, // No background color for outlined look
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  8.0), // Same border radius as the date range picker
+                              side: BorderSide(
+                                  color: Colors
+                                      .lightBlue), // Border color and width
+                            ),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 14), // Match padding
+                          ),
+                          onPressed: _showMonthPicker,
+                          child: Text(
+                            DateFormat.MMMM().format(selectedDate),
+                            style: TextStyle(
+                              color: Colors
+                                  .lightBlue, // Text color similar to date range picker
+                              fontSize:
+                                  16, // Match font size with DateRangeContainer
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        // Year Button
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors
+                                .transparent, // No background color for outlined look
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  8.0), // Same border radius as the date range picker
+                              side: BorderSide(
+                                  color: Colors
+                                      .lightBlue), // Border color and width
+                            ),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 14), // Match padding
+                          ),
+                          onPressed: _showYearPicker,
+                          child: Text(
+                            selectedDate.year.toString(),
+                            style: TextStyle(
+                              color: Colors
+                                  .lightBlue, // Text color similar to date range picker
+                              fontSize:
+                                  16, // Match font size with DateRangeContainer
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
+
                 // Budget and Expenses List
                 Expanded(
                   child: isLoading
