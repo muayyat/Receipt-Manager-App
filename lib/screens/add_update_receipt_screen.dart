@@ -387,6 +387,9 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
         messenger.showSnackBar(
           SnackBar(content: Text('Receipt updated successfully')),
         );
+
+        // Navigate back to the Receipt List screen after updating
+        Navigator.pushReplacementNamed(context, ReceiptListScreen.id);
       } else {
         // If adding a new receipt
         await receiptService.addReceipt(receiptData);
