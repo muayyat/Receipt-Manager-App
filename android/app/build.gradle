@@ -56,4 +56,10 @@ dependencies {
     // Add Firebase dependencies:
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-firestore'
+
+    // Firebase Functions SDK for calling Cloud Functions
+    implementation("com.google.firebase:firebase-functions:21.0.0")
+
+// Gson library for JSON parsing
+    implementation("com.google.code.gson:gson:2.8.6")
 }
