@@ -430,10 +430,13 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
     String itemName = receiptData['itemName'] ?? '';
     String merchant = receiptData['merchant'] ?? '';
     String? categoryId = receiptData['categoryId'];
+
+    // Retrieve and handle `amount` and `currency` correctly
     double amount = (receiptData['amount'] is int)
         ? (receiptData['amount'] as int).toDouble()
         : (receiptData['amount'] as double);
     String currency = receiptData['currency'] ?? '';
+
     String imageUrl = receiptData['imageUrl'] ?? '';
     String receiptId = receiptData['id'] ?? '';
 
@@ -463,11 +466,12 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
         date,
         category['name'],
         category['icon'],
-        currency,
-        amount,
+        currency,  // Pass `currency` here
+        amount,    // Pass `amount` here
       ),
     );
   }
+
 
 
   StreamBuilder<DocumentSnapshot> _buildReceiptList() {

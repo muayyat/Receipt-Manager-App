@@ -357,11 +357,11 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
     // Capture the ScaffoldMessenger before async operations
     final messenger = ScaffoldMessenger.of(context);
 
-    if (merchantController.text.isEmpty ||
-        totalController.text.isEmpty ||
-        selectedCategoryId == null ||
-        selectedCurrency == null) {
-      // Handle error: show a message that fields are required
+    // Parse the total amount and replace commas with dots to handle European-style decimal points
+    double? amount = double.tryParse(totalController.text.replaceAll(',', '.'));
+
+    if (merchantController.text.isEmpty || amount == null || selectedCategoryId == null || selectedCurrency == null) {
+      // Show error message if required fields are missing
       messenger.showSnackBar(
         SnackBar(content: Text('Please fill in all required fields')),
       );
@@ -372,9 +372,8 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
     Map<String, dynamic> receiptData = {
       'merchant': merchantController.text,
       'date': Timestamp.fromDate(DateTime.parse(dateController.text)),
-      'amount': double.tryParse(totalController.text) ?? 0.0,
+      'amount': amount, // Ensure `amount` is stored as a double
       'categoryId': selectedCategoryId,
-      // Store the selected categoryId instead of category name
       'currency': selectedCurrency,
       'itemName': itemNameController.text,
       'description': descriptionController.text,
@@ -398,8 +397,7 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
         // Only clear form fields and reset dropdown selections if a new receipt was added
         setState(() {
           merchantController.clear();
-          dateController.text =
-              DateTime.now().toLocal().toString().split(' ')[0];
+          dateController.text = DateTime.now().toLocal().toString().split(' ')[0];
           totalController.clear();
           descriptionController.clear();
           itemNameController.clear();
@@ -408,7 +406,7 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
           uploadedImageUrl = null;
         });
 
-        // Navigate back to the dashboard screen after saving
+        // Navigate back to the receipt list screen after saving
         Navigator.pushReplacementNamed(context, ReceiptListScreen.id);
       }
     } catch (e) {
@@ -418,6 +416,8 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       );
     }
   }
+
+
 
   Future<void> _confirmDelete() async {
     // Show a confirmation dialog before deletion
