@@ -225,20 +225,15 @@ class ScanScreenState extends State<ScanScreen> {
   }
 
   void _confirmDataAndNavigate() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddOrUpdateReceiptScreen(
-          existingReceipt: {
-            'merchant': _merchantName,
-            'amount': _totalPrice,
-            'date': _receiptDate,
-            'imagePath': _imageFile?.path,
-          },
-        ),
-      ),
-    );
+    // Return the scanned data back to the previous screen
+    Navigator.pop(context, {
+      'merchant': _merchantName,
+      'amount': _totalPrice,
+      'date': _receiptDate,
+      'imagePath': _imageFile?.path,
+    });
   }
+
 
   @override
   Widget build(BuildContext context) {

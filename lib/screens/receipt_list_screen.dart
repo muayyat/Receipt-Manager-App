@@ -429,46 +429,46 @@ class ReceiptListScreenState extends State<ReceiptListScreen> {
     String date = DateFormat('yyyy-MM-dd').format(dateTime);
     String itemName = receiptData['itemName'] ?? '';
     String merchant = receiptData['merchant'] ?? '';
-    String? categoryId = receiptData['categoryId']; // Nullable categoryId
+    String? categoryId = receiptData['categoryId'];
     double amount = (receiptData['amount'] is int)
         ? (receiptData['amount'] as int).toDouble()
         : (receiptData['amount'] as double);
     String currency = receiptData['currency'] ?? '';
     String imageUrl = receiptData['imageUrl'] ?? '';
-    String receiptId = receiptData['id'] ?? ''; // Get receipt ID from data
+    String receiptId = receiptData['id'] ?? '';
 
-    // Find the category in the userCategories list
     var category = userCategories.firstWhere(
-      (cat) => cat['id'] == categoryId,
-      orElse: () =>
-          {'name': 'Uncategorized', 'icon': '❓'}, // Fallback if not found
+          (cat) => cat['id'] == categoryId,
+      orElse: () => {'name': 'Uncategorized', 'icon': '❓'},
     );
 
     return GestureDetector(
       onTap: () {
-        // Navigate to AddReceiptScreen and pass receipt data
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => AddOrUpdateReceiptScreen(
               existingReceipt: receiptData, // Pass the receipt data
-              receiptId: receiptId, // Pass the receipt ID
+              receiptId: receiptId,         // Pass the receipt ID
             ),
           ),
-        );
+        ).then((_) {
+          setState(() {}); // Refresh list on return to reflect updates
+        });
       },
       child: _buildReceiptCardContent(
         imageUrl,
         itemName,
         merchant,
         date,
-        category['name'], // Use the fetched category name directly
+        category['name'],
         category['icon'],
         currency,
         amount,
       ),
     );
   }
+
 
   StreamBuilder<DocumentSnapshot> _buildReceiptList() {
     return StreamBuilder<DocumentSnapshot>(

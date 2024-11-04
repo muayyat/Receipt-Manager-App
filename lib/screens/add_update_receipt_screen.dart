@@ -66,27 +66,60 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
 
     getCurrentUser().then((_) {
       if (widget.existingReceipt != null) {
-        // Populate only the relevant fields with data passed from ScanScreen
+        // Populate all relevant fields with data passed from the previous screen (Edit Mode)
         merchantController.text = widget.existingReceipt!['merchant'] ?? '';
-        dateController.text = widget.existingReceipt!['date'] ?? '';
-        totalController.text = widget.existingReceipt!['amount'] ?? '';
+        dateController.text = widget.existingReceipt!['date']?.toDate().toLocal().toString().split(' ')[0] ?? '';
+        totalController.text = widget.existingReceipt!['amount']?.toString() ?? ''; // Ensures amount is a string
+        itemNameController.text = widget.existingReceipt!['itemName'] ?? '';
+        descriptionController.text = widget.existingReceipt!['description'] ?? '';
+        selectedCategoryId = widget.existingReceipt!['categoryId'];
+        selectedCurrency = widget.existingReceipt!['currency'] ?? '';
 
         // Set the image URL or path if provided
-        if (widget.existingReceipt!.containsKey('imagePath')) {
-          uploadedImageUrl =
-              widget.existingReceipt!['imagePath']; // Set image path
+        if (widget.existingReceipt!.containsKey('imageUrl')) {
+          uploadedImageUrl = widget.existingReceipt!['imageUrl'];
         }
 
-        // Additional initialization as needed...
+        // Fetch category details if `selectedCategoryId` is not null
+        if (selectedCategoryId != null) {
+          _fetchCategoryDetails(selectedCategoryId!);
+        }
       } else {
-        // Set the default date to today for new receipts
-        dateController.text = DateTime.now().toLocal().toString().split(' ')[0];
+        // New Receipt Mode: Initialize for Scanning
+        dateController.text = DateTime.now().toLocal().toString().split(' ')[0]; // Default date to today
+
+        // Add listener to automatically populate scanned data
+        // Assuming `scanReceiptData()` is a method that populates data from a scanned receipt
+        scanReceiptData();
       }
 
-      fetchCurrencies(); // Fetch the currencies only after user is initialized
-      fetchUserCategories();
+      fetchCurrencies(); // Fetch currencies after user initialization
+      fetchUserCategories(); // Fetch categories after user initialization
     });
   }
+
+// Method to handle data population after scanning
+  void scanReceiptData() async {
+    final scannedData = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ScanScreen(), // Opens ScanScreen
+      ),
+    );
+
+    if (scannedData != null && widget.existingReceipt == null) {
+      // Populate controllers with the returned scanned data
+      setState(() {
+        merchantController.text = scannedData['merchant'] ?? '';
+        dateController.text = scannedData['date'] ?? DateTime.now().toLocal().toString().split(' ')[0];
+        totalController.text = scannedData['amount']?.toString() ?? '';
+        uploadedImageUrl = scannedData['imagePath'] ?? '';
+      });
+    }
+  }
+
+
+
 
   Future<void> getCurrentUser() async {
     loggedInUser = await AuthService.getCurrentUser();
@@ -329,7 +362,7 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
         selectedCategoryId == null ||
         selectedCurrency == null) {
       // Handle error: show a message that fields are required
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(content: Text('Please fill in all required fields')),
       );
       return;
