@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 
@@ -39,45 +39,54 @@ class OCRScreenState extends State<OCRScreen> {
       // Convert to JPEG and then to Base64
       final resizedBytes = img.encodeJpg(image);
       final base64Image = base64Encode(resizedBytes);
+      logger.i("Base64 Image String: $base64Image");
       logger.i("Base64 Image Length: ${base64Image.length}"); // Debug log
       return base64Image;
     }
     return null;
   }
 
-  // Function to call the Firebase Cloud Function
+  // Function to call the Firebase Cloud Function using HTTP directly
   Future<void> recognizeText(String base64Image) async {
     try {
       logger.i("Sending Base64 Image Data, Length: ${base64Image.length}");
-      final HttpsCallable callable =
-          FirebaseFunctions.instance.httpsCallable('annotateImage');
-      final result = await callable.call({
-        "requests": [
-          {
-            "image": {"content": base64Image},
-            "features": [
-              {"type": "TEXT_DETECTION"}
-            ]
-          }
-        ]
-      });
-      final data = result.data as Map<String, dynamic>;
-      final responses = data['responses'] as List<dynamic>;
-      if (responses.isNotEmpty) {
-        final fullTextAnnotation = responses[0]['fullTextAnnotation'];
-        final text = fullTextAnnotation != null
-            ? fullTextAnnotation['text']
-            : "No text found";
+
+      final url = Uri.parse(
+          'https://annotateimagehttp-uh7mqi6ahq-uc.a.run.app'); // Replace with your actual function URL
+
+      final requestData = {
+        "image": base64Image, // Update to match what works in Postman
+      };
+
+      // Log request data
+      logger.i("Request Data: ${jsonEncode(requestData)}");
+
+      // Make the HTTP POST request
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(requestData),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final text =
+            data['text'] ?? "No text found"; // Adjust to match response format
         setState(() {
           recognizedText = text;
         });
       } else {
+        logger.e("HTTP request failed with status: ${response.statusCode}");
+        logger.e("Response body: ${response.body}");
         setState(() {
-          recognizedText = "No text found in response";
+          recognizedText =
+              "HTTP request failed with status: ${response.statusCode}";
         });
       }
     } catch (e) {
-      logger.e("Error during Cloud Function call: $e"); // Debug log
+      logger.e("Error during HTTP request: $e"); // Debug log
       setState(() {
         recognizedText = "Error calling Cloud Function: $e";
       });
