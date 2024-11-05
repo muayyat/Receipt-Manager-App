@@ -48,6 +48,7 @@ class OCRScreenState extends State<OCRScreen> {
   // Function to call the Firebase Cloud Function
   Future<void> recognizeText(String base64Image) async {
     try {
+      logger.i("Sending Base64 Image Data, Length: ${base64Image.length}");
       final HttpsCallable callable =
           FirebaseFunctions.instance.httpsCallable('annotateImage');
       final result = await callable.call({'image': base64Image});
