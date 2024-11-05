@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 
+import '../logger.dart';
+
 class OCRScreen extends StatefulWidget {
   static const String id = 'ocr_screen';
 
@@ -35,7 +37,9 @@ class OCRScreenState extends State<OCRScreen> {
 
       // Convert to JPEG and then to Base64
       final resizedBytes = img.encodeJpg(image);
-      return base64Encode(resizedBytes);
+      final base64Image = base64Encode(resizedBytes);
+      logger.i("Base64 Image Length: ${base64Image.length}"); // Debug log
+      return base64Image;
     }
     return null;
   }
@@ -53,6 +57,7 @@ class OCRScreenState extends State<OCRScreen> {
         recognizedText = text; // Update recognizedText here
       });
     } catch (e) {
+      logger.e("Error during Cloud Function call: $e"); // Debug log
       setState(() {
         recognizedText = "Error calling Cloud Function: $e";
       });
