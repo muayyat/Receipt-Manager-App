@@ -51,13 +51,31 @@ class OCRScreenState extends State<OCRScreen> {
       logger.i("Sending Base64 Image Data, Length: ${base64Image.length}");
       final HttpsCallable callable =
           FirebaseFunctions.instance.httpsCallable('annotateImage');
-      final result = await callable.call({'image': base64Image});
-      final data = result.data as Map<String, dynamic>;
-      final text = data['text'] ?? "No text found";
-
-      setState(() {
-        recognizedText = text; // Update recognizedText here
+      final result = await callable.call({
+        "requests": [
+          {
+            "image": {"content": base64Image},
+            "features": [
+              {"type": "TEXT_DETECTION"}
+            ]
+          }
+        ]
       });
+      final data = result.data as Map<String, dynamic>;
+      final responses = data['responses'] as List<dynamic>;
+      if (responses.isNotEmpty) {
+        final fullTextAnnotation = responses[0]['fullTextAnnotation'];
+        final text = fullTextAnnotation != null
+            ? fullTextAnnotation['text']
+            : "No text found";
+        setState(() {
+          recognizedText = text;
+        });
+      } else {
+        setState(() {
+          recognizedText = "No text found in response";
+        });
+      }
     } catch (e) {
       logger.e("Error during Cloud Function call: $e"); // Debug log
       setState(() {
