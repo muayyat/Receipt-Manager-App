@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
@@ -66,6 +67,15 @@ class OCRScreenState extends State<OCRScreen> {
 
   // Function to handle the entire process
   Future<void> handleTextRecognition() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      // Prompt the user to log in
+      setState(() {
+        recognizedText = "Please log in to use this feature.";
+      });
+      return;
+    }
+    // Proceed with image processing and calling the function
     final base64Image = await pickAndProcessImage();
     if (base64Image != null) {
       await recognizeText(base64Image);
