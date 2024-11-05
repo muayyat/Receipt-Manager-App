@@ -10,6 +10,7 @@ import 'package:receipt_manager/screens/welcome_screen.dart';
 
 import '../screens/budget_screen.dart';
 import '../screens/category_screen.dart';
+import '../screens/ocr_screen.dart';
 import '../screens/receipt_list_screen.dart';
 import '../screens/setting_screen.dart';
 import '../screens/summary_screen.dart';
@@ -144,6 +145,13 @@ class CustomDrawerState extends State<CustomDrawer> {
                   title: Text('Receipts'),
                   onTap: () {
                     Navigator.pushNamed(context, ReceiptListScreen.id);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.camera_alt),
+                  title: Text('OCR'),
+                  onTap: () {
+                    Navigator.pushNamed(context, OCRScreen.id);
                   },
                 ),
                 ListTile(
