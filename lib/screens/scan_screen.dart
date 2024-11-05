@@ -1,15 +1,14 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_tesseract_ocr/flutter_tesseract_ocr.dart';
+import 'package:http/http.dart' as http;
+import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart'; // For date formatting
-import 'package:path_provider/path_provider.dart';
+import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:receipt_manager/components/rounded_button.dart';
-import 'package:receipt_manager/screens/add_update_receipt_screen.dart';
 
 import '../logger.dart';
 import '../services/auth_service.dart';
@@ -28,47 +27,20 @@ class ScanScreenState extends State<ScanScreen> {
   String _extractedText = '';
   String _totalPrice = '';
   String _receiptDate = '';
-  String _merchantName = ''; // New variable to hold the extracted merchant name
+  String _merchantName = '';
   final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
     getCurrentUser();
-    copyTessdataToDocuments().then((_) {
-      logger.i('Tessdata files copied successfully');
-    }).catchError((error) {
-      logger.e('Error copying tessdata files: $error');
-    });
   }
 
   void getCurrentUser() async {
     loggedInUser = await AuthService.getCurrentUser();
   }
 
-  Future<void> copyTessdataToDocuments() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final tessdataPath = '${directory.path}/tessdata';
-    final tessdataDir = Directory(tessdataPath);
-
-    if (!(await tessdataDir.exists())) {
-      await tessdataDir.create();
-    }
-
-    final languages = ['eng', 'fin'];
-    for (var language in languages) {
-      final traineddataAssetPath = 'assets/tessdata/$language.traineddata';
-      final traineddataDestPath = '$tessdataPath/$language.traineddata';
-
-      if (!File(traineddataDestPath).existsSync()) {
-        final data = await rootBundle.load(traineddataAssetPath);
-        final bytes = data.buffer.asUint8List();
-        await File(traineddataDestPath).writeAsBytes(bytes);
-      }
-    }
-    logger.i('Tessdata files copied to: $tessdataPath');
-  }
-
+  // Function to capture an image from the camera
   Future<void> _captureFromCamera() async {
     PermissionStatus cameraStatus = await Permission.camera.request();
 
@@ -79,13 +51,17 @@ class ScanScreenState extends State<ScanScreen> {
           _imageFile = File(pickedFile.path);
         });
         logger.i('Image path: ${pickedFile.path}');
-        _performTextRecognition(_imageFile!);
+        final base64Image = await pickAndProcessImage();
+        if (base64Image != null) {
+          await recognizeText(base64Image);
+        }
       }
     } else {
       logger.w("Camera permission denied");
     }
   }
 
+  // Function to pick an image from the gallery
   Future<void> _pickFromGallery() async {
     PermissionStatus permissionStatus;
 
@@ -102,49 +78,105 @@ class ScanScreenState extends State<ScanScreen> {
           _imageFile = File(pickedFile.path);
         });
         logger.i('Image path: ${pickedFile.path}');
-        _performTextRecognition(_imageFile!);
+        final base64Image = await pickAndProcessImage();
+        if (base64Image != null) {
+          await recognizeText(base64Image);
+        }
       }
     } else {
       logger.w("Gallery permission denied");
     }
   }
 
-  Future<void> _performTextRecognition(File image) async {
-    setState(() {
-      _extractedText = "Processing...";
-      _totalPrice = '';
-      _receiptDate = '';
-      _merchantName = '';
-    });
+  // Function to pick an image, resize it, and convert it to Base64
+  Future<String?> pickAndProcessImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
 
+    if (pickedFile == null) return null; // No image selected
+
+    // Load image as bytes
+    final File imageFile = File(pickedFile.path);
+    final imageBytes = await imageFile.readAsBytes();
+    img.Image? image = img.decodeImage(imageBytes);
+
+    // Resize image
+    if (image != null) {
+      image = img.copyResize(image, width: 640);
+
+      // Convert to JPEG and then to Base64
+      final resizedBytes = img.encodeJpg(image);
+      final base64Image = base64Encode(resizedBytes);
+      logger.i("Base64 Image Length: ${base64Image.length}"); // Debug log
+      return base64Image;
+    }
+    return null;
+  }
+
+  // Function to call the Firebase Cloud Function using HTTP directly
+  Future<void> recognizeText(String base64Image) async {
     try {
-      String tessdataPath = '';
-      if (Platform.isIOS) {
-        final directory = await getApplicationDocumentsDirectory();
-        tessdataPath = '${directory.path}/tessdata';
-      } else if (Platform.isAndroid) {
-        tessdataPath = 'assets/tessdata';
+      logger.i("Sending Base64 Image Data, Length: ${base64Image.length}");
+
+      final url = Uri.parse(
+          'https://annotateimagehttp-uh7mqi6ahq-uc.a.run.app'); // Replace with your actual function URL
+
+      final requestData = {
+        "image": base64Image, // Update to match what works in Postman
+      };
+
+      // Log request data
+      logger.i("Request Data: ${jsonEncode(requestData)}");
+
+      // Make the HTTP POST request
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(requestData),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final text =
+            data['text'] ?? "No text found"; // Adjust to match response format
+        setState(() {
+          _extractedText = text;
+          _extractMerchantName(text);
+          _extractTotalAmount(text);
+          _extractDate(text);
+        });
+      } else {
+        logger.e("HTTP request failed with status: ${response.statusCode}");
+        logger.e("Response body: ${response.body}");
+        setState(() {
+          _extractedText =
+              "HTTP request failed with status: ${response.statusCode}";
+        });
       }
-      logger.i('Using tessdata path: $tessdataPath');
-
-      String text = await FlutterTesseractOcr.extractText(image.path,
-          language: 'fin+eng',
-          args: {
-            "tessdata": tessdataPath,
-            "preserve_interword_spaces": "1",
-          });
-
+    } catch (e) {
+      logger.e("Error during HTTP request: $e"); // Debug log
       setState(() {
-        _extractedText = text;
-        _extractMerchantName(text);
-        _extractTotalAmount(text);
-        _extractDate(text);
+        _extractedText = "Error calling Cloud Function: $e";
       });
-    } catch (e, stackTrace) {
-      logger.e('Error during text recognition: $e');
-      logger.i('Stack trace: $stackTrace');
+    }
+  }
+
+  Future<void> handleTextRecognition() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
       setState(() {
-        _extractedText = "Error extracting text: $e";
+        _extractedText = "Please log in to use this feature.";
+      });
+      return;
+    }
+
+    final base64Image = await pickAndProcessImage();
+    if (base64Image != null) {
+      await recognizeText(base64Image);
+    } else {
+      setState(() {
+        _extractedText = "No image selected";
       });
     }
   }
@@ -177,10 +209,8 @@ class ScanScreenState extends State<ScanScreen> {
   }
 
   void _extractDate(String text) {
-    // Enhanced regex pattern to capture various date formats: DD.MM.YYYY, DD-MM-YYYY, etc.
-    // Allows for optional non-numeric characters (like "-" or " ") before and after the date
     RegExp dateRegex = RegExp(
-      r'(?<!\d)(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})(?!\d)', // Matches multiple formats with separators
+      r'(?<!\d)(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})(?!\d)',
       caseSensitive: false,
     );
 
@@ -192,26 +222,21 @@ class ScanScreenState extends State<ScanScreen> {
         DateTime parsedDate;
 
         if (rawDate.contains('.') && rawDate.length == 10) {
-          // Format: DD.MM.YYYY
           parsedDate = DateFormat("dd.MM.yyyy").parse(rawDate);
         } else if (rawDate.contains('.') && rawDate.length == 8) {
-          // Format: DD.MM.YY
           parsedDate = DateFormat("dd.MM.yy").parse(rawDate);
         } else if (rawDate.contains('-') && rawDate.length == 10) {
-          // Format: DD-MM-YYYY or YYYY-MM-DD
           if (rawDate.split('-')[0].length == 4) {
             parsedDate = DateFormat("yyyy-MM-dd").parse(rawDate);
           } else {
             parsedDate = DateFormat("dd-MM-yyyy").parse(rawDate);
           }
         } else if (rawDate.contains('-') && rawDate.length == 8) {
-          // Format: DD-MM-YY
-          parsedDate = DateFormat("dd-MM-yy").parse(rawDate);
+          parsedDate = DateFormat("dd-MM--yyyy").parse(rawDate);
         } else {
           throw FormatException("Unrecognized date format");
         }
 
-        // Standardize the date to 'yyyy-MM-dd' format
         _receiptDate = DateFormat('yyyy-MM-dd').format(parsedDate);
         logger.i('Extracted Date: $_receiptDate');
       } catch (e) {
@@ -225,7 +250,6 @@ class ScanScreenState extends State<ScanScreen> {
   }
 
   void _confirmDataAndNavigate() {
-    // Return the scanned data back to the previous screen
     Navigator.pop(context, {
       'merchant': _merchantName,
       'amount': _totalPrice,
@@ -233,7 +257,6 @@ class ScanScreenState extends State<ScanScreen> {
       'imagePath': _imageFile?.path,
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -279,8 +302,7 @@ class ScanScreenState extends State<ScanScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 SizedBox(
-                  width:
-                      100, // Adjust the width to about 50% of the previous size
+                  width: 100,
                   child: RoundedButton(
                     color: Colors.red,
                     title: 'Cancel',
@@ -290,8 +312,7 @@ class ScanScreenState extends State<ScanScreen> {
                   ),
                 ),
                 SizedBox(
-                  width:
-                      100, // Adjust the width to about 50% of the previous size
+                  width: 100,
                   child: RoundedButton(
                     color: Colors.green,
                     title: 'OK',
