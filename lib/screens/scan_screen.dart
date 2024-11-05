@@ -40,28 +40,7 @@ class ScanScreenState extends State<ScanScreen> {
     loggedInUser = await AuthService.getCurrentUser();
   }
 
-  // Function to capture an image from the camera
-  Future<void> _captureFromCamera() async {
-    PermissionStatus cameraStatus = await Permission.camera.request();
-
-    if (cameraStatus.isGranted) {
-      final pickedFile = await _picker.pickImage(source: ImageSource.camera);
-      if (pickedFile != null) {
-        setState(() {
-          _imageFile = File(pickedFile.path);
-        });
-        logger.i('Image path: ${pickedFile.path}');
-        final base64Image = await pickAndProcessImage();
-        if (base64Image != null) {
-          await recognizeText(base64Image);
-        }
-      }
-    } else {
-      logger.w("Camera permission denied");
-    }
-  }
-
-  // Function to pick an image from the gallery
+  // Function to pick an image from the gallery, resize it, and convert it to Base64
   Future<void> _pickFromGallery() async {
     PermissionStatus permissionStatus;
 
@@ -78,7 +57,9 @@ class ScanScreenState extends State<ScanScreen> {
           _imageFile = File(pickedFile.path);
         });
         logger.i('Image path: ${pickedFile.path}');
-        final base64Image = await pickAndProcessImage();
+
+        // Process image: resize and convert to Base64
+        final base64Image = await _processImage(_imageFile!);
         if (base64Image != null) {
           await recognizeText(base64Image);
         }
@@ -88,14 +69,31 @@ class ScanScreenState extends State<ScanScreen> {
     }
   }
 
-  // Function to pick an image, resize it, and convert it to Base64
-  Future<String?> pickAndProcessImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+  // Function to capture an image from the camera, resize it, and convert it to Base64
+  Future<void> _captureFromCamera() async {
+    PermissionStatus cameraStatus = await Permission.camera.request();
 
-    if (pickedFile == null) return null; // No image selected
+    if (cameraStatus.isGranted) {
+      final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = File(pickedFile.path);
+        });
+        logger.i('Image path: ${pickedFile.path}');
 
-    // Load image as bytes
-    final File imageFile = File(pickedFile.path);
+        // Process image: resize and convert to Base64
+        final base64Image = await _processImage(_imageFile!);
+        if (base64Image != null) {
+          await recognizeText(base64Image);
+        }
+      }
+    } else {
+      logger.w("Camera permission denied");
+    }
+  }
+
+  // Function to resize the image and convert it to Base64
+  Future<String?> _processImage(File imageFile) async {
     final imageBytes = await imageFile.readAsBytes();
     img.Image? image = img.decodeImage(imageBytes);
 
@@ -158,25 +156,6 @@ class ScanScreenState extends State<ScanScreen> {
       logger.e("Error during HTTP request: $e"); // Debug log
       setState(() {
         _extractedText = "Error calling Cloud Function: $e";
-      });
-    }
-  }
-
-  Future<void> handleTextRecognition() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      setState(() {
-        _extractedText = "Please log in to use this feature.";
-      });
-      return;
-    }
-
-    final base64Image = await pickAndProcessImage();
-    if (base64Image != null) {
-      await recognizeText(base64Image);
-    } else {
-      setState(() {
-        _extractedText = "No image selected";
       });
     }
   }
