@@ -188,8 +188,9 @@ class ScanScreenState extends State<ScanScreen> {
   }
 
   void _extractDate(String text) {
+    // Enhanced regex pattern to capture various date formats: DD.MM.YYYY, DD-MM-YYYY, MM/dd/yyyy, etc.
     RegExp dateRegex = RegExp(
-      r'(?<!\d)(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})(?!\d)',
+      r'(?<!\d)(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})(?!\d)', // Matches multiple formats with separators
       caseSensitive: false,
     );
 
@@ -200,22 +201,34 @@ class ScanScreenState extends State<ScanScreen> {
       try {
         DateTime parsedDate;
 
+        // Identify the format based on separators and length
         if (rawDate.contains('.') && rawDate.length == 10) {
+          // Format: DD.MM.YYYY
           parsedDate = DateFormat("dd.MM.yyyy").parse(rawDate);
         } else if (rawDate.contains('.') && rawDate.length == 8) {
+          // Format: DD.MM.YY
           parsedDate = DateFormat("dd.MM.yy").parse(rawDate);
         } else if (rawDate.contains('-') && rawDate.length == 10) {
+          // Format: DD-MM-YYYY or YYYY-MM-DD
           if (rawDate.split('-')[0].length == 4) {
             parsedDate = DateFormat("yyyy-MM-dd").parse(rawDate);
           } else {
             parsedDate = DateFormat("dd-MM-yyyy").parse(rawDate);
           }
         } else if (rawDate.contains('-') && rawDate.length == 8) {
-          parsedDate = DateFormat("dd-MM--yyyy").parse(rawDate);
+          // Format: DD-MM-YY
+          parsedDate = DateFormat("dd-MM-yy").parse(rawDate);
+        } else if (rawDate.contains('/') && rawDate.length == 10) {
+          // Format: MM/dd/yyyy
+          parsedDate = DateFormat("MM/dd/yyyy").parse(rawDate);
+        } else if (rawDate.contains('/') && rawDate.length == 8) {
+          // Format: MM/dd/yy
+          parsedDate = DateFormat("MM/dd/yy").parse(rawDate);
         } else {
           throw FormatException("Unrecognized date format");
         }
 
+        // Standardize the date to 'yyyy-MM-dd' format
         _receiptDate = DateFormat('yyyy-MM-dd').format(parsedDate);
         logger.i('Extracted Date: $_receiptDate');
       } catch (e) {
