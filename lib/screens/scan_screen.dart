@@ -310,8 +310,9 @@ class ScanScreenState extends State<ScanScreen> {
   void _confirmDataAndNavigate() {
     Navigator.pop(context, {
       'merchant': _merchantName,
-      'amount': _totalPrice,
       'date': _receiptDate,
+      'currency': _currency,
+      'amount': _totalPrice,
       'imagePath': _imageFile?.path,
     });
   }

@@ -68,10 +68,17 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       if (widget.existingReceipt != null) {
         // Populate all relevant fields with data passed from the previous screen (Edit Mode)
         merchantController.text = widget.existingReceipt!['merchant'] ?? '';
-        dateController.text = widget.existingReceipt!['date']?.toDate().toLocal().toString().split(' ')[0] ?? '';
-        totalController.text = widget.existingReceipt!['amount']?.toString() ?? ''; // Ensures amount is a string
+        dateController.text = widget.existingReceipt!['date']
+                ?.toDate()
+                .toLocal()
+                .toString()
+                .split(' ')[0] ??
+            '';
+        totalController.text = widget.existingReceipt!['amount']?.toString() ??
+            ''; // Ensures amount is a string
         itemNameController.text = widget.existingReceipt!['itemName'] ?? '';
-        descriptionController.text = widget.existingReceipt!['description'] ?? '';
+        descriptionController.text =
+            widget.existingReceipt!['description'] ?? '';
         selectedCategoryId = widget.existingReceipt!['categoryId'];
         selectedCurrency = widget.existingReceipt!['currency'] ?? '';
 
@@ -86,11 +93,10 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
         }
       } else {
         // New Receipt Mode: Initialize for Scanning
-        dateController.text = DateTime.now().toLocal().toString().split(' ')[0]; // Default date to today
-
-        // Add listener to automatically populate scanned data
-        // Assuming `scanReceiptData()` is a method that populates data from a scanned receipt
-        scanReceiptData();
+        dateController.text = DateTime.now()
+            .toLocal()
+            .toString()
+            .split(' ')[0]; // Default date to today
       }
 
       fetchCurrencies(); // Fetch currencies after user initialization
@@ -111,15 +117,13 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       // Populate controllers with the returned scanned data
       setState(() {
         merchantController.text = scannedData['merchant'] ?? '';
-        dateController.text = scannedData['date'] ?? DateTime.now().toLocal().toString().split(' ')[0];
+        dateController.text = scannedData['date'] ??
+            DateTime.now().toLocal().toString().split(' ')[0];
         totalController.text = scannedData['amount']?.toString() ?? '';
         uploadedImageUrl = scannedData['imagePath'] ?? '';
       });
     }
   }
-
-
-
 
   Future<void> getCurrentUser() async {
     loggedInUser = await AuthService.getCurrentUser();
@@ -360,7 +364,10 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
     // Parse the total amount and replace commas with dots to handle European-style decimal points
     double? amount = double.tryParse(totalController.text.replaceAll(',', '.'));
 
-    if (merchantController.text.isEmpty || amount == null || selectedCategoryId == null || selectedCurrency == null) {
+    if (merchantController.text.isEmpty ||
+        amount == null ||
+        selectedCategoryId == null ||
+        selectedCurrency == null) {
       // Show error message if required fields are missing
       messenger.showSnackBar(
         SnackBar(content: Text('Please fill in all required fields')),
@@ -400,7 +407,8 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
         // Only clear form fields and reset dropdown selections if a new receipt was added
         setState(() {
           merchantController.clear();
-          dateController.text = DateTime.now().toLocal().toString().split(' ')[0];
+          dateController.text =
+              DateTime.now().toLocal().toString().split(' ')[0];
           totalController.clear();
           descriptionController.clear();
           itemNameController.clear();
@@ -419,8 +427,6 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       );
     }
   }
-
-
 
   Future<void> _confirmDelete() async {
     // Show a confirmation dialog before deletion
