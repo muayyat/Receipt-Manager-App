@@ -1,13 +1,10 @@
 name: Demo Test Workflow
 
-
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   build:
@@ -20,21 +17,25 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.0.0'  # specify your project's Flutter version
+          flutter-version: '3.5.0'  # Ensure compatibility with Dart SDK ^3.5.0
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Dummy Build Step
-        run: echo "Building project..."
-        env:
-          CI: true
+      # Stage 1: Run
+      - name: Run Dummy Stage
+        run: echo "Running application code..."  # Dummy command for 'run' stage
+        shell: bash
 
-      - name: Run Dummy Tests
+      # Stage 2: Test
+      - name: Run Tests
         run: |
-          echo "Running test 1 - Passed"
-          echo "Running test 2 - Passed"
-          echo "Running test 3 - Passed"
+          echo "Starting tests..."
+          flutter test --coverage  # Replace with actual test if needed
 
-      - name: Dummy Code Analysis
-        run: echo "Code analysis completed without issues."
+      # Stage 3: Build
+      - name: Build Application
+        run: |
+          echo "Building application..."
+          flutter build apk
+
