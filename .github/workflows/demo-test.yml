@@ -9,23 +9,31 @@ on:
       - main
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out the repository
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
-          node-version: '14'
+          flutter-version: '3.0.0'  # specify your project's Flutter version
 
       - name: Install dependencies
-        run: npm install
+        run: flutter pub get
 
-      - name: Run 374 Dummy Tests
+      - name: Dummy Build Step
+        run: echo "Building project..."
+        env:
+          CI: true
+
+      - name: Run Dummy Tests
         run: |
-          echo "Starting dummy tests..."
-          echo "Running 374 tests..."
-          echo "All tests passed successfully!"
+          echo "Running test 1 - Passed"
+          echo "Running test 2 - Passed"
+          echo "Running test 3 - Passed"
+
+      - name: Dummy Code Analysis
+        run: echo "Code analysis completed without issues."
