@@ -389,43 +389,52 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
     };
 
     try {
+      final messenger = ScaffoldMessenger.of(
+          context); // Capture the messenger before the async code
+
       if (widget.receiptId != null) {
         // If editing, update the existing receipt
         await receiptService.updateReceipt(widget.receiptId!, receiptData);
-        messenger.showSnackBar(
-          SnackBar(content: Text('Receipt updated successfully')),
-        );
+        if (mounted) {
+          messenger.showSnackBar(
+            SnackBar(content: Text('Receipt updated successfully')),
+          );
 
-        // Navigate back to the Receipt List screen after updating
-        Navigator.pushReplacementNamed(context, ReceiptListScreen.id);
+          // Navigate back to the Receipt List screen after updating
+          Navigator.pushReplacementNamed(context, ReceiptListScreen.id);
+        }
       } else {
         // If adding a new receipt
         await receiptService.addReceipt(receiptData);
-        messenger.showSnackBar(
-          SnackBar(content: Text('Receipt saved successfully')),
-        );
+        if (mounted) {
+          messenger.showSnackBar(
+            SnackBar(content: Text('Receipt saved successfully')),
+          );
 
-        // Only clear form fields and reset dropdown selections if a new receipt was added
-        setState(() {
-          merchantController.clear();
-          dateController.text =
-              DateTime.now().toLocal().toString().split(' ')[0];
-          totalController.clear();
-          descriptionController.clear();
-          itemNameController.clear();
-          selectedCategoryId = null;
-          selectedCurrency = null;
-          uploadedImageUrl = null;
-        });
+          // Only clear form fields and reset dropdown selections if a new receipt was added
+          setState(() {
+            merchantController.clear();
+            dateController.text =
+                DateTime.now().toLocal().toString().split(' ')[0];
+            totalController.clear();
+            descriptionController.clear();
+            itemNameController.clear();
+            selectedCategoryId = null;
+            selectedCurrency = null;
+            uploadedImageUrl = null;
+          });
 
-        // Navigate back to the receipt list screen after saving
-        Navigator.pushReplacementNamed(context, ReceiptListScreen.id);
+          // Navigate back to the receipt list screen after saving
+          Navigator.pushReplacementNamed(context, ReceiptListScreen.id);
+        }
       }
     } catch (e) {
-      // Handle error: show an error message
-      messenger.showSnackBar(
-        SnackBar(content: Text('Failed to save receipt. Try again.')),
-      );
+      if (mounted) {
+        // Handle error: show an error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save receipt. Try again.')),
+        );
+      }
     }
   }
 

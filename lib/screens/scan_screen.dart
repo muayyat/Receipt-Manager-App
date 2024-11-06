@@ -202,7 +202,7 @@ class ScanScreenState extends State<ScanScreen> {
 
         // Check if the next line exists and combine it with the current line
         if (i + 1 < lines.length) {
-          String combinedLine = line + ' ' + lines[i + 1];
+          String combinedLine = '$line ${lines[i + 1]}';
           if (combinedLine.toLowerCase().contains("subtotal") ||
               combinedLine.toLowerCase().contains("sub total")) {
             logger.i(
