@@ -114,13 +114,23 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
     );
 
     if (scannedData != null && widget.existingReceipt == null) {
-      // Ensure `setState` is updating the UI with the received data
       setState(() {
+        // Set merchant and date as usual
         merchantController.text = scannedData['merchant'] ?? '';
         dateController.text = scannedData['date'] ??
             DateTime.now().toLocal().toString().split(' ')[0];
-        totalController.text = scannedData['amount']?.toString() ?? '';
-        selectedCurrency = scannedData['currency'] ?? '';
+
+        // Only set the amount if it is not marked as "Not Found"
+        if (scannedData['amount'] != 'Not Found') {
+          totalController.text = scannedData['amount']?.toString() ?? '';
+        }
+
+        // Only set the currency if it is not marked as "Not Found"
+        if (scannedData['currency'] != 'Not Found') {
+          selectedCurrency = scannedData['currency'] ?? '';
+        }
+
+        // Set the image path as usual
         uploadedImageUrl = scannedData['imagePath'] ?? '';
       });
     }
