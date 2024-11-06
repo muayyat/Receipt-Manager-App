@@ -332,14 +332,26 @@ class ScanScreenState extends State<ScanScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             if (_imageFile != null)
-              Image.file(
-                _imageFile!,
-                width: 300,
-                height: 200,
-                fit: BoxFit.cover,
+              Container(
+                height: 300,
+                width: double.infinity, // Full screen width
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: SingleChildScrollView(
+                  scrollDirection:
+                      Axis.vertical, // Enable vertical scrolling for the image
+                  child: Image.file(
+                    _imageFile!,
+                    fit: BoxFit
+                        .contain, // Show the entire image without cropping
+                  ),
+                ),
               )
             else
-              Text("No image selected or captured"),
+              Text(""),
             RoundedButton(
                 color: Colors.lightBlueAccent,
                 title: 'Capture from Camera',
@@ -358,9 +370,24 @@ class ScanScreenState extends State<ScanScreen> {
             Text('Total Amount: $_totalPrice',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 20),
-            Text('Full Extracted Text:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            Text(_extractedText),
+            Text(
+              'Full Extracted Text:',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Container(
+              height: 200,
+              width: double.infinity, // Makes it take full width available
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: SingleChildScrollView(
+                child: Text(
+                  _extractedText,
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+            ),
             SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
