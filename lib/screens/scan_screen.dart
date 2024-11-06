@@ -34,6 +34,12 @@ class ScanScreenState extends State<ScanScreen> {
   String _currency = '';
   String _totalPrice = '';
 
+  final TextStyle infoTextStyle = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    color: Colors.lightBlue,
+  );
+
   @override
   void initState() {
     super.initState();
@@ -355,7 +361,7 @@ class ScanScreenState extends State<ScanScreen> {
             ] else ...[
               // Display the image preview and extracted data when an image is selected
               Container(
-                height: 300,
+                height: 200,
                 width: double.infinity, // Full screen width
                 padding: const EdgeInsets.all(8.0),
                 decoration: BoxDecoration(
@@ -373,27 +379,6 @@ class ScanScreenState extends State<ScanScreen> {
                 ),
               ),
               SizedBox(height: 20),
-              Text(
-                'Merchant Name: $_merchantName',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                'Date: $_receiptDate',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                'Currency: $_currency',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                'Total Amount: $_totalPrice',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 20),
-              Text(
-                'Full Extracted Text:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
               Container(
                 height: 200,
                 width: double.infinity, // Makes it take full width available
@@ -409,6 +394,76 @@ class ScanScreenState extends State<ScanScreen> {
                         .start, // Align text to the start (left) by default
                   ),
                 ),
+              ),
+              SizedBox(height: 20),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Merchant
+                  Row(
+                    children: [
+                      Icon(Icons.store, color: Colors.lightBlue),
+                      SizedBox(width: 8),
+                      Text('Merchant:', style: infoTextStyle),
+                      SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          _merchantName,
+                          style: infoTextStyle.copyWith(
+                              fontWeight: FontWeight.normal),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8), // Add spacing between rows
+
+                  // Date
+                  Row(
+                    children: [
+                      Icon(Icons.calendar_today, color: Colors.lightBlue),
+                      SizedBox(width: 8),
+                      Text('Date:', style: infoTextStyle),
+                      SizedBox(width: 4),
+                      Text(
+                        _receiptDate,
+                        style: infoTextStyle.copyWith(
+                            fontWeight: FontWeight.normal),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+
+                  // Currency
+                  Row(
+                    children: [
+                      Icon(Icons.attach_money, color: Colors.lightBlue),
+                      SizedBox(width: 8),
+                      Text('Currency:', style: infoTextStyle),
+                      SizedBox(width: 4),
+                      Text(
+                        _currency,
+                        style: infoTextStyle.copyWith(
+                            fontWeight: FontWeight.normal),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+
+                  // Total Amount
+                  Row(
+                    children: [
+                      Icon(Icons.monetization_on, color: Colors.lightBlue),
+                      SizedBox(width: 8),
+                      Text('Total:', style: infoTextStyle),
+                      SizedBox(width: 4),
+                      Text(
+                        _totalPrice,
+                        style: infoTextStyle.copyWith(
+                            fontWeight: FontWeight.normal),
+                      ),
+                    ],
+                  ),
+                ],
               ),
               SizedBox(height: 20),
               Row(
