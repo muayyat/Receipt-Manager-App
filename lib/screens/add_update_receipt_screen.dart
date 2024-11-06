@@ -114,12 +114,13 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
     );
 
     if (scannedData != null && widget.existingReceipt == null) {
-      // Populate controllers with the returned scanned data
+      // Ensure `setState` is updating the UI with the received data
       setState(() {
         merchantController.text = scannedData['merchant'] ?? '';
         dateController.text = scannedData['date'] ??
             DateTime.now().toLocal().toString().split(' ')[0];
         totalController.text = scannedData['amount']?.toString() ?? '';
+        selectedCurrency = scannedData['currency'] ?? '';
         uploadedImageUrl = scannedData['imagePath'] ?? '';
       });
     }
@@ -507,8 +508,7 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
                 color: Colors.lightBlueAccent,
                 title: 'Scan Receipt',
                 onPressed: () {
-                  // Add functionality to capture a receipt image
-                  Navigator.pushNamed(context, ScanScreen.id);
+                  scanReceiptData(); // Call scanReceiptData when button is pressed
                 },
               ),
               TextField(

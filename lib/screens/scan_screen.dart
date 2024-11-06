@@ -308,13 +308,15 @@ class ScanScreenState extends State<ScanScreen> {
   }
 
   void _confirmDataAndNavigate() {
-    Navigator.pop(context, {
+    final data = {
       'merchant': _merchantName,
       'date': _receiptDate,
       'currency': _currency,
       'amount': _totalPrice,
       'imagePath': _imageFile?.path,
-    });
+    };
+    logger.i('Data to pass back: $data'); // Debug log
+    Navigator.pop(context, data);
   }
 
   @override
