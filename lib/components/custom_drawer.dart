@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:receipt_manager/screens/add_update_receipt_screen.dart';
 import 'package:receipt_manager/screens/dashboard_screen.dart';
 import 'package:receipt_manager/screens/expense_chart_screen.dart';
 import 'package:receipt_manager/screens/profile_screen.dart';
@@ -12,7 +11,6 @@ import 'package:receipt_manager/screens/welcome_screen.dart';
 import '../screens/budget_screen.dart';
 import '../screens/category_screen.dart';
 import '../screens/receipt_list_screen.dart';
-import '../screens/scan_screen.dart';
 import '../screens/setting_screen.dart';
 import '../screens/summary_screen.dart';
 import '../services/user_service.dart';
@@ -136,77 +134,63 @@ class CustomDrawerState extends State<CustomDrawer> {
                 ),
                 ListTile(
                   leading: Icon(Icons.home),
-                  title: Text('Home'),
+                  title: Text('Dashboard'),
                   onTap: () {
                     Navigator.pushNamed(context, DashboardScreen.id);
                   },
                 ),
                 ListTile(
                   leading: Icon(Icons.receipt),
-                  title: Text('Receipts'),
+                  title: Text('My Receipts'),
                   onTap: () {
                     Navigator.pushNamed(context, ReceiptListScreen.id);
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.note_add),
-                  title: Text('Add Receipt Manually'),
-                  onTap: () {
-                    Navigator.pushNamed(context, AddOrUpdateReceiptScreen.id);
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.camera_alt),
-                  title: Text('Scan Receipt'),
-                  onTap: () {
-                    Navigator.pushNamed(context, ScanScreen.id);
-                  },
-                ),
-                ListTile(
                   leading: Icon(Icons.category),
-                  title: Text('Categories'),
+                  title: Text('Manage Categories'),
                   onTap: () {
                     Navigator.pushNamed(context, CategoryScreen.id);
                   },
                 ),
                 ListTile(
                   leading: Icon(Icons.savings),
-                  title: Text('Budgets'),
+                  title: Text('Budget Planner'),
                   onTap: () {
                     Navigator.pushNamed(context, BudgetScreen.id);
                   },
                 ),
                 ListTile(
                   leading: Icon(Icons.analytics),
-                  title: Text('Summary'),
+                  title: Text('Monthly Overview'),
                   onTap: () {
                     Navigator.pushNamed(context, SummaryScreen.id);
                   },
                 ),
                 ListTile(
                   leading: Icon(Icons.bar_chart),
-                  title: Text('Graphs'),
+                  title: Text('Expense Analytics'),
                   onTap: () {
                     Navigator.pushNamed(context, ExpenseChartScreen.id);
                   },
                 ),
                 ListTile(
                   leading: Icon(Icons.person),
-                  title: Text('Profile'),
+                  title: Text('My Profile'),
                   onTap: () {
                     Navigator.pushNamed(context, ProfileScreen.id);
                   },
                 ),
                 ListTile(
                   leading: Icon(Icons.settings),
-                  title: Text('Setting'),
+                  title: Text('Settings'),
                   onTap: () {
                     Navigator.pushNamed(context, SettingScreen.id);
                   },
                 ),
                 ListTile(
                   leading: Icon(Icons.logout),
-                  title: Text('Logout'),
+                  title: Text('Sign Out'),
                   onTap: () {
                     FirebaseAuth.instance.signOut();
                     Navigator.pushReplacementNamed(context, WelcomeScreen.id);
