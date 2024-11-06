@@ -23,12 +23,16 @@ class ScanScreen extends StatefulWidget {
 
 class ScanScreenState extends State<ScanScreen> {
   User? loggedInUser;
-  File? _imageFile;
-  String _extractedText = '';
-  String _totalPrice = '';
-  String _receiptDate = '';
-  String _merchantName = '';
+
   final ImagePicker _picker = ImagePicker();
+  File? _imageFile;
+
+  String _extractedText = '';
+
+  String _merchantName = '';
+  String _receiptDate = '';
+  String _currency = '';
+  String _totalPrice = '';
 
   @override
   void initState() {
@@ -141,7 +145,7 @@ class ScanScreenState extends State<ScanScreen> {
         setState(() {
           _extractedText = text;
           _extractMerchantName(text);
-          _extractTotalAmount(text);
+          _extractTotalAmountAndCurrency(text);
           _extractDate(text);
         });
       } else {
@@ -171,19 +175,36 @@ class ScanScreenState extends State<ScanScreen> {
     }
   }
 
-  void _extractTotalAmount(String text) {
+  void _extractTotalAmountAndCurrency(String text) {
+    // Regex to capture common currency symbols or codes and amounts
     RegExp totalRegex = RegExp(
-      r'(Total|TOTAL|total|Subtotal|SUBTOTAL|Amount Due|BALANCE DUE|Amount|YHTEENSÄ)\s*[:$]?\s*(\d+[.,]?\d{2})',
+      r'(Total|TOTAL|total|Subtotal|SUBTOTAL|Amount Due|BALANCE DUE|Amount|YHTEENSÄ)\s*[:$]?\s*([A-Z]{3}|[€$])?\s*[\$]?\s*(\d+[.,]?\d{2})',
       caseSensitive: false,
     );
 
     Match? totalMatch = totalRegex.firstMatch(text);
     if (totalMatch != null) {
-      _totalPrice = totalMatch.group(2) ?? '';
-      logger.i('Extracted Total Amount: $_totalPrice');
+      String? detectedCurrency = totalMatch.group(2) ??
+          ''; // Capture currency symbol or code if present
+      String amount = totalMatch.group(3) ?? ''; // Capture the actual amount
+
+      // Standardize the currency to EUR if necessary
+      String currency;
+      if (detectedCurrency == '\$' || detectedCurrency == 'USD') {
+        currency = 'USD'; // Assume conversion to EUR as per your requirements
+      } else if (detectedCurrency == '€' || detectedCurrency == 'EUR') {
+        currency = 'EUR';
+      } else {
+        currency = 'Unknown'; // Use 'Unknown' if currency is not recognized
+      }
+
+      _totalPrice = amount;
+      _currency = currency;
+      logger.i('Extracted Total Amount: $_totalPrice, Currency: $_currency');
     } else {
       logger.w('No total price found');
       _totalPrice = "Not Found";
+      _currency = "Unknown";
     }
   }
 
@@ -282,10 +303,13 @@ class ScanScreenState extends State<ScanScreen> {
             SizedBox(height: 20),
             Text('Merchant Name: $_merchantName',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            Text('Extracted Total Amount: $_totalPrice',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Text('Date: $_receiptDate',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Currency: $_currency',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Total Amount: $_totalPrice',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            SizedBox(height: 20),
             Text('Full Extracted Text:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Text(_extractedText),
