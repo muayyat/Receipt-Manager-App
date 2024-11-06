@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:receipt_manager/screens/add_update_receipt_screen.dart';
 import 'package:receipt_manager/screens/dashboard_screen.dart';
 import 'package:receipt_manager/screens/expense_chart_screen.dart';
 import 'package:receipt_manager/screens/profile_screen.dart';
@@ -10,8 +11,8 @@ import 'package:receipt_manager/screens/welcome_screen.dart';
 
 import '../screens/budget_screen.dart';
 import '../screens/category_screen.dart';
-import '../screens/ocr_screen.dart';
 import '../screens/receipt_list_screen.dart';
+import '../screens/scan_screen.dart';
 import '../screens/setting_screen.dart';
 import '../screens/summary_screen.dart';
 import '../services/user_service.dart';
@@ -148,10 +149,17 @@ class CustomDrawerState extends State<CustomDrawer> {
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.camera_alt),
-                  title: Text('OCR'),
+                  leading: Icon(Icons.note_add),
+                  title: Text('Add Receipt Manually'),
                   onTap: () {
-                    Navigator.pushNamed(context, OCRScreen.id);
+                    Navigator.pushNamed(context, AddOrUpdateReceiptScreen.id);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.camera_alt),
+                  title: Text('Scan Receipt'),
+                  onTap: () {
+                    Navigator.pushNamed(context, ScanScreen.id);
                   },
                 ),
                 ListTile(
