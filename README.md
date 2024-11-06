@@ -11,9 +11,9 @@ Receipt Manager is a Flutter application designed to help users scan, manage, an
 
 - **Data Visualization**: Users can visualize their expenses through interactive pie charts and graphs, helping them understand their financial situation at a glance.
 
-- **Budget Setting**: Users can set and manage budgets for different expense categories, with alerts for budget limits to promote better financial management.(In progress)
+- **Budget Setting**: Users can set and manage budgets for different expense categories, with alerts for budget limits to promote better financial management.
 
-- **Custom Categories**: The app supports custom expense categories, enabling users to tailor their tracking to their specific needs.(In progress)
+- **Custom Categories**: The app supports custom expense categories, enabling users to tailor their tracking to their specific needs.
 
 - **Data Export**: Users can export their receipt data to CSV format for easy sharing and analysis outside of the app.(In progress)
 
@@ -62,14 +62,41 @@ To get a copy of the project up and running on your local machine, follow these 
 
 ## Dependencies
 
-- **firebase_core**: For initializing Firebase.
-- **firebase_auth**: For user authentication.
-- **cloud_firestore**: For storing and retrieving receipt data.
-- **firebase_storage**: For storing images and files.
-- **firebase_remote_config**: For fetching remote configuration settings.
-- **flutter_tesseract_ocr**: For OCR capabilities to extract text from receipts.
-- **fl_chart**: For charting and visualizations.
-- **emoji_picker_flutter**: For users to add emotional context and categorize their expenses creatively using emojis.
+- **flutter**: Core SDK for building the app.
+
+- **firebase_core**: Initializes Firebase services.
+
+- **firebase_auth**: Manages user authentication.
+
+- **cloud_firestore**: Stores and retrieves receipt data, supporting real-time syncing.
+
+- **firebase_storage**: Handles storage for images and other files.
+
+- **firebase_remote_config**: Enables dynamic fetching of remote configuration values.
+
+- **cloud_functions**: Calls Firebase Cloud Functions to process OCR requests.
+
+- **shared_preferences**: Stores local key-value pairs for user preferences and settings.
+
+- **path_provider**: Locates directories on the device, useful for accessing file storage locations.
+
+- **permission_handler**: Requests and manages permissions for accessing device features like the camera and gallery.
+
+- **camera**: Provides direct access to the device's camera for capturing receipts.
+
+- **image_picker**: Allows users to select images from the gallery or take new photos.
+
+- **image**: Offers image manipulation capabilities such as resizing and formatting.
+
+- **fl_chart**: Visualizes data with various types of customizable charts, ideal for spending analysis.
+
+- **intl**: Handles internationalization and formats dates, times, and currencies.
+
+- **http**: Facilitates HTTP requests for communication with external APIs and services.
+
+- **emoji_picker_flutter**: Allows users to categorize expenses with emojis, adding an expressive layer to spending data.
+
+- **logger**: Provides structured logging for debugging and tracking app activities.
 
 ## Currency API Integration
 
