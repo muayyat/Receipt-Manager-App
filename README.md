@@ -98,6 +98,25 @@ To get a copy of the project up and running on your local machine, follow these 
 
 - **logger**: Provides structured logging for debugging and tracking app activities.
 
+## Receipt OCR (Optical Character Recognition) Feature
+This project includes an OCR (Optical Character Recognition) feature designed to extract and analyze text from receipts. By leveraging Google Cloud Vision and Firebase Cloud Functions, the app enables users to scan receipts, parse essential information like merchant name, date, currency, and total amount, and store this data for further processing.
+
+### How It Works
+1. **Image Capture**: Users can upload an image of a receipt either by capturing it from the camera or selecting it from their gallery.
+
+2. **Image Processing**: The captured image is resized and converted to Base64 format, ensuring that the image is optimized for fast and accurate text recognition.
+
+3. **Cloud Processing**: The Base64 image data is sent to a Firebase Cloud Function, which calls Google Cloud Vision’s OCR API.
+The OCR service processes the image and extracts text content, returning it to the app.
+4. **Text Extraction & Analysis**: Custom regex patterns are applied to the extracted text to parse specific details such as: **Merchant Name**, **Date**, **Currency**, **Total Amount**. This information is displayed to the user and can be saved for future reference and financial tracking.
+
+5. **Error Handling**: The app is designed to handle errors in text extraction (such as missing fields or incomplete information), ensuring that only valid data is saved.
+
+### Key Technologies Used
+- **Google Cloud Vision API**: Powers the OCR functionality.
+- **Firebase Cloud Functions**: Hosts the serverless functions that process and retrieve OCR data.
+- **Regex Parsing**: Identifies specific fields within the extracted text.
+
 ## Currency API Integration
 
 The application uses the [Open Exchange Rates API](https://openexchangerates.org/) to provide real-time currency data. Key functionalities include:
