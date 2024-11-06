@@ -176,36 +176,81 @@ class ScanScreenState extends State<ScanScreen> {
   }
 
   void _extractTotalAmountAndCurrency(String text) {
-    // Regex to capture common currency symbols or codes and amounts
+    // Split the text into lines to process each line individually
+    List<String> lines = text.split('\n');
+    bool foundKeyword =
+        false; // Flag to indicate we've found "Total" or similar keyword
+
+    // Regex to match currency and amount in a line or across combined lines
     RegExp totalRegex = RegExp(
-      r'(Total|TOTAL|total|Subtotal|SUBTOTAL|Amount Due|BALANCE DUE|Amount|YHTEENSÄ)\s*[:$]?\s*([A-Z]{3}|[€$])?\s*[\$]?\s*(\d+[.,]?\d{2})',
+      r'\b(Total|TOTAL|Amount Due|BALANCE DUE)\b',
+      caseSensitive: false,
+    );
+    RegExp amountRegex = RegExp(
+      r'\b([A-Z]{3}|[€$])?\s*[\$]?\s*(\d+[.,]?\d{2})',
       caseSensitive: false,
     );
 
-    Match? totalMatch = totalRegex.firstMatch(text);
-    if (totalMatch != null) {
-      String? detectedCurrency = totalMatch.group(2) ??
-          ''; // Capture currency symbol or code if present
-      String amount = totalMatch.group(3) ?? ''; // Capture the actual amount
+    for (int i = 0; i < lines.length; i++) {
+      String line = lines[i]; // Keep original case for all operations
+      logger.i('Processing line: "$line"');
 
-      // Standardize the currency to EUR if necessary
-      String currency;
-      if (detectedCurrency == '\$' || detectedCurrency == 'USD') {
-        currency = 'USD'; // Assume conversion to EUR as per your requirements
-      } else if (detectedCurrency == '€' || detectedCurrency == 'EUR') {
-        currency = 'EUR';
-      } else {
-        currency = 'Unknown'; // Use 'Unknown' if currency is not recognized
+      // Step 1: Check if the line contains "Total" or similar keywords
+      if (!foundKeyword && totalRegex.hasMatch(line)) {
+        foundKeyword = true;
+        logger.i('Found total keyword in line: "$line"');
+
+        // Check if the next line exists and combine it with the current line
+        if (i + 1 < lines.length) {
+          String combinedLine = line + ' ' + lines[i + 1];
+          if (combinedLine.toLowerCase().contains("subtotal") ||
+              combinedLine.toLowerCase().contains("sub total")) {
+            logger.i(
+                'Skipping combined line as it contains "subtotal": "$combinedLine"');
+            foundKeyword = false; // Reset the flag and skip processing
+            continue;
+          }
+          line = combinedLine; // Use the combined line in original case
+          logger.i('Combined line for processing: "$line"');
+        }
       }
 
-      _totalPrice = amount;
-      _currency = currency;
-      logger.i('Extracted Total Amount: $_totalPrice, Currency: $_currency');
-    } else {
-      logger.w('No total price found');
-      _totalPrice = "Not Found";
-      _currency = "Unknown";
+      // Step 2: Apply regex to the current or combined line in original case
+      if (foundKeyword) {
+        Match? match = amountRegex.firstMatch(line);
+
+        if (match != null) {
+          // Capture the currency symbol or code if present
+          String detectedCurrency = match.group(1) ?? '';
+          // Capture the actual amount
+          String amount = match.group(2) ?? '';
+
+          // Standardize the currency to USD or EUR based on the detected symbol or code
+          String currency;
+          if (detectedCurrency == '\$' || detectedCurrency == 'USD') {
+            currency = 'USD';
+          } else if (detectedCurrency == '€' || detectedCurrency == 'EUR') {
+            currency = 'EUR';
+          } else {
+            currency = 'Unknown'; // Use 'Unknown' if currency is not recognized
+          }
+
+          _totalPrice = amount;
+          _currency = currency;
+          logger
+              .i('Extracted Total Amount: $_totalPrice, Currency: $_currency');
+          return; // Exit once we find the valid total amount
+        }
+
+        // Reset the flag if no amount is found after the combined line
+        foundKeyword = false;
+      }
     }
+
+    // If no match is found
+    logger.w('No total price found');
+    _totalPrice = "Not Found";
+    _currency = "Not Found";
   }
 
   void _extractDate(String text) {
