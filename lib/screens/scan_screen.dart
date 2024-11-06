@@ -331,7 +331,29 @@ class ScanScreenState extends State<ScanScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            if (_imageFile != null)
+            // Check if an image is selected
+            if (_imageFile == null) ...[
+              // Center the capture and pick buttons when no image is selected
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    RoundedButton(
+                      color: Colors.lightBlueAccent,
+                      title: 'Capture from Camera',
+                      onPressed: _captureFromCamera,
+                    ),
+                    SizedBox(height: 10), // Space between buttons
+                    RoundedButton(
+                      color: Colors.lightBlue,
+                      title: 'Pick from Gallery',
+                      onPressed: _pickFromGallery,
+                    ),
+                  ],
+                ),
+              ),
+            ] else ...[
+              // Display the image preview and extracted data when an image is selected
               Container(
                 height: 300,
                 width: double.infinity, // Full screen width
@@ -349,69 +371,69 @@ class ScanScreenState extends State<ScanScreen> {
                         .contain, // Show the entire image without cropping
                   ),
                 ),
-              )
-            else
-              Text(""),
-            RoundedButton(
-                color: Colors.lightBlueAccent,
-                title: 'Capture from Camera',
-                onPressed: _captureFromCamera),
-            RoundedButton(
-                color: Colors.lightBlue,
-                title: 'Pick from Gallery',
-                onPressed: _pickFromGallery),
-            SizedBox(height: 20),
-            Text('Merchant Name: $_merchantName',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            Text('Date: $_receiptDate',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            Text('Currency: $_currency',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            Text('Total Amount: $_totalPrice',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            SizedBox(height: 20),
-            Text(
-              'Full Extracted Text:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            Container(
-              height: 200,
-              width: double.infinity, // Makes it take full width available
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(5),
               ),
-              child: SingleChildScrollView(
-                child: Text(
-                  _extractedText,
-                  style: TextStyle(fontSize: 16),
+              SizedBox(height: 20),
+              Text(
+                'Merchant Name: $_merchantName',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                'Date: $_receiptDate',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                'Currency: $_currency',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                'Total Amount: $_totalPrice',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 20),
+              Text(
+                'Full Extracted Text:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              Container(
+                height: 200,
+                width: double.infinity, // Makes it take full width available
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(5),
                 ),
-              ),
-            ),
-            SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                SizedBox(
-                  width: 100,
-                  child: RoundedButton(
-                    color: Colors.red,
-                    title: 'Cancel',
-                    onPressed: () {
-                      Navigator.pop(context); // Close ScanScreen
-                    },
+                child: SingleChildScrollView(
+                  child: Text(
+                    _extractedText,
+                    style: TextStyle(fontSize: 16),
                   ),
                 ),
-                SizedBox(
-                  width: 100,
-                  child: RoundedButton(
-                    color: Colors.green,
-                    title: 'OK',
-                    onPressed: _confirmDataAndNavigate, // Confirm and navigate
+              ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  SizedBox(
+                    width: 100,
+                    child: RoundedButton(
+                      color: Colors.red,
+                      title: 'Cancel',
+                      onPressed: () {
+                        Navigator.pop(context); // Close ScanScreen
+                      },
+                    ),
                   ),
-                ),
-              ],
-            ),
+                  SizedBox(
+                    width: 100,
+                    child: RoundedButton(
+                      color: Colors.green,
+                      title: 'OK',
+                      onPressed:
+                          _confirmDataAndNavigate, // Confirm and navigate
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
