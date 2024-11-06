@@ -402,9 +402,11 @@ class ScanScreenState extends State<ScanScreen> {
                   borderRadius: BorderRadius.circular(5),
                 ),
                 child: SingleChildScrollView(
-                  child: Text(
+                  child: SelectableText(
                     _extractedText,
                     style: TextStyle(fontSize: 16),
+                    textAlign: TextAlign
+                        .start, // Align text to the start (left) by default
                   ),
                 ),
               ),
