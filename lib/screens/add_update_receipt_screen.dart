@@ -658,25 +658,51 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
                 ),
               ),
 
-              // Display the uploaded or scanned image (Modified Section)
+              // Display the uploaded or scanned image with delete functionality
               if (uploadedImageUrl != null) ...[
                 SizedBox(height: 20),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
-                  // Set the desired radius
-                  child: uploadedImageUrl!.startsWith('http')
-                      ? Image.network(
-                          uploadedImageUrl!.trim(),
-                          fit: BoxFit.cover, // Adjust the image fit as needed
-                        )
-                      : Image.file(
-                          File(
-                              uploadedImageUrl!), // Display the local file image
-                          fit: BoxFit.cover,
+                Stack(
+                  alignment: Alignment.topRight,
+                  children: [
+                    Column(
+                      children: [
+                        // Delete icon positioned above the image
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                uploadedImageUrl = null; // Clear the image
+                              });
+                            },
+                            child: Icon(
+                              Icons.close,
+                              color: Colors.red,
+                              size: 24,
+                            ),
+                          ),
                         ),
+                        SizedBox(
+                            height: 8), // Small space between icon and image
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: uploadedImageUrl!.startsWith('http')
+                              ? Image.network(
+                                  uploadedImageUrl!.trim(),
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                )
+                              : Image.file(
+                                  File(uploadedImageUrl!),
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ],
-
               SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
