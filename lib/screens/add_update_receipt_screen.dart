@@ -117,8 +117,12 @@ class AddOrUpdateReceiptScreenState extends State<AddOrUpdateReceiptScreen> {
       setState(() {
         // Set merchant and date as usual
         merchantController.text = scannedData['merchant'] ?? '';
-        dateController.text = scannedData['date'] ??
-            DateTime.now().toLocal().toString().split(' ')[0];
+
+        // Only set the date if it is not marked as "Not Found"
+        if (scannedData['date'] != 'Not Found') {
+          dateController.text = scannedData['date'] ??
+              DateTime.now().toLocal().toString().split(' ')[0];
+        }
 
         // Only set the amount if it is not marked as "Not Found"
         if (scannedData['amount'] != 'Not Found') {
