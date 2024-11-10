@@ -174,7 +174,8 @@ class ScanScreenState extends State<ScanScreen> {
     // Split the text into individual lines
     List<String> lines = text.split('\n');
     // Keywords or patterns to help identify merchant names
-    RegExp merchantRegex =  RegExp(r'^[A-Za-zäöÄÖ\s,.\-()&]+$');  // Looks for lines with alphabetic characters
+    RegExp merchantRegex = RegExp(
+        r'^[A-Za-zäöÄÖ\s,.\-()&*⭑]+$'); // Looks for lines with alphabetic characters
     int minMerchantNameLength = 5;
 
     // Iterate over each line
@@ -247,13 +248,12 @@ class ScanScreenState extends State<ScanScreen> {
 
     // Split the text into lines to process each line individually
     List<String> lines = text.split('\n');
-    bool foundKeyword =
-        false; // Flag to indicate we've found "Total" or similar keyword
+    bool foundKeyword = false; // Flag to indicate we've found a total keyword
 
     // Define regex pattern for amount extraction, allowing for an optional trailing hyphen
     RegExp amountRegex = RegExp(r'\b(\d+[.,]?\d{2})-?\b');
 
-    // Define possible keywords for total amount based on language
+    // Define possible keywords and assumed currency based on language
     List<String> totalKeywords;
     String assumedCurrency;
 
@@ -272,8 +272,7 @@ class ScanScreenState extends State<ScanScreen> {
 
     // Process each line to find the total amount
     for (int i = 0; i < lines.length; i++) {
-      String line = lines[i]
-          .toLowerCase(); // Convert to lowercase for case-insensitive matching
+      String line = lines[i].toLowerCase().trim(); // Normalize for matching
       logger.i('Processing line: "$line"');
 
       // Step 1: Check if the line contains any of the total keywords
@@ -282,41 +281,14 @@ class ScanScreenState extends State<ScanScreen> {
         foundKeyword = true;
         logger.i('Found total keyword in line: "$line"');
 
-        // For Finnish receipts, move to the next line to find the amount if available
-        if (_language == 'Finnish' && i + 1 < lines.length) {
-          line = lines[i + 1];
-          logger.i('Checking next line for amount: "$line"');
+        // Search for the amount in the current or subsequent lines
+        if (_findAmountInFollowingLines(
+            lines, i, amountRegex, assumedCurrency)) {
+          return; // Exit once the total amount is found
+        } else {
+          // Reset foundKeyword if amount not found in following lines
+          foundKeyword = false;
         }
-
-        // For English receipts, combine with the next line if "Total" spans multiple lines
-        if (_language == 'English' && i + 1 < lines.length) {
-          String combinedLine = '$line ${lines[i + 1]}';
-          if (combinedLine.toLowerCase().contains("subtotal") ||
-              combinedLine.toLowerCase().contains("sub total")) {
-            foundKeyword = false; // Skip processing if it contains "Subtotal"
-            continue;
-          }
-          line = combinedLine;
-          logger.i('Combined line for processing: "$line"');
-        }
-      }
-
-      // Step 2: Apply regex to find the amount
-      if (foundKeyword) {
-        Match? match = amountRegex.firstMatch(line);
-
-        if (match != null) {
-          // Capture the amount and remove any trailing hyphen if it exists
-          _totalPrice = match.group(1) ?? 'Not Found';
-          _currency =
-              assumedCurrency; // Use assumed currency based on detected language
-          logger
-              .i('Extracted Total Amount: $_totalPrice, Currency: $_currency');
-          return; // Exit once we find the valid total amount
-        }
-
-        // Reset the flag if no amount is found after checking the expected line
-        foundKeyword = false;
       }
     }
 
@@ -324,6 +296,38 @@ class ScanScreenState extends State<ScanScreen> {
     logger.w('No total price found');
     _totalPrice = "Not Found";
     _currency = "Not Found";
+  }
+
+// Helper function to find the amount in following lines
+  bool _findAmountInFollowingLines(List<String> lines, int startIndex,
+      RegExp amountRegex, String assumedCurrency) {
+    const int maxLinesToCheck =
+        5; // Define how many lines to check after the keyword
+    for (int j = startIndex + 1;
+        j < lines.length && j <= startIndex + maxLinesToCheck;
+        j++) {
+      String amountLine = lines[j].trim();
+
+      // Only process lines that contain a number and no alphabetic characters
+      if (!RegExp(r'[A-Za-z]').hasMatch(amountLine) &&
+          amountRegex.hasMatch(amountLine)) {
+        logger.i('Checking line for amount: "$amountLine"');
+
+        // Attempt to match the amount in this line
+        Match? match = amountRegex.firstMatch(amountLine);
+        if (match != null) {
+          _totalPrice = match.group(1) ?? 'Not Found';
+          _currency = assumedCurrency;
+          logger
+              .i('Extracted Total Amount: $_totalPrice, Currency: $_currency');
+          return true; // Amount found
+        }
+      } else {
+        logger.i(
+            'Skipping line (contains letters or invalid format): "$amountLine"');
+      }
+    }
+    return false; // Amount not found
   }
 
   void _extractDate(String text) {
