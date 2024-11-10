@@ -180,7 +180,7 @@ class ScanScreenState extends State<ScanScreen> {
     // Iterate over each line
     for (String line in lines) {
       // Trim any leading or trailing whitespace from the line
-      //line = line.trim();
+      line = line.trim();
       // Skip lines that are too short to be merchant names
       if (line.length < minMerchantNameLength) continue;
 
