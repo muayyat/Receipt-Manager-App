@@ -10,6 +10,7 @@ import 'package:receipt_manager/screens/profile_screen.dart';
 import 'package:receipt_manager/screens/receipt_list_screen.dart';
 import 'package:receipt_manager/screens/registration_screen.dart';
 import 'package:receipt_manager/screens/scan_screen.dart';
+import 'package:receipt_manager/screens/set_budget_page.dart';
 import 'package:receipt_manager/screens/setting_screen.dart';
 import 'package:receipt_manager/screens/summary_screen.dart';
 import 'package:receipt_manager/screens/welcome_screen.dart';
@@ -46,6 +47,7 @@ class MyApp extends StatelessWidget {
         DashboardScreen.id: (context) => DashboardScreen(),
         ProfileScreen.id: (context) => ProfileScreen(),
         SettingScreen.id: (context) => SettingScreen(),
+        SetBudgetPage.id: (context) => SetBudgetPage(),
       },
     );
   }
