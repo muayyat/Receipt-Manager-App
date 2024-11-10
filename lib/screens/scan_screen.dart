@@ -208,6 +208,7 @@ class ScanScreenState extends State<ScanScreen> {
     List<String> finnishKeywords = [
       "yhteensä",
       "summa",
+      "osto",
       "käteinen",
       "korttiautomaatti",
       "osuuskauppa",
@@ -258,7 +259,7 @@ class ScanScreenState extends State<ScanScreen> {
     String assumedCurrency;
 
     if (_language == 'Finnish') {
-      totalKeywords = ['yhteensä', 'summa'];
+      totalKeywords = ['yhteensä', 'summa', 'osto'];
       assumedCurrency = 'EUR';
     } else if (_language == 'English') {
       totalKeywords = ['total', 'amount due', 'balance'];
