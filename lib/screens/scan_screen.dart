@@ -248,17 +248,16 @@ class ScanScreenState extends State<ScanScreen> {
     // Define regex pattern for amount extraction, allowing for an optional trailing hyphen
     RegExp amountRegex = RegExp(r'\b(\d+[.,]?\d{2})-?\b');
 
-    // Set keyword based on language
-    String totalKeyword;
+    // Define possible keywords for total amount based on language
+    List<String> totalKeywords;
     String assumedCurrency;
 
     if (_language == 'Finnish') {
-      totalKeyword = 'yhteensä';
+      totalKeywords = ['yhteensä', 'summa'];
       assumedCurrency = 'EUR';
     } else if (_language == 'English') {
-      totalKeyword = 'total';
-      assumedCurrency =
-          'USD'; // Default to USD if currency symbol is not detected
+      totalKeywords = ['total', 'amount due', 'balance'];
+      assumedCurrency = 'USD';
     } else {
       logger.w('Language detection failed or unknown language');
       _totalPrice = "Not Found";
@@ -272,8 +271,9 @@ class ScanScreenState extends State<ScanScreen> {
           .toLowerCase(); // Convert to lowercase for case-insensitive matching
       logger.i('Processing line: "$line"');
 
-      // Step 1: Check if the line contains the total keyword
-      if (!foundKeyword && line.contains(totalKeyword)) {
+      // Step 1: Check if the line contains any of the total keywords
+      if (!foundKeyword &&
+          totalKeywords.any((keyword) => line.contains(keyword))) {
         foundKeyword = true;
         logger.i('Found total keyword in line: "$line"');
 
