@@ -172,92 +172,77 @@ class ScanScreenState extends State<ScanScreen> {
 
   void _extractMerchantName(String text) {
     List<String> lines = text.split('\n');
+    List<String> merchantIndicators = ["Korttiautomaatti", "Osuuskauppa", "TAMPERE"];
+
     for (String line in lines) {
-      if (line.trim().isNotEmpty) {
-        _merchantName = line.trim();
+      line = line.trim();
+
+      if (line.isNotEmpty && line.contains(RegExp(r'^[A-Z\s]+$'))) {
+        _merchantName = line;
         logger.i('Extracted Merchant Name: $_merchantName');
         break;
       }
+
+      // Check for merchant-related keywords in the lines
+      if (merchantIndicators.any((keyword) => line.contains(keyword))) {
+        _merchantName = line;
+        logger.i('Extracted Merchant Name based on keyword: $_merchantName');
+        break;
+      }
+    }
+
+    if (_merchantName.isEmpty) {
+      logger.w("Merchant name could not be identified.");
+      _merchantName = "Not Found";
     }
   }
 
-  void _extractTotalAmountAndCurrency(String text) {
-    // Split the text into lines to process each line individually
-    List<String> lines = text.split('\n');
-    bool foundKeyword =
-        false; // Flag to indicate we've found "Total" or similar keyword
 
-    // Regex to match currency and amount in a line or across combined lines
-    RegExp totalRegex = RegExp(
-      r'\b(Total|TOTAL|Amount Due|BALANCE DUE)\b',
-      caseSensitive: false,
-    );
-    RegExp amountRegex = RegExp(
-      r'\b([A-Z]{3}|[€$])?\s*[\$]?\s*(\d+[.,]?\d{2})',
-      caseSensitive: false,
-    );
+
+
+  void _extractTotalAmountAndCurrency(String text) {
+    List<String> lines = text.split('\n');
+    bool foundKeyword = false;
+
+    RegExp totalKeywordRegex = RegExp(r'\b(Total|TOTAL|Amount Due|BALANCE DUE|YHTEENSÄ|Yhteensä|YHTEENSA|Yhteensa|EUR)\b', caseSensitive: false);
+    RegExp amountRegex = RegExp(r'([€$]|[A-Z]{3})?\s*([\d,]+[.,]\d{2})', caseSensitive: false);
 
     for (int i = 0; i < lines.length; i++) {
-      String line = lines[i]; // Keep original case for all operations
+      String line = lines[i];
       logger.i('Processing line: "$line"');
 
-      // Step 1: Check if the line contains "Total" or similar keywords
-      if (!foundKeyword && totalRegex.hasMatch(line)) {
+      if (!foundKeyword && totalKeywordRegex.hasMatch(line)) {
         foundKeyword = true;
-        logger.i('Found total keyword in line: "$line"');
-
-        // Check if the next line exists and combine it with the current line
         if (i + 1 < lines.length) {
-          String combinedLine = '$line ${lines[i + 1]}';
-          if (combinedLine.toLowerCase().contains("subtotal") ||
-              combinedLine.toLowerCase().contains("sub total")) {
-            logger.i(
-                'Skipping combined line as it contains "subtotal": "$combinedLine"');
-            foundKeyword = false; // Reset the flag and skip processing
-            continue;
-          }
-          line = combinedLine; // Use the combined line in original case
-          logger.i('Combined line for processing: "$line"');
+          line += ' ' + lines[i + 1];
         }
       }
 
-      // Step 2: Apply regex to the current or combined line in original case
       if (foundKeyword) {
         Match? match = amountRegex.firstMatch(line);
-
         if (match != null) {
-          // Capture the currency symbol or code if present
-          String detectedCurrency = match.group(1) ?? '';
-          // Capture the actual amount
+          String detectedCurrency = match.group(1) ?? 'EUR';
           String amount = match.group(2) ?? '';
 
-          // Standardize the currency to USD or EUR based on the detected symbol or code
-          String currency;
-          if (detectedCurrency == '\$' || detectedCurrency == 'USD') {
-            currency = 'USD';
-          } else if (detectedCurrency == '€' || detectedCurrency == 'EUR') {
-            currency = 'EUR';
-          } else {
-            currency = 'Unknown'; // Use 'Unknown' if currency is not recognized
-          }
-
+          _currency = detectedCurrency.contains('€') ? 'EUR' : 'Unknown';
           _totalPrice = amount;
-          _currency = currency;
-          logger
-              .i('Extracted Total Amount: $_totalPrice, Currency: $_currency');
-          return; // Exit once we find the valid total amount
+          logger.i('Extracted Total Amount: $_totalPrice, Currency: $_currency');
+          return;
         }
 
-        // Reset the flag if no amount is found after the combined line
         foundKeyword = false;
       }
     }
 
-    // If no match is found
-    logger.w('No total price found');
-    _totalPrice = "Not Found";
-    _currency = "Not Found";
+    if (_totalPrice.isEmpty) {
+      logger.w("Total amount could not be identified.");
+      _totalPrice = "Not Found";
+      _currency = "Not Found";
+    }
   }
+
+
+
 
   void _extractDate(String text) {
     // Enhanced regex pattern to capture various date formats: DD.MM.YYYY, DD-MM-YYYY, MM/dd/yyyy, etc.
