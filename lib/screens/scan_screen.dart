@@ -173,6 +173,8 @@ class ScanScreenState extends State<ScanScreen> {
   void _extractMerchantName(String text) {
     // Split the text into individual lines
     List<String> lines = text.split('\n');
+    // Keywords or patterns to help identify merchant names
+    RegExp merchantRegex = RegExp(r'^[A-Za-z\s,.]+$'); // Looks for lines with alphabetic characters
 
     // Iterate over each line
     for (String line in lines) {
@@ -180,7 +182,7 @@ class ScanScreenState extends State<ScanScreen> {
       line = line.trim();
 
       // Check if the line is not empty after trimming
-      if (line.isNotEmpty) {
+      if (line.isNotEmpty && merchantRegex.hasMatch(line)) {
         // Set the merchant name to the first non-empty line found
         _merchantName = line;
         logger.i(
