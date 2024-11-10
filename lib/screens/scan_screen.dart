@@ -322,21 +322,32 @@ class ScanScreenState extends State<ScanScreen> {
   }
 
   void _extractDate(String text) {
-    // Enhanced regex pattern to capture various date formats: D.M.YYYY, D-M-YYYY, M/d/yyyy, etc.
+    // Enhanced regex pattern to capture date formats, focusing on DD/MM/YYYY
     RegExp dateRegex = RegExp(
       r'(?<!\d)(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})(?!\d)', // Matches multiple formats with separators
       caseSensitive: false,
     );
 
-    Match? dateMatch = dateRegex.firstMatch(text);
-    if (dateMatch != null) {
-      String rawDate = dateMatch.group(0)!;
+    DateTime? closestDate;
+    DateTime today = DateTime.now();
+
+    // Find all date matches in the text
+    Iterable<Match> dateMatches = dateRegex.allMatches(text);
+    if (dateMatches.isEmpty) {
+      logger.w('No date pattern matched in the text.');
+    }
+
+    for (Match match in dateMatches) {
+      String rawDate = match.group(0)!;
+      DateTime? parsedDate;
+      logger.i('Found potential date string: "$rawDate"');
 
       try {
-        DateTime parsedDate;
-
-        // Identify the format based on separators and length
-        if (rawDate.contains('.') && rawDate.length >= 8) {
+        // Try parsing based on detected date format
+        if (rawDate.contains('/') && rawDate.length == 10) {
+          // Prioritize DD/MM/YYYY format
+          parsedDate = DateFormat("dd/MM/yyyy").parse(rawDate);
+        } else if (rawDate.contains('.') && rawDate.length >= 8) {
           // Formats: D.M.YYYY, DD.MM.YYYY, D.M.YY, DD.MM.YY
           parsedDate = rawDate.length == 10
               ? DateFormat("d.M.yyyy").parse(rawDate)
@@ -350,24 +361,36 @@ class ScanScreenState extends State<ScanScreen> {
                 ? DateFormat("d-M-yyyy").parse(rawDate)
                 : DateFormat("d-M-yy").parse(rawDate);
           }
-        } else if (rawDate.contains('/') && rawDate.length >= 8) {
-          // Formats: M/d/yyyy, MM/dd/yyyy, M/d/yy, MM/dd/yy
-          parsedDate = rawDate.length == 10
-              ? DateFormat("M/d/yyyy").parse(rawDate)
-              : DateFormat("M/d/yy").parse(rawDate);
+        } else if (rawDate.contains('/') && rawDate.length == 8) {
+          // Format: MM/dd/yy
+          parsedDate = DateFormat("MM/dd/yy").parse(rawDate);
         } else {
           throw FormatException("Unrecognized date format");
         }
 
-        // Standardize the date to 'yyyy-MM-dd' format
-        _receiptDate = DateFormat('yyyy-MM-dd').format(parsedDate);
-        logger.i('Extracted Date: $_receiptDate');
+        // Validate against today’s date to avoid future dates
+        if (parsedDate.isAfter(today)) {
+          logger.w('Discarded future date: $parsedDate');
+          continue; // Skip dates that are in the future
+        }
+
+        // Check if this date is the closest to today so far
+        if (closestDate == null ||
+            (parsedDate.difference(today).abs() <
+                closestDate.difference(today).abs())) {
+          closestDate = parsedDate;
+        }
       } catch (e) {
-        logger.e('Failed to parse date: $e');
-        _receiptDate = "Parsing Error";
+        logger.e('Failed to parse date "$rawDate": $e');
       }
+    }
+
+    // Standardize the closest date to 'yyyy-MM-dd' format
+    if (closestDate != null) {
+      _receiptDate = DateFormat('yyyy-MM-dd').format(closestDate);
+      logger.i('Extracted Date: $_receiptDate');
     } else {
-      logger.w('No date found');
+      logger.w('No valid date found');
       _receiptDate = "Not Found";
     }
   }
