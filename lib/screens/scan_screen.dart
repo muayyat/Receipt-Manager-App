@@ -245,8 +245,8 @@ class ScanScreenState extends State<ScanScreen> {
     bool foundKeyword =
         false; // Flag to indicate we've found "Total" or similar keyword
 
-    // Define regex patterns for amount extraction
-    RegExp amountRegex = RegExp(r'\b(\d+[.,]?\d{2})\b');
+    // Define regex pattern for amount extraction, allowing for an optional trailing hyphen
+    RegExp amountRegex = RegExp(r'\b(\d+[.,]?\d{2})-?\b');
 
     // Set keyword based on language
     String totalKeyword;
@@ -301,7 +301,7 @@ class ScanScreenState extends State<ScanScreen> {
         Match? match = amountRegex.firstMatch(line);
 
         if (match != null) {
-          // Capture the amount
+          // Capture the amount and remove any trailing hyphen if it exists
           _totalPrice = match.group(1) ?? 'Not Found';
           _currency =
               assumedCurrency; // Use assumed currency based on detected language
@@ -322,7 +322,7 @@ class ScanScreenState extends State<ScanScreen> {
   }
 
   void _extractDate(String text) {
-    // Enhanced regex pattern to capture various date formats: DD.MM.YYYY, DD-MM-YYYY, MM/dd/yyyy, etc.
+    // Enhanced regex pattern to capture various date formats: D.M.YYYY, D-M-YYYY, M/d/yyyy, etc.
     RegExp dateRegex = RegExp(
       r'(?<!\d)(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})(?!\d)', // Matches multiple formats with separators
       caseSensitive: false,
@@ -336,28 +336,25 @@ class ScanScreenState extends State<ScanScreen> {
         DateTime parsedDate;
 
         // Identify the format based on separators and length
-        if (rawDate.contains('.') && rawDate.length == 10) {
-          // Format: DD.MM.YYYY
-          parsedDate = DateFormat("dd.MM.yyyy").parse(rawDate);
-        } else if (rawDate.contains('.') && rawDate.length == 8) {
-          // Format: DD.MM.YY
-          parsedDate = DateFormat("dd.MM.yy").parse(rawDate);
-        } else if (rawDate.contains('-') && rawDate.length == 10) {
-          // Format: DD-MM-YYYY or YYYY-MM-DD
+        if (rawDate.contains('.') && rawDate.length >= 8) {
+          // Formats: D.M.YYYY, DD.MM.YYYY, D.M.YY, DD.MM.YY
+          parsedDate = rawDate.length == 10
+              ? DateFormat("d.M.yyyy").parse(rawDate)
+              : DateFormat("d.M.yy").parse(rawDate);
+        } else if (rawDate.contains('-') && rawDate.length >= 8) {
+          // Formats: D-M-YYYY, DD-MM-YYYY, D-M-YY, DD-MM-YY, YYYY-MM-DD
           if (rawDate.split('-')[0].length == 4) {
-            parsedDate = DateFormat("yyyy-MM-dd").parse(rawDate);
+            parsedDate = DateFormat("yyyy-M-d").parse(rawDate);
           } else {
-            parsedDate = DateFormat("dd-MM-yyyy").parse(rawDate);
+            parsedDate = rawDate.length == 10
+                ? DateFormat("d-M-yyyy").parse(rawDate)
+                : DateFormat("d-M-yy").parse(rawDate);
           }
-        } else if (rawDate.contains('-') && rawDate.length == 8) {
-          // Format: DD-MM-YY
-          parsedDate = DateFormat("dd-MM-yy").parse(rawDate);
-        } else if (rawDate.contains('/') && rawDate.length == 10) {
-          // Format: MM/dd/yyyy
-          parsedDate = DateFormat("MM/dd/yyyy").parse(rawDate);
-        } else if (rawDate.contains('/') && rawDate.length == 8) {
-          // Format: MM/dd/yy
-          parsedDate = DateFormat("MM/dd/yy").parse(rawDate);
+        } else if (rawDate.contains('/') && rawDate.length >= 8) {
+          // Formats: M/d/yyyy, MM/dd/yyyy, M/d/yy, MM/dd/yy
+          parsedDate = rawDate.length == 10
+              ? DateFormat("M/d/yyyy").parse(rawDate)
+              : DateFormat("M/d/yy").parse(rawDate);
         } else {
           throw FormatException("Unrecognized date format");
         }
