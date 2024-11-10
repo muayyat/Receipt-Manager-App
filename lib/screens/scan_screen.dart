@@ -171,33 +171,29 @@ class ScanScreenState extends State<ScanScreen> {
   }
 
   void _extractMerchantName(String text) {
+    // Split the text into individual lines
     List<String> lines = text.split('\n');
-    List<String> merchantIndicators = [
-      "Korttiautomaatti",
-      "Osuuskauppa",
-      "TAMPERE"
-    ];
 
+    // Iterate over each line
     for (String line in lines) {
+      // Trim any leading or trailing whitespace from the line
       line = line.trim();
 
-      if (line.isNotEmpty && line.contains(RegExp(r'^[A-Z\s]+$'))) {
+      // Check if the line is not empty after trimming
+      if (line.isNotEmpty) {
+        // Set the merchant name to the first non-empty line found
         _merchantName = line;
-        logger.i('Extracted Merchant Name: $_merchantName');
-        break;
-      }
-
-      // Check for merchant-related keywords in the lines
-      if (merchantIndicators.any((keyword) => line.contains(keyword))) {
-        _merchantName = line;
-        logger.i('Extracted Merchant Name based on keyword: $_merchantName');
-        break;
+        logger.i(
+            'Extracted Merchant Name: $_merchantName'); // Log the extracted merchant name
+        break; // Exit the loop after finding the first non-empty line
       }
     }
 
+    // If no non-empty line was found, set a default value and log a warning
     if (_merchantName.isEmpty) {
-      logger.w("Merchant name could not be identified.");
-      _merchantName = "Not Found";
+      logger.w(
+          "Merchant name could not be identified."); // Log a warning if no merchant name is found
+      _merchantName = "Not Found"; // Set a default value for the merchant name
     }
   }
 
