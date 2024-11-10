@@ -28,7 +28,7 @@ class ScanScreenState extends State<ScanScreen> {
   File? _imageFile;
 
   String _extractedText = '';
-
+  String _language = '';
   String _merchantName = '';
   String _receiptDate = '';
   String _currency = '';
@@ -172,7 +172,11 @@ class ScanScreenState extends State<ScanScreen> {
 
   void _extractMerchantName(String text) {
     List<String> lines = text.split('\n');
-    List<String> merchantIndicators = ["Korttiautomaatti", "Osuuskauppa", "TAMPERE"];
+    List<String> merchantIndicators = [
+      "Korttiautomaatti",
+      "Osuuskauppa",
+      "TAMPERE"
+    ];
 
     for (String line in lines) {
       line = line.trim();
@@ -197,52 +201,129 @@ class ScanScreenState extends State<ScanScreen> {
     }
   }
 
+  String detectLanguage(String text) {
+    // Define possible keywords for Finnish and English receipts
+    List<String> finnishKeywords = [
+      "yhteensä",
+      "summa",
+      "käteinen",
+      "korttiautomaatti",
+      "osuuskauppa",
+      "kuitti",
+      "verollinen"
+    ];
+    List<String> englishKeywords = [
+      "total",
+      "amount due",
+      "balance",
+      "receipt",
+      "subtotal",
+      "sales tax"
+    ];
 
+    // Check if any Finnish keywords are present
+    for (var word in finnishKeywords) {
+      if (text.toLowerCase().contains(word)) {
+        return "Finnish";
+      }
+    }
 
+    // Check if any English keywords are present
+    for (var word in englishKeywords) {
+      if (text.toLowerCase().contains(word)) {
+        return "English";
+      }
+    }
+
+    // Return Unknown if no keywords matched
+    return "Unknown";
+  }
 
   void _extractTotalAmountAndCurrency(String text) {
+    // Detect language using the detectLanguage function
+    _language = detectLanguage(text);
+    logger.i('Detected receipt language: $_language');
+
+    // Split the text into lines to process each line individually
     List<String> lines = text.split('\n');
-    bool foundKeyword = false;
+    bool foundKeyword =
+        false; // Flag to indicate we've found "Total" or similar keyword
 
-    RegExp totalKeywordRegex = RegExp(r'\b(Total|TOTAL|Amount Due|BALANCE DUE|YHTEENSÄ|Yhteensä|YHTEENSA|Yhteensa|EUR)\b', caseSensitive: false);
-    RegExp amountRegex = RegExp(r'([€$]|[A-Z]{3})?\s*([\d,]+[.,]\d{2})', caseSensitive: false);
+    // Define regex patterns for amount extraction
+    RegExp amountRegex = RegExp(r'\b(\d+[.,]?\d{2})\b');
 
+    // Set keyword based on language
+    String totalKeyword;
+    String assumedCurrency;
+
+    if (_language == 'Finnish') {
+      totalKeyword = 'yhteensä';
+      assumedCurrency = 'EUR';
+    } else if (_language == 'English') {
+      totalKeyword = 'total';
+      assumedCurrency =
+          'USD'; // Default to USD if currency symbol is not detected
+    } else {
+      logger.w('Language detection failed or unknown language');
+      _totalPrice = "Not Found";
+      _currency = "Not Found";
+      return;
+    }
+
+    // Process each line to find the total amount
     for (int i = 0; i < lines.length; i++) {
-      String line = lines[i];
+      String line = lines[i]
+          .toLowerCase(); // Convert to lowercase for case-insensitive matching
       logger.i('Processing line: "$line"');
 
-      if (!foundKeyword && totalKeywordRegex.hasMatch(line)) {
+      // Step 1: Check if the line contains the total keyword
+      if (!foundKeyword && line.contains(totalKeyword)) {
         foundKeyword = true;
-        if (i + 1 < lines.length) {
-          line += ' ' + lines[i + 1];
+        logger.i('Found total keyword in line: "$line"');
+
+        // For Finnish receipts, move to the next line to find the amount if available
+        if (_language == 'Finnish' && i + 1 < lines.length) {
+          line = lines[i + 1];
+          logger.i('Checking next line for amount: "$line"');
+        }
+
+        // For English receipts, combine with the next line if "Total" spans multiple lines
+        if (_language == 'English' && i + 1 < lines.length) {
+          String combinedLine = '$line ${lines[i + 1]}';
+          if (combinedLine.toLowerCase().contains("subtotal") ||
+              combinedLine.toLowerCase().contains("sub total")) {
+            foundKeyword = false; // Skip processing if it contains "Subtotal"
+            continue;
+          }
+          line = combinedLine;
+          logger.i('Combined line for processing: "$line"');
         }
       }
 
+      // Step 2: Apply regex to find the amount
       if (foundKeyword) {
         Match? match = amountRegex.firstMatch(line);
-        if (match != null) {
-          String detectedCurrency = match.group(1) ?? 'EUR';
-          String amount = match.group(2) ?? '';
 
-          _currency = detectedCurrency.contains('€') ? 'EUR' : 'Unknown';
-          _totalPrice = amount;
-          logger.i('Extracted Total Amount: $_totalPrice, Currency: $_currency');
-          return;
+        if (match != null) {
+          // Capture the amount
+          _totalPrice = match.group(1) ?? 'Not Found';
+          _currency =
+              assumedCurrency; // Use assumed currency based on detected language
+          logger
+              .i('Extracted Total Amount: $_totalPrice, Currency: $_currency');
+          return; // Exit once we find the valid total amount
         }
 
+        // Reset the flag if no amount is found after checking the expected line
         foundKeyword = false;
       }
     }
 
-    if (_totalPrice.isEmpty) {
-      logger.w("Total amount could not be identified.");
-      _totalPrice = "Not Found";
-      _currency = "Not Found";
-    }
+    // If no match is found, log and set defaults
+    logger.w('No total price found');
+    _totalPrice = "Not Found";
+    _currency = "Not Found";
   }
-
-
-
 
   void _extractDate(String text) {
     // Enhanced regex pattern to capture various date formats: DD.MM.YYYY, DD-MM-YYYY, MM/dd/yyyy, etc.
@@ -384,6 +465,24 @@ class ScanScreenState extends State<ScanScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Language
+                  Row(
+                    children: [
+                      Icon(Icons.language, color: Colors.lightBlue),
+                      SizedBox(width: 8),
+                      Text('Language:', style: infoTextStyle),
+                      SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          _language,
+                          style: infoTextStyle.copyWith(
+                              fontWeight: FontWeight.normal),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8), // Add spacing between rows
+
                   // Merchant
                   Row(
                     children: [
