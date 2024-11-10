@@ -13,7 +13,7 @@ import 'package:receipt_manager/screens/scan_screen.dart';
 import 'package:receipt_manager/screens/set_budget_page.dart';
 import 'package:receipt_manager/screens/setting_screen.dart';
 import 'package:receipt_manager/screens/summary_screen.dart';
-import 'package:receipt_manager/screens/welcome_screen.dart';
+import 'package:receipt_manager/screens/welcome_page.dart';
 
 import 'firebase_options.dart';
 
@@ -32,9 +32,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: WelcomeScreen.id,
+      initialRoute: WelcomePage.id,
       routes: {
-        WelcomeScreen.id: (context) => WelcomeScreen(),
+        WelcomePage.id: (context) => WelcomePage(),
         LoginScreen.id: (context) => LoginScreen(),
         RegistrationScreen.id: (context) => RegistrationScreen(),
         ScanScreen.id: (context) => ScanScreen(),
@@ -47,6 +47,7 @@ class MyApp extends StatelessWidget {
         DashboardScreen.id: (context) => DashboardScreen(),
         ProfileScreen.id: (context) => ProfileScreen(),
         SettingScreen.id: (context) => SettingScreen(),
+        // In development
         SetBudgetPage.id: (context) => SetBudgetPage(),
       },
     );

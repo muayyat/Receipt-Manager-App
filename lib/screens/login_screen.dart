@@ -4,7 +4,7 @@ import 'package:receipt_manager/screens/receipt_list_screen.dart';
 import 'package:receipt_manager/services/auth_service.dart';
 
 import '../components/rounded_button.dart';
-import '../constants.dart';
+import '../constants/decorations.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String id = 'login_screen';

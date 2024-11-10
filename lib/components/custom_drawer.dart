@@ -6,13 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:receipt_manager/screens/dashboard_screen.dart';
 import 'package:receipt_manager/screens/expense_chart_screen.dart';
 import 'package:receipt_manager/screens/profile_screen.dart';
-import 'package:receipt_manager/screens/welcome_screen.dart';
 
 import '../screens/budget_screen.dart';
 import '../screens/category_screen.dart';
 import '../screens/receipt_list_screen.dart';
 import '../screens/setting_screen.dart';
 import '../screens/summary_screen.dart';
+import '../screens/welcome_page.dart';
 import '../services/user_service.dart';
 
 class CustomDrawer extends StatefulWidget {
@@ -193,7 +193,7 @@ class CustomDrawerState extends State<CustomDrawer> {
                   title: Text('Sign Out'),
                   onTap: () {
                     FirebaseAuth.instance.signOut();
-                    Navigator.pushReplacementNamed(context, WelcomeScreen.id);
+                    Navigator.pushReplacementNamed(context, WelcomePage.id);
                   },
                 ),
               ],

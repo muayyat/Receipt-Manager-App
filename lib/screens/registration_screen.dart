@@ -4,7 +4,7 @@ import 'package:receipt_manager/screens/welcome_screen.dart';
 import 'package:receipt_manager/services/auth_service.dart';
 
 import '../components/rounded_button.dart';
-import '../constants.dart';
+import '../constants/decorations.dart';
 
 class RegistrationScreen extends StatefulWidget {
   static const String id = 'registration_screen';
