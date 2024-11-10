@@ -174,8 +174,8 @@ class ScanScreenState extends State<ScanScreen> {
     // Split the text into individual lines
     List<String> lines = text.split('\n');
     // Keywords or patterns to help identify merchant names
-    RegExp merchantRegex =  RegExp(r'^[A-Za-z\s,.-]+$'); // Looks for lines with alphabetic characters
-    int minMerchantNameLength = 4;
+    RegExp merchantRegex =  RegExp(r'^[A-Za-zäöÄÖ\s,.\-()&]+$');  // Looks for lines with alphabetic characters
+    int minMerchantNameLength = 5;
 
     // Iterate over each line
     for (String line in lines) {
