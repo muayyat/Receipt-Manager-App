@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:receipt_manager/screens/welcome_screen.dart';
+import 'package:receipt_manager/screens/old/welcome_screen.dart';
 import 'package:receipt_manager/services/auth_service.dart';
 
 import '../components/rounded_button.dart';
