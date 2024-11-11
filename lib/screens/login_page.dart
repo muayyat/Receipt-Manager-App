@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:receipt_manager/constants/app_colors.dart'; // Replace with your color definitions file
 import 'package:receipt_manager/screens/receipt_list_screen.dart'; // Replace with actual receipt list screen file
@@ -7,6 +6,7 @@ import 'package:receipt_manager/screens/signup_page.dart';
 import 'package:receipt_manager/services/auth_service.dart';
 
 import '../components/custom_button.dart';
+import '../components/underline_text.dart';
 import 'forgot_password_page.dart';
 
 class LogInPage extends StatefulWidget {
@@ -189,8 +189,7 @@ class LogInPageState extends State<LogInPage> {
                     "Forgot Password?",
                     style: TextStyle(
                       color: mainPurpleColor,
-                      fontSize: 16,
-                      decoration: TextDecoration.underline,
+                      fontSize: 18,
                     ),
                   ),
                 ),
@@ -202,17 +201,11 @@ class LogInPageState extends State<LogInPage> {
                     text: "Don’t have an account yet? ",
                     style: TextStyle(color: textSecondaryColor, fontSize: 16),
                     children: [
-                      TextSpan(
+                      underlineTextSpan(
                         text: "Sign Up",
-                        style: TextStyle(
-                          color: mainPurpleColor,
-                          fontSize: 16,
-                          decoration: TextDecoration.underline,
-                        ),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            Navigator.pushNamed(context, SignUpPage.id);
-                          },
+                        onTap: () {
+                          Navigator.pushNamed(context, SignUpPage.id);
+                        },
                       ),
                     ],
                   ),

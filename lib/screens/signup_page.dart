@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:receipt_manager/screens/verification_link_page.dart';
 
 import '../components/custom_button.dart';
+import '../components/underline_text.dart';
 import '../constants/app_colors.dart';
 import '../services/auth_service.dart';
 import '../services/user_service.dart'; // Add UserService import
@@ -64,17 +65,18 @@ class SignUpPageState extends State<SignUpPage> {
       // Register the user using AuthService
       final newUser = await AuthService.registerWithEmail(email, password);
 
+      print(newUser?.email);
       if (newUser != null) {
+        // Send email verification
+        await newUser.sendEmailVerification();
+
+        print('sending');
+
         // Save username to the profile using UserService
         await _userService.addUserProfile(
           userEmail: email,
           userName: userName,
         );
-
-        // Send email verification
-        await newUser.sendEmailVerification();
-
-        print(newUser.email);
 
         // Navigate to verification link page
         Navigator.push(
@@ -89,6 +91,11 @@ class SignUpPageState extends State<SignUpPage> {
     } on FirebaseAuthException catch (e) {
       setState(() {
         errorMessage = extractErrorMessage(e);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+        print("Error message set to: $errorMessage"); // Debugging line
       });
     } catch (e) {
       setState(() {
@@ -265,17 +272,11 @@ class SignUpPageState extends State<SignUpPage> {
                   text: "Already have an account? ",
                   style: TextStyle(color: textSecondaryColor, fontSize: 16),
                   children: [
-                    TextSpan(
+                    underlineTextSpan(
                       text: "Login",
-                      style: TextStyle(
-                        color: mainPurpleColor,
-                        fontSize: 16,
-                        decoration: TextDecoration.underline,
-                      ),
-                      recognizer: _loginRecognizer
-                        ..onTap = () {
-                          Navigator.pushNamed(context, LogInPage.id);
-                        },
+                      onTap: () {
+                        Navigator.pushNamed(context, LogInPage.id);
+                      },
                     ),
                   ],
                 ),

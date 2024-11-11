@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:receipt_manager/screens/login_page.dart';
 
 import '../components/custom_button.dart';
+import '../components/underline_text.dart';
 import '../constants/app_colors.dart';
 
 class VerificationLinkPage extends StatelessWidget {
@@ -45,7 +46,11 @@ class VerificationLinkPage extends StatelessWidget {
         ),
         title: Text(
           'Verification',
-          style: TextStyle(color: Colors.black),
+          style: TextStyle(
+            color: textPrimaryColor,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
       ),
@@ -91,16 +96,14 @@ class VerificationLinkPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            GestureDetector(
-              onTap: () => _resendVerificationEmail(context, user),
-              child: Text(
-                "I didn’t receive the link? Send again",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: mainPurpleColor,
-                  decorationColor: mainPurpleColor,
-                  decoration: TextDecoration.underline,
-                ),
+            Text.rich(
+              TextSpan(
+                children: [
+                  underlineTextSpan(
+                    text: "I didn’t receive the link? Send again",
+                    onTap: () => _resendVerificationEmail(context, user),
+                  ),
+                ],
               ),
             ),
             Spacer(),

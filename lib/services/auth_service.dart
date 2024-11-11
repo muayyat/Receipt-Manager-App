@@ -32,14 +32,15 @@ class AuthService {
   // Register with email and password
   static Future<User?> registerWithEmail(String email, String password) async {
     try {
-      UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+      logger.i("User registered: ${userCredential.user?.email}");
       return userCredential.user;
+    } on FirebaseAuthException catch (e) {
+      logger.e("FirebaseAuthException: ${e.message}");
+      return null;
     } catch (e) {
-      logger.e("Error registering: $e");
+      logger.e("Unknown error during registration: $e");
       return null;
     }
   }

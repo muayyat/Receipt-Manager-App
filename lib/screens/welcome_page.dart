@@ -125,8 +125,8 @@ class WelcomePageState extends State<WelcomePage> {
             textAlign: TextAlign.center,
             style: TextStyle(
                 fontFamily: 'Inter',
-                fontSize: 16,
-                fontWeight: FontWeight.w200, // Use ExtraLight
+                fontSize: 18,
+                fontWeight: FontWeight.w500, // Use ExtraLight
                 color: textSecondaryColor),
           ),
         ],
