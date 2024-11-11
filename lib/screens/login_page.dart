@@ -75,23 +75,6 @@ class LogInPageState extends State<LogInPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 20),
-              TextFormField(
-                onChanged: (value) {
-                  email = value;
-                },
-                decoration: InputDecoration(
-                  labelText: "Email",
-                  labelStyle: TextStyle(color: textSecondaryColor),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16.0),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16.0),
-                    borderSide: BorderSide(color: mainPurpleColor),
-                  ),
-                ),
-              ),
               CustomTextFormField(
                 labelText: "Email",
                 onChanged: (value) {
