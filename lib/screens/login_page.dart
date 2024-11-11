@@ -6,6 +6,8 @@ import 'package:receipt_manager/screens/receipt_list_screen.dart'; // Replace wi
 import 'package:receipt_manager/screens/signup_page.dart';
 import 'package:receipt_manager/services/auth_service.dart';
 
+import 'forgot_password_page.dart';
+
 class LogInPage extends StatefulWidget {
   static const String id = 'login_page';
 
@@ -184,28 +186,8 @@ class LogInPageState extends State<LogInPage> {
             Center(
               child: TextButton(
                 onPressed: () {
-                  // Implement password reset functionality
-                  if (email.isEmpty) {
-                    setState(() {
-                      errorMessage =
-                          'Please enter your email to reset the password.';
-                    });
-                  } else {
-                    try {
-                      AuthService.sendPasswordResetEmail(email: email);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              'Password reset email sent! Please check your inbox.'),
-                        ),
-                      );
-                    } catch (e) {
-                      setState(() {
-                        errorMessage =
-                            'An error occurred. Please try again later.';
-                      });
-                    }
-                  }
+                  // Navigate to Forgot Password screen
+                  Navigator.pushNamed(context, ForgotPasswordPage.id);
                 },
                 child: Text(
                   "Forgot Password?",
