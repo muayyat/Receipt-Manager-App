@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../services/auth_service.dart';
 import '../services/user_service.dart'; // Add UserService import
-import 'login_screen.dart';
+import 'login_page.dart';
+import 'old/login_screen.dart';
 
 class SignUpPage extends StatefulWidget {
   static const String id = 'sign_up_page';
@@ -274,7 +275,7 @@ class SignUpPageState extends State<SignUpPage> {
                       ),
                       recognizer: _loginRecognizer
                         ..onTap = () {
-                          Navigator.pushNamed(context, LoginScreen.id);
+                          Navigator.pushNamed(context, LogInPage.id);
                         },
                     ),
                   ],

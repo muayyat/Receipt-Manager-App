@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:receipt_manager/constants/app_colors.dart';
-import 'package:receipt_manager/screens/login_screen.dart';
+import 'package:receipt_manager/screens/login_page.dart';
 import 'package:receipt_manager/screens/signup_page.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -94,7 +94,7 @@ class WelcomePageState extends State<WelcomePage> {
                 ElevatedButton(
                   onPressed: () {
                     // Navigate to Login page
-                    Navigator.pushNamed(context, LoginScreen.id);
+                    Navigator.pushNamed(context, LogInPage.id);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: lightPurpleColor, // Background color

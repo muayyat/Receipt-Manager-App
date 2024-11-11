@@ -5,8 +5,7 @@ import 'package:receipt_manager/screens/budget_screen.dart';
 import 'package:receipt_manager/screens/category_screen.dart';
 import 'package:receipt_manager/screens/dashboard_screen.dart';
 import 'package:receipt_manager/screens/expense_chart_screen.dart';
-import 'package:receipt_manager/screens/login_screen.dart';
-import 'package:receipt_manager/screens/old/registration_screen.dart';
+import 'package:receipt_manager/screens/login_page.dart';
 import 'package:receipt_manager/screens/profile_screen.dart';
 import 'package:receipt_manager/screens/receipt_list_screen.dart';
 import 'package:receipt_manager/screens/scan_screen.dart';
@@ -36,9 +35,8 @@ class MyApp extends StatelessWidget {
       initialRoute: WelcomePage.id,
       routes: {
         WelcomePage.id: (context) => WelcomePage(),
-        RegistrationScreen.id: (context) => RegistrationScreen(),
         SignUpPage.id: (context) => SignUpPage(),
-        LoginScreen.id: (context) => LoginScreen(),
+        LogInPage.id: (context) => LogInPage(),
         ScanScreen.id: (context) => ScanScreen(),
         AddOrUpdateReceiptScreen.id: (context) => AddOrUpdateReceiptScreen(),
         ReceiptListScreen.id: (context) => ReceiptListScreen(),
