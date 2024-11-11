@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:receipt_manager/screens/login_page.dart';
 
 import '../components/custom_button.dart';
@@ -42,7 +43,7 @@ class VerificationLinkPage extends StatelessWidget {
             const SizedBox(height: 32),
             // Title Text
             Text(
-              'Get your\nVerification Link',
+              'Please verify your email',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -52,11 +53,11 @@ class VerificationLinkPage extends StatelessWidget {
             const SizedBox(height: 40),
             // Countdown Timer Text
             Text(
-              '04:59',
+              DateFormat('HH:mm').format(DateTime.now()),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: lightPurpleColor,
+                color: mainPurpleColor,
               ),
             ),
             const SizedBox(height: 8),
@@ -71,7 +72,7 @@ class VerificationLinkPage extends StatelessWidget {
                   TextSpan(text: 'We send verification link to your email '),
                   TextSpan(
                     text: getMaskedEmail(email),
-                    style: TextStyle(color: lightPurpleColor),
+                    style: TextStyle(color: mainPurpleColor),
                   ),
                   TextSpan(text: '. You can check your inbox.'),
                 ],
@@ -87,7 +88,9 @@ class VerificationLinkPage extends StatelessWidget {
                 "I didn’t receive the link? Send again",
                 style: TextStyle(
                   fontSize: 14,
-                  color: lightPurpleColor,
+                  color: mainPurpleColor,
+                  decorationColor:
+                      mainPurpleColor, // Ensure underline color matches text color
                   decoration: TextDecoration.underline,
                 ),
               ),

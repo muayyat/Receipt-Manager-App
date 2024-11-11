@@ -60,6 +60,8 @@ class SignUpPageState extends State<SignUpPage> {
         // Send email verification
         await newUser.sendEmailVerification();
 
+        print(newUser.email);
+
         // Navigate to verification link page
         Navigator.push(
           context,
@@ -221,12 +223,13 @@ class SignUpPageState extends State<SignUpPage> {
             SizedBox(height: 20),
             CustomButton(
               text: "Sign Up",
-              backgroundColor: _isChecked
-                  ? mainPurpleColor
-                  : Colors.grey, // Purple when checked, grey otherwise
+              backgroundColor: _isChecked ? mainPurpleColor : Colors.grey,
               textColor: _isChecked ? backgroundBaseColor : Colors.black54,
-              onPressed: () =>
-                  _isChecked ? _registerUser : null, // Enable only if checked
+              onPressed: _isChecked
+                  ? () async {
+                      await _registerUser();
+                    }
+                  : () {}, // No-op function when unchecked
             ),
             SizedBox(height: 16),
             Center(
