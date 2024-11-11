@@ -40,9 +40,6 @@ class SignUpPageState extends State<SignUpPage> {
   }
 
   Future<void> _registerUser() async {
-    // Capture the ScaffoldMessenger for showing SnackBar
-    final messenger = ScaffoldMessenger.of(context);
-
     if (!_isChecked) return;
 
     try {
@@ -224,10 +221,12 @@ class SignUpPageState extends State<SignUpPage> {
             SizedBox(height: 20),
             CustomButton(
               text: "Sign Up",
-              backgroundColor: mainPurpleColor,
-              textColor: backgroundBaseColor,
+              backgroundColor: _isChecked
+                  ? mainPurpleColor
+                  : Colors.grey, // Purple when checked, grey otherwise
+              textColor: _isChecked ? backgroundBaseColor : Colors.black54,
               onPressed: () =>
-                  _isChecked ? _registerUser : null, // Register action
+                  _isChecked ? _registerUser : null, // Enable only if checked
             ),
             SizedBox(height: 16),
             Center(
