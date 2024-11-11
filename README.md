@@ -129,6 +129,14 @@ The application uses the [Open Exchange Rates API](https://openexchangerates.org
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## UI Design
+This app's user interface draws inspiration from a mix of Figma templates, incorporating key elements from multiple sources to create a cohesive and user-friendly experience. The design combines various layouts, styling, and interactive components from the following Figma templates:
+
+- **Template 1**: [Monex - Expense Management (UI Kit)](https://www.figma.com/community/file/1335908056135868735)
+- **Template 2**: [Kitty - Expense Management](https://www.figma.com/community/file/1141026080000052242)
+- **Template 3**: [Montra - Expense Tracker UI Kit](https://www.figma.com/community/file/998557875473123405)
+- **Template 4**: [Budget Planner - App Design @abdurrehman94](https://www.figma.com/community/file/1436739978116818897/budget-planner-app-design-abdurrehman94)
+
 ## Acknowledgments
 
 Thank you to the Flutter community and the contributors to the libraries used in this project.
