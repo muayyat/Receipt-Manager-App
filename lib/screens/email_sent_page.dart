@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:receipt_manager/constants/app_colors.dart';
 
+import '../components/custom_button.dart';
+import 'login_page.dart';
+
 class EmailSentPage extends StatelessWidget {
   static const String id = 'email_sent_page';
   final String email;
@@ -36,27 +39,19 @@ class EmailSentPage extends StatelessWidget {
                 'Check your email $email and follow the instructions to reset your password',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.black54,
+                  color: textSubtleColor,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
               // Back to Login Button
-              ElevatedButton(
+              CustomButton(
+                text: "Back to Login",
+                backgroundColor: mainPurpleColor,
+                textColor: backgroundBaseColor,
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pushNamed(context, LogInPage.id);
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: mainPurpleColor, // Button color
-                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: Text(
-                  'Back to Login',
-                  style: TextStyle(fontSize: 16, color: backgroundBaseColor),
-                ),
               ),
             ],
           ),
