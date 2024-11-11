@@ -24,7 +24,7 @@ class AuthService {
       );
       return userCredential.user;
     } on FirebaseAuthException catch (e) {
-      logger.e("Error signing in: $e");
+      logger.e("Error signing in: ${e.message}");
       rethrow; // Rethrow to be caught by the calling function
     }
   }
@@ -38,7 +38,7 @@ class AuthService {
       return userCredential.user;
     } on FirebaseAuthException catch (e) {
       logger.e("FirebaseAuthException: ${e.message}");
-      return null;
+      rethrow;
     } catch (e) {
       logger.e("Unknown error during registration: $e");
       return null;

@@ -65,12 +65,9 @@ class SignUpPageState extends State<SignUpPage> {
       // Register the user using AuthService
       final newUser = await AuthService.registerWithEmail(email, password);
 
-      print(newUser?.email);
       if (newUser != null) {
         // Send email verification
         await newUser.sendEmailVerification();
-
-        print('sending');
 
         // Save username to the profile using UserService
         await _userService.addUserProfile(
@@ -91,11 +88,6 @@ class SignUpPageState extends State<SignUpPage> {
     } on FirebaseAuthException catch (e) {
       setState(() {
         errorMessage = extractErrorMessage(e);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
-        );
-        print("Error message set to: $errorMessage"); // Debugging line
       });
     } catch (e) {
       setState(() {
