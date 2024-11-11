@@ -31,6 +31,23 @@ class UserService {
         .snapshots();
   }
 
+  // Add new user with only username
+  Future<void> addUserProfile(
+      {required String userEmail, required String userName}) async {
+    // Reference to the user's document in Firestore using their email as document ID
+    DocumentReference userDocRef =
+        _firestore.collection('users').doc(userEmail);
+
+    // Create a new user profile document with only the username
+    await userDocRef.set({
+      'userName': userName,
+      'phoneNumber': '', // Empty field
+      'city': '', // Empty field
+      'country': '', // Empty field
+      'profileImagePath': '', // Empty field
+    }, SetOptions(merge: true));
+  }
+
   // Add or update user profile data
   Future<void> updateUserProfile({
     required String userName,

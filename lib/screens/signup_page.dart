@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../constants/app_colors.dart';
-import 'login_screen.dart'; // Adjust the path for your color definitions
+import '../services/auth_service.dart';
+import '../services/user_service.dart'; // Add UserService import
+import 'login_screen.dart';
 
 class SignUpPage extends StatefulWidget {
   static const String id = 'sign_up_page';
@@ -16,13 +19,74 @@ class SignUpPage extends StatefulWidget {
 class SignUpPageState extends State<SignUpPage> {
   bool _isChecked = false;
   bool _isPasswordVisible = false; // Track password visibility
+  String email = '';
+  String password = '';
+  String userName = '';
+  String errorMessage = ''; // To display errors
 
   final TapGestureRecognizer _loginRecognizer = TapGestureRecognizer();
+  final TextEditingController _userNameController = TextEditingController();
+
+  // Create an instance of UserService
+  final UserService _userService = UserService();
 
   @override
   void dispose() {
     _loginRecognizer.dispose();
+    _userNameController.dispose();
     super.dispose();
+  }
+
+  Future<void> _registerUser() async {
+    // Capture the ScaffoldMessenger for showing SnackBar
+    final messenger = ScaffoldMessenger.of(context);
+
+    if (!_isChecked) return;
+
+    try {
+      setState(() {
+        errorMessage = ''; // Clear previous errors
+      });
+
+      // Register the user using AuthService
+      final newUser = await AuthService.registerWithEmail(email, password);
+
+      if (newUser != null) {
+        // Save username to the profile using UserService
+        await _userService.addUserProfile(
+          userEmail: email,
+          userName: userName,
+        );
+
+        // Send email verification
+        await newUser.sendEmailVerification();
+
+        // Show verification email message
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Verification email sent! Please check your inbox.'),
+          ),
+        );
+
+        // Sign out the user after registration
+        await AuthService.signOut();
+
+        // Navigate to WelcomeScreen after registration and sign out
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            Navigator.pushNamed(context, LoginScreen.id); // Adjust as needed
+          }
+        });
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        errorMessage = e.message ?? 'An error occurred. Please try again.';
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = 'An error occurred. Please try again later.';
+      });
+    }
   }
 
   @override
@@ -53,6 +117,10 @@ class SignUpPageState extends State<SignUpPage> {
           children: [
             SizedBox(height: 20),
             TextFormField(
+              controller: _userNameController,
+              onChanged: (value) {
+                userName = value;
+              },
               decoration: InputDecoration(
                 labelText: "Name",
                 labelStyle: TextStyle(color: textSecondaryColor),
@@ -68,6 +136,9 @@ class SignUpPageState extends State<SignUpPage> {
             ),
             SizedBox(height: 16),
             TextFormField(
+              onChanged: (value) {
+                email = value;
+              },
               decoration: InputDecoration(
                 labelText: "Email",
                 labelStyle: TextStyle(color: textSecondaryColor),
@@ -83,7 +154,10 @@ class SignUpPageState extends State<SignUpPage> {
             ),
             SizedBox(height: 16),
             TextFormField(
-              obscureText: true,
+              onChanged: (value) {
+                password = value;
+              },
+              obscureText: !_isPasswordVisible, // Toggle password visibility
               decoration: InputDecoration(
                 labelText: "Password",
                 labelStyle: TextStyle(color: textSecondaryColor),
@@ -146,13 +220,17 @@ class SignUpPageState extends State<SignUpPage> {
                 ),
               ],
             ),
+            if (errorMessage.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  errorMessage,
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _isChecked
-                  ? () {
-                      // Sign Up action
-                    }
-                  : null, // Disabled if checkbox is unchecked
+              onPressed: _isChecked ? _registerUser : null, // Register action
               style: ElevatedButton.styleFrom(
                 backgroundColor: mainPurpleColor,
                 minimumSize: Size(double.infinity, 48),
@@ -190,13 +268,12 @@ class SignUpPageState extends State<SignUpPage> {
                     TextSpan(
                       text: "Login",
                       style: TextStyle(
-                        color: mainPurpleColor, fontSize: 16,
-                        decoration: TextDecoration.underline, // Add underline
+                        color: mainPurpleColor,
+                        fontSize: 16,
+                        decoration: TextDecoration.underline,
                       ),
-                      // Add gesture recognizer
                       recognizer: _loginRecognizer
                         ..onTap = () {
-                          // Navigate to Login page
                           Navigator.pushNamed(context, LoginScreen.id);
                         },
                     ),

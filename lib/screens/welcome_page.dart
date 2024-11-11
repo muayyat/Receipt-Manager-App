@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:receipt_manager/constants/app_colors.dart';
 import 'package:receipt_manager/screens/login_screen.dart';
-import 'package:receipt_manager/screens/registration_screen.dart';
+import 'package:receipt_manager/screens/signup_page.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class WelcomePage extends StatefulWidget {
@@ -34,19 +34,19 @@ class WelcomePageState extends State<WelcomePage> {
               controller: _pageController,
               children: [
                 buildPage(
-                  image: "images/control.png",
+                  image: "assets/images/control.png",
                   title: "Gain total control of your money",
                   subtitle:
                       "Become your own money manager and make every cent count",
                 ),
                 buildPage(
-                  image: "images/track.png",
+                  image: "assets/images/track.png",
                   title: "Know where your money goes",
                   subtitle:
                       "Track your transaction easily, with categories and financial report",
                 ),
                 buildPage(
-                  image: "images/plan.png",
+                  image: "assets/images/plan.png",
                   title: "Planning ahead",
                   subtitle:
                       "Setup your budget for each category so you stay in control",
@@ -72,7 +72,7 @@ class WelcomePageState extends State<WelcomePage> {
                 ElevatedButton(
                   onPressed: () {
                     // Navigate to Sign Up page
-                    Navigator.pushNamed(context, RegistrationScreen.id);
+                    Navigator.pushNamed(context, SignUpPage.id);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: mainPurpleColor, // Background color
@@ -138,7 +138,7 @@ class WelcomePageState extends State<WelcomePage> {
             style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 32,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w700, // Use Bold
                 color: textPrimaryColor),
           ),
           SizedBox(height: 16),
@@ -148,7 +148,7 @@ class WelcomePageState extends State<WelcomePage> {
             style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 16,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w200, // Use ExtraLight
                 color: textSecondaryColor),
           ),
         ],
