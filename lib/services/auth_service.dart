@@ -23,9 +23,9 @@ class AuthService {
         password: password,
       );
       return userCredential.user;
-    } catch (e) {
+    } on FirebaseAuthException catch (e) {
       logger.e("Error signing in: $e");
-      return null;
+      rethrow; // Rethrow to be caught by the calling function
     }
   }
 

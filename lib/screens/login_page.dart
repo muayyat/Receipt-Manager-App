@@ -7,6 +7,7 @@ import 'package:receipt_manager/services/auth_service.dart';
 
 import '../components/custom_button.dart';
 import '../components/underline_text.dart';
+import '../logger.dart';
 import 'forgot_password_page.dart';
 
 class LogInPage extends StatefulWidget {
@@ -26,6 +27,9 @@ class LogInPageState extends State<LogInPage> {
 
   // Method to extract error message from FirebaseAuthException
   String extractErrorMessage(FirebaseAuthException e) {
+    logger.e('FirebaseAuthException code: ${e.code}');
+    logger.e('FirebaseAuthException error: ${e.toString()}');
+
     switch (e.code) {
       case 'invalid-email':
         return 'The email address is not valid.';
