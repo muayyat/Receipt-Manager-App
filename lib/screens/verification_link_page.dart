@@ -7,30 +7,44 @@ import '../components/custom_button.dart';
 import '../components/underline_text.dart';
 import '../constants/app_colors.dart';
 
-class VerificationLinkPage extends StatelessWidget {
+class VerificationLinkPage extends StatefulWidget {
   static const String id = 'verification_link_page';
   final User user;
 
   const VerificationLinkPage({super.key, required this.user});
 
+  @override
+  VerificationLinkPageState createState() => VerificationLinkPageState();
+}
+
+class VerificationLinkPageState extends State<VerificationLinkPage> {
   String getMaskedEmail(String email) {
     final emailParts = email.split('@');
     final maskedName = '${emailParts[0].substring(0, 5)}*****';
     return '$maskedName@${emailParts[1]}';
   }
 
-  Future<void> _resendVerificationEmail(BuildContext context, User user) async {
+  Future<void> _resendVerificationEmail() async {
     try {
-      await user.sendEmailVerification();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text("Verification link sent again to ${user.email}")),
-      );
+      await widget.user.sendEmailVerification();
+
+      // Check if the widget is still mounted before showing the SnackBar
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text("Verification link sent again to ${widget.user.email}"),
+          ),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text("Failed to send verification email. Try again.")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to send verification email. Try again."),
+          ),
+        );
+      }
     }
   }
 
@@ -88,7 +102,7 @@ class VerificationLinkPage extends StatelessWidget {
                 children: [
                   TextSpan(text: 'We sent a verification link to your email '),
                   TextSpan(
-                    text: getMaskedEmail(user.email ?? ''),
+                    text: getMaskedEmail(widget.user.email ?? ''),
                     style: TextStyle(color: mainPurpleColor),
                   ),
                   TextSpan(text: '. Please check your inbox.'),
@@ -101,7 +115,7 @@ class VerificationLinkPage extends StatelessWidget {
                 children: [
                   underlineTextSpan(
                     text: "I didn’t receive the link? Send again",
-                    onTap: () => _resendVerificationEmail(context, user),
+                    onTap: _resendVerificationEmail,
                   ),
                 ],
               ),
