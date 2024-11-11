@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:receipt_manager/screens/login_page.dart';
@@ -7,15 +8,29 @@ import '../constants/app_colors.dart';
 
 class VerificationLinkPage extends StatelessWidget {
   static const String id = 'verification_link_page';
-  final String email;
+  final User user;
 
-  const VerificationLinkPage({super.key, required this.email});
+  const VerificationLinkPage({super.key, required this.user});
 
   String getMaskedEmail(String email) {
-    // Mask part of the email for display
     final emailParts = email.split('@');
     final maskedName = '${emailParts[0].substring(0, 5)}*****';
     return '$maskedName@${emailParts[1]}';
+  }
+
+  Future<void> _resendVerificationEmail(BuildContext context, User user) async {
+    try {
+      await user.sendEmailVerification();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text("Verification link sent again to ${user.email}")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text("Failed to send verification email. Try again.")),
+      );
+    }
   }
 
   @override
@@ -41,7 +56,6 @@ class VerificationLinkPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 32),
-            // Title Text
             Text(
               'Please verify your email',
               style: TextStyle(
@@ -51,7 +65,6 @@ class VerificationLinkPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 40),
-            // Countdown Timer Text
             Text(
               DateFormat('HH:mm').format(DateTime.now()),
               style: TextStyle(
@@ -61,7 +74,6 @@ class VerificationLinkPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            // Instructions and masked email
             RichText(
               text: TextSpan(
                 style: TextStyle(
@@ -69,40 +81,34 @@ class VerificationLinkPage extends StatelessWidget {
                   color: textPrimaryColor,
                 ),
                 children: [
-                  TextSpan(text: 'We send verification link to your email '),
+                  TextSpan(text: 'We sent a verification link to your email '),
                   TextSpan(
-                    text: getMaskedEmail(email),
+                    text: getMaskedEmail(user.email ?? ''),
                     style: TextStyle(color: mainPurpleColor),
                   ),
-                  TextSpan(text: '. You can check your inbox.'),
+                  TextSpan(text: '. Please check your inbox.'),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-            // Resend link text
             GestureDetector(
-              onTap: () {
-                // Add logic to resend the link
-              },
+              onTap: () => _resendVerificationEmail(context, user),
               child: Text(
                 "I didn’t receive the link? Send again",
                 style: TextStyle(
                   fontSize: 14,
                   color: mainPurpleColor,
-                  decorationColor:
-                      mainPurpleColor, // Ensure underline color matches text color
+                  decorationColor: mainPurpleColor,
                   decoration: TextDecoration.underline,
                 ),
               ),
             ),
             Spacer(),
-            // Continue Button
             CustomButton(
               text: "Continue",
               backgroundColor: mainPurpleColor,
               textColor: backgroundBaseColor,
               onPressed: () {
-                // Navigate to the Log in page
                 Navigator.push(
                   context,
                   MaterialPageRoute(

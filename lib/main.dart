@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:receipt_manager/screens/add_update_receipt_screen.dart';
@@ -40,7 +41,7 @@ class MyApp extends StatelessWidget {
         WelcomePage.id: (context) => WelcomePage(),
         SignUpPage.id: (context) => SignUpPage(),
         VerificationLinkPage.id: (context) => VerificationLinkPage(
-              email: '',
+              user: FirebaseAuth.instance.currentUser!,
             ),
         LogInPage.id: (context) => LogInPage(),
         ForgotPasswordPage.id: (context) => ForgotPasswordPage(),

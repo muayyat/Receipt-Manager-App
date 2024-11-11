@@ -32,6 +32,20 @@ class SignUpPageState extends State<SignUpPage> {
   // Create an instance of UserService
   final UserService _userService = UserService();
 
+  // Function to extract error message from FirebaseAuthException
+  String extractErrorMessage(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'invalid-email':
+        return 'The email address is not valid.';
+      case 'weak-password':
+        return 'The password is too weak. Please choose a stronger password.';
+      case 'email-already-in-use':
+        return 'An account already exists with this email.';
+      default:
+        return 'An unexpected error occurred. Please try again.';
+    }
+  }
+
   @override
   void dispose() {
     _loginRecognizer.dispose();
@@ -66,13 +80,15 @@ class SignUpPageState extends State<SignUpPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => VerificationLinkPage(email: email),
+            builder: (context) => VerificationLinkPage(
+              user: newUser,
+            ),
           ),
         );
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
-        errorMessage = e.message ?? 'An error occurred. Please try again.';
+        errorMessage = extractErrorMessage(e);
       });
     } catch (e) {
       setState(() {
