@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:receipt_manager/constants/app_colors.dart';
 import 'package:receipt_manager/screens/email_sent_page.dart';
 
-import '../components/custom_button.dart'; // Replace with your color definitions file
+import '../components/custom_button.dart';
+import '../components/custom_text_form_field.dart'; // Replace with your color definitions file
 
 class ForgotPasswordPage extends StatefulWidget {
   static const String id = 'forgot_password_page';
@@ -15,30 +16,35 @@ class ForgotPasswordPage extends StatefulWidget {
 }
 
 class ForgotPasswordPageState extends State<ForgotPasswordPage> {
-  final TextEditingController _emailController = TextEditingController();
+  String email = '';
   String errorMessage = '';
 
   // Method to handle password reset
   Future<void> _resetPassword() async {
+    if (!mounted) return;
+
     setState(() {
       errorMessage = ''; // Clear any previous error message
     });
 
     try {
-      await FirebaseAuth.instance
-          .sendPasswordResetEmail(email: _emailController.text.trim());
-      // Navigate to Email Sent Page
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              EmailSentPage(email: _emailController.text.trim()),
-        ),
-      );
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+
+      // Check if the widget is still mounted before navigating
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EmailSentPage(email: email),
+          ),
+        );
+      }
     } catch (e) {
-      setState(() {
-        errorMessage = 'Error: ${e.toString()}';
-      });
+      if (mounted) {
+        setState(() {
+          errorMessage = 'Error: ${e.toString()}';
+        });
+      }
     }
   }
 
@@ -86,20 +92,11 @@ class ForgotPasswordPageState extends State<ForgotPasswordPage> {
               ),
             ),
             SizedBox(height: 24),
-            TextFormField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                labelText: "Email",
-                labelStyle: TextStyle(color: textSecondaryColor),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16.0),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16.0),
-                  borderSide: BorderSide(color: mainPurpleColor),
-                ),
-              ),
+            CustomTextFormField(
+              labelText: "Email",
+              onChanged: (value) {
+                email = value;
+              },
             ),
             if (errorMessage.isNotEmpty)
               Padding(
@@ -116,7 +113,7 @@ class ForgotPasswordPageState extends State<ForgotPasswordPage> {
               backgroundColor: mainPurpleColor,
               textColor: backgroundBaseColor,
               onPressed: () {
-                if (_emailController.text.isEmpty) {
+                if (email.isEmpty) {
                   setState(() {
                     errorMessage = 'Please enter your email address.';
                   });

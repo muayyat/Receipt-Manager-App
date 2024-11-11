@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:receipt_manager/screens/verification_link_page.dart';
 
 import '../components/custom_button.dart';
+import '../components/custom_password_form_field.dart';
+import '../components/custom_text_form_field.dart';
 import '../components/underline_text.dart';
 import '../constants/app_colors.dart';
 import '../services/auth_service.dart';
@@ -21,7 +23,6 @@ class SignUpPage extends StatefulWidget {
 
 class SignUpPageState extends State<SignUpPage> {
   bool _isChecked = false;
-  bool _isPasswordVisible = false; // Track password visibility
   String email = '';
   String password = '';
   String userName = '';
@@ -130,73 +131,25 @@ class SignUpPageState extends State<SignUpPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 20),
-              TextFormField(
-                controller: _userNameController,
+              CustomTextFormField(
+                labelText: "Name",
                 onChanged: (value) {
                   userName = value;
                 },
-                decoration: InputDecoration(
-                  labelText: "Name",
-                  labelStyle: TextStyle(color: textSecondaryColor),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16.0),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16.0),
-                    borderSide: BorderSide(color: mainPurpleColor),
-                  ),
-                ),
               ),
               SizedBox(height: 16),
-              TextFormField(
+              CustomTextFormField(
+                labelText: "Email",
                 onChanged: (value) {
                   email = value;
                 },
-                decoration: InputDecoration(
-                  labelText: "Email",
-                  labelStyle: TextStyle(color: textSecondaryColor),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16.0),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16.0),
-                    borderSide: BorderSide(color: mainPurpleColor),
-                  ),
-                ),
               ),
               SizedBox(height: 16),
-              TextFormField(
+              CustomPasswordFormField(
+                labelText: "Password",
                 onChanged: (value) {
                   password = value;
                 },
-                obscureText: !_isPasswordVisible, // Toggle password visibility
-                decoration: InputDecoration(
-                  labelText: "Password",
-                  labelStyle: TextStyle(color: textSecondaryColor),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16.0),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16.0),
-                    borderSide: BorderSide(color: mainPurpleColor),
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isPasswordVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      color: Colors.grey,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
-                  ),
-                ),
               ),
               SizedBox(height: 16),
               Row(

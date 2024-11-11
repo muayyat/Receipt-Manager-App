@@ -6,6 +6,8 @@ import 'package:receipt_manager/screens/signup_page.dart';
 import 'package:receipt_manager/services/auth_service.dart';
 
 import '../components/custom_button.dart';
+import '../components/custom_password_form_field.dart';
+import '../components/custom_text_form_field.dart';
 import '../components/underline_text.dart';
 import '../logger.dart';
 import 'forgot_password_page.dart';
@@ -20,7 +22,6 @@ class LogInPage extends StatefulWidget {
 }
 
 class LogInPageState extends State<LogInPage> {
-  bool _isPasswordVisible = false;
   String email = '';
   String password = '';
   String errorMessage = '';
@@ -91,37 +92,18 @@ class LogInPageState extends State<LogInPage> {
                   ),
                 ),
               ),
+              CustomTextFormField(
+                labelText: "Email",
+                onChanged: (value) {
+                  email = value;
+                },
+              ),
               SizedBox(height: 16),
-              TextFormField(
+              CustomPasswordFormField(
+                labelText: "Password",
                 onChanged: (value) {
                   password = value;
                 },
-                obscureText: !_isPasswordVisible, // Toggle password visibility
-                decoration: InputDecoration(
-                  labelText: "Password",
-                  labelStyle: TextStyle(color: textSecondaryColor),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16.0),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16.0),
-                    borderSide: BorderSide(color: mainPurpleColor),
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isPasswordVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      color: Colors.grey,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
-                  ),
-                ),
               ),
               if (errorMessage.isNotEmpty)
                 Padding(
