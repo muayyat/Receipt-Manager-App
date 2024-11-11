@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../components/custom_button.dart';
 import '../constants/app_colors.dart';
 import '../services/auth_service.dart';
 import '../services/user_service.dart'; // Add UserService import
@@ -230,23 +231,12 @@ class SignUpPageState extends State<SignUpPage> {
                 ),
               ),
             SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _isChecked ? _registerUser : null, // Register action
-              style: ElevatedButton.styleFrom(
-                backgroundColor: mainPurpleColor,
-                minimumSize: Size(double.infinity, 48),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: Text(
-                "Sign Up",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+            CustomButton(
+              text: "Sign Up",
+              backgroundColor: mainPurpleColor,
+              textColor: backgroundBaseColor,
+              onPressed: () =>
+                  _isChecked ? _registerUser : null, // Register action
             ),
             SizedBox(height: 16),
             Center(

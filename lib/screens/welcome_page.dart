@@ -4,6 +4,8 @@ import 'package:receipt_manager/screens/login_page.dart';
 import 'package:receipt_manager/screens/signup_page.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
+import '../components/custom_button.dart';
+
 class WelcomePage extends StatefulWidget {
   static const String id = 'welcome_page';
 
@@ -69,48 +71,24 @@ class WelcomePageState extends State<WelcomePage> {
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
               children: [
-                ElevatedButton(
+                CustomButton(
+                  text: "Sign Up",
+                  backgroundColor: mainPurpleColor,
+                  textColor: backgroundBaseColor,
                   onPressed: () {
                     // Navigate to Sign Up page
                     Navigator.pushNamed(context, SignUpPage.id);
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: mainPurpleColor, // Background color
-                    minimumSize: Size(double.infinity, 48), // Full-width button
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: Text(
-                    "Sign Up",
-                    style: TextStyle(
-                      color: backgroundBaseColor,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
                 ),
                 SizedBox(height: 12),
-                ElevatedButton(
+                CustomButton(
+                  text: "Login",
+                  backgroundColor: lightPurpleColor,
+                  textColor: mainPurpleColor,
                   onPressed: () {
                     // Navigate to Login page
                     Navigator.pushNamed(context, LogInPage.id);
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: lightPurpleColor, // Background color
-                    minimumSize: Size(double.infinity, 48), // Full-width button
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: Text(
-                    "Login",
-                    style: TextStyle(
-                      color: mainPurpleColor,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
                 ),
               ],
             ),

@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:receipt_manager/constants/app_colors.dart';
-import 'package:receipt_manager/screens/email_sent_page.dart'; // Replace with your color definitions file
+import 'package:receipt_manager/screens/email_sent_page.dart';
+
+import '../components/custom_button.dart'; // Replace with your color definitions file
 
 class ForgotPasswordPage extends StatefulWidget {
   static const String id = 'forgot_password_page';
@@ -109,7 +111,10 @@ class ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 ),
               ),
             SizedBox(height: 24),
-            ElevatedButton(
+            CustomButton(
+              text: "Continue",
+              backgroundColor: mainPurpleColor,
+              textColor: backgroundBaseColor,
               onPressed: () {
                 if (_emailController.text.isEmpty) {
                   setState(() {
@@ -119,21 +124,6 @@ class ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   _resetPassword();
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: mainPurpleColor,
-                minimumSize: Size(double.infinity, 48),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: Text(
-                "Continue",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
             ),
           ],
         ),
