@@ -1,13 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:receipt_manager/screens/verification_link_page.dart';
 
 import '../components/custom_button.dart';
 import '../constants/app_colors.dart';
 import '../services/auth_service.dart';
 import '../services/user_service.dart'; // Add UserService import
 import 'login_page.dart';
-import 'old/login_screen.dart';
 
 class SignUpPage extends StatefulWidget {
   static const String id = 'sign_up_page';
@@ -63,22 +63,13 @@ class SignUpPageState extends State<SignUpPage> {
         // Send email verification
         await newUser.sendEmailVerification();
 
-        // Show verification email message
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text('Verification email sent! Please check your inbox.'),
+        // Navigate to verification link page
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VerificationLinkPage(email: email),
           ),
         );
-
-        // Sign out the user after registration
-        await AuthService.signOut();
-
-        // Navigate to WelcomeScreen after registration and sign out
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            Navigator.pushNamed(context, LoginScreen.id); // Adjust as needed
-          }
-        });
       }
     } on FirebaseAuthException catch (e) {
       setState(() {

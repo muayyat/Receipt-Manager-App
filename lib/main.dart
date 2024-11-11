@@ -15,6 +15,7 @@ import 'package:receipt_manager/screens/set_budget_page.dart';
 import 'package:receipt_manager/screens/setting_screen.dart';
 import 'package:receipt_manager/screens/signup_page.dart';
 import 'package:receipt_manager/screens/summary_screen.dart';
+import 'package:receipt_manager/screens/verification_link_page.dart';
 import 'package:receipt_manager/screens/welcome_page.dart';
 
 import 'firebase_options.dart';
@@ -38,6 +39,9 @@ class MyApp extends StatelessWidget {
       routes: {
         WelcomePage.id: (context) => WelcomePage(),
         SignUpPage.id: (context) => SignUpPage(),
+        VerificationLinkPage.id: (context) => VerificationLinkPage(
+              email: '',
+            ),
         LogInPage.id: (context) => LogInPage(),
         ForgotPasswordPage.id: (context) => ForgotPasswordPage(),
         EmailSentPage.id: (context) => EmailSentPage(
