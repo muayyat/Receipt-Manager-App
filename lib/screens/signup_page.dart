@@ -75,24 +75,30 @@ class SignUpPageState extends State<SignUpPage> {
           userName: userName,
         );
 
-        // Navigate to verification link page
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => VerificationLinkPage(
-              user: newUser,
+        // Check if the widget is still mounted before navigating
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => VerificationLinkPage(
+                user: newUser,
+              ),
             ),
-          ),
-        );
+          );
+        }
       }
     } on FirebaseAuthException catch (e) {
-      setState(() {
-        errorMessage = extractErrorMessage(e);
-      });
+      if (mounted) {
+        setState(() {
+          errorMessage = extractErrorMessage(e);
+        });
+      }
     } catch (e) {
-      setState(() {
-        errorMessage = 'An error occurred. Please try again later.';
-      });
+      if (mounted) {
+        setState(() {
+          errorMessage = 'An error occurred. Please try again later.';
+        });
+      }
     }
   }
 
