@@ -87,6 +87,8 @@ flutter:
      - assets/images/control.png
      - assets/images/track.png
      - assets/images/plan.png
+     - assets/images/email_sent.png
+     - assets/images/table.png
      - assets/tessdata_config.json
      - assets/tessdata/eng.traineddata
      - assets/tessdata/fin.traineddata
